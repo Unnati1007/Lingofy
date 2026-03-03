@@ -87,7 +87,7 @@ lingofy/
 
 ## 🏗️ System Architecture
 
-![System Architecture](system-archietecture\architecture-1.png)
+![System Architecture](system-archietecture/architecture-1.png)
 
 
 
