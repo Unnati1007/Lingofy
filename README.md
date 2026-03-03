@@ -83,6 +83,14 @@ lingofy/
 └── .gitignore
 ```
 
+---
+
+## 🏗️ System Architecture
+
+![System Architecture](archietecture 1.png)
+
+
+
 
 ---
 
