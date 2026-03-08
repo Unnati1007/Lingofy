@@ -1,21 +1,29 @@
 {
-  "name": "backend",
+  "name": "lingofy-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Backend API for Lingofy",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon --watch src --exec ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "helmet": "^7.0.0",
+    "mongoose": "^9.2.4",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
-    "@types/node": "^25.3.3",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^25.3.5",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
