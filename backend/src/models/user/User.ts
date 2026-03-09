@@ -1,5 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+import bcryptjs from "bcryptjs";
+
 export interface IUser extends Document {
   name: string;
   email: string;
@@ -10,6 +12,7 @@ export interface IUser extends Document {
   role: "user" | "admin";
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const UserSchema: Schema<IUser> = new Schema(
@@ -59,6 +62,16 @@ const UserSchema: Schema<IUser> = new Schema(
     timestamps: true
   }
 );
+
+UserSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  const salt = await bcryptjs.genSalt(10);
+  this.password = await bcryptjs.hash(this.password, salt);
+});
+
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  return bcryptjs.compare(candidatePassword, this.password);
+};
 
 const User: Model<IUser> = mongoose.model<IUser>("User", UserSchema);
 

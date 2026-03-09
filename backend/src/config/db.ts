@@ -3,7 +3,8 @@ import { env } from "./env";
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(env.MONGO_URI);
+    const uri = env.MONGO_URI || "mongodb://127.0.0.1:27017/lingofy";
+    await mongoose.connect(uri);
     console.log("MongoDB Connected");
   } catch (error) {
     console.error("Database connection error:", error);
