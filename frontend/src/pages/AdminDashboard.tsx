@@ -11,9 +11,11 @@ import {
   Send,
   Loader2,
   CheckCircle2,
-  X
+  X,
+  BarChart3
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const AdminDashboard = () => {
   const [form, setForm] = useState({
@@ -30,7 +32,8 @@ const AdminDashboard = () => {
   const [translations, setTranslations] = useState<{ hindi: any[], spanish: any[] } | null>(null);
   const [showToast, setShowToast] = useState(false);
   
-  const [activeView, setActiveView] = useState<'add-song' | 'users'>('add-song');
+  const [activeView, setActiveView] = useState<'add-song' | 'users' | 'analytics'>('analytics');
+  const [analyticsData, setAnalyticsData] = useState<{ traditional: any, music: any } | null>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -48,7 +51,7 @@ const AdminDashboard = () => {
     setUsersLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/admin/users', {
+      const response = await axios.get('http://localhost:5000/api/users', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setUsers(response.data);
@@ -57,6 +60,22 @@ const AdminDashboard = () => {
       alert('Failed to fetch users list');
     } finally {
       setUsersLoading(false);
+    }
+  };
+
+  const handleToggleUserMode = async (e: React.MouseEvent, userId: string, currentMode: string) => {
+    e.stopPropagation();
+    try {
+      const token = localStorage.getItem('token');
+      const newMode = currentMode === 'music' ? 'traditional' : 'music';
+      await axios.put(`http://localhost:5000/api/users/${userId}/mode`, { mode: newMode }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      // Update local state
+      setUsers(users.map(u => u._id === userId ? { ...u, learningMode: newMode } : u));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to change user mode');
     }
   };
 
@@ -117,8 +136,23 @@ const AdminDashboard = () => {
       setSelectedUser(null);
       setSelectedUserAttempts([]);
       setSelectedUserProgress(null);
+    } else if (activeView === 'analytics') {
+      fetchAnalytics();
     }
   }, [activeView]);
+
+  const fetchAnalytics = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/admin/analytics/comparison', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setAnalyticsData(response.data);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to fetch analytics data');
+    }
+  };
 
   const handlePreview = () => {
     const lines = form.lyrics.split('\n').filter(line => line.trim() !== '');
@@ -206,6 +240,72 @@ const AdminDashboard = () => {
     setTranslations(null);
   };
 
+  const renderAnalyticsView = () => {
+    if (!analyticsData) return <div style={{ padding: '40px', textAlign: 'center', opacity: 0.5 }}>Loading Analytics...</div>;
+    
+    const accuracyData = [
+      { name: 'Traditional Mode', accuracy: Math.round(analyticsData.traditional.averageAccuracy) || 0, fill: '#ef4444' },
+      { name: 'Music Mode', accuracy: Math.round(analyticsData.music.averageAccuracy) || 0, fill: '#12d15e' }
+    ];
+
+    const engagementData = [
+      { name: 'Traditional Mode', value: analyticsData.traditional.totalAttempts || 0 },
+      { name: 'Music Mode', value: analyticsData.music.totalAttempts || 0 }
+    ];
+    const COLORS = ['#ef4444', '#12d15e'];
+
+    return (
+      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>Research Analytics</h1>
+          <p style={{ opacity: 0.5 }}>Compare performance metrics between the Traditional (Control) and Music (Experimental) groups.</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+          {/* Accuracy Chart */}
+          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px', textAlign: 'center' }}>Average Accuracy (%)</h3>
+            <div style={{ height: '300px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={accuracyData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                  <RechartsTooltip cursor={{ fill: '#27272a' }} contentStyle={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
+                  <Bar dataKey="accuracy" radius={[6, 6, 0, 0]}>
+                    {accuracyData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Measures the percentage of correctly answered questions per session.</p>
+          </div>
+
+          {/* Engagement Chart */}
+          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px', textAlign: 'center' }}>Total Engagement (Attempts)</h3>
+            <div style={{ height: '300px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={engagementData} cx="50%" cy="50%" innerRadius={70} outerRadius={110} paddingAngle={5} dataKey="value" stroke="none">
+                    {engagementData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip contentStyle={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Total number of quizzes initiated by users in each group.</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderUsersView = () => {
     return (
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -251,10 +351,37 @@ const AdminDashboard = () => {
                       }}
                     >
                       <div>
-                        <div style={{ fontSize: '15px', fontWeight: 'bold', color: isSelected ? '#a855f7' : '#fff' }}>{user.name}</div>
+                        <div style={{ fontSize: '15px', fontWeight: 'bold', color: isSelected ? '#a855f7' : '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {user.name}
+                          <span style={{ 
+                            fontSize: '10px', 
+                            padding: '2px 6px', 
+                            borderRadius: '4px', 
+                            background: user.learningMode === 'traditional' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(18, 209, 94, 0.2)',
+                            color: user.learningMode === 'traditional' ? '#3b82f6' : '#12d15e'
+                          }}>
+                            {user.learningMode === 'traditional' ? 'Traditional' : 'Music'}
+                          </span>
+                        </div>
                         <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '2px' }}>{user.email}</div>
                       </div>
                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                        <button
+                          onClick={(e) => handleToggleUserMode(e, user._id, user.learningMode)}
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#fff',
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            fontSize: '10px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            marginBottom: '4px'
+                          }}
+                        >
+                          Switch Mode
+                        </button>
                         <span style={{ fontSize: '11px', opacity: 0.4 }}>
                           Joined {new Date(user.createdAt).toLocaleDateString()}
                         </span>
@@ -426,6 +553,12 @@ const AdminDashboard = () => {
             active={false} 
           />
           <SidebarItem 
+            icon={<BarChart3 size={18} />} 
+            label="Analytics" 
+            active={activeView === 'analytics'} 
+            onClick={() => setActiveView('analytics')}
+          />
+          <SidebarItem 
             icon={<Users size={18} />} 
             label="Users" 
             active={activeView === 'users'} 
@@ -460,7 +593,7 @@ const AdminDashboard = () => {
 
         {/* Content Area */}
         <div style={{ padding: '40px', overflowY: 'auto', flex: 1 }}>
-          {activeView === 'users' ? renderUsersView() : (
+          {activeView === 'analytics' ? renderAnalyticsView() : activeView === 'users' ? renderUsersView() : (
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             
             <div style={{ marginBottom: '32px' }}>

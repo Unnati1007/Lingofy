@@ -10,6 +10,7 @@ export interface IUser extends Document {
   learningLanguage?: string;
   researchConsent: boolean;
   role: "user" | "admin";
+  learningMode: "music" | "traditional";
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -56,6 +57,12 @@ const UserSchema: Schema<IUser> = new Schema(
       type: String,
       enum: ["user", "admin"],
       default: "user"
+    },
+    
+    learningMode: {
+      type: String,
+      enum: ["music", "traditional"],
+      default: "music"
     }
   },
   {

@@ -35,6 +35,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         role: user.role,
+        learningMode: user.learningMode,
         hasPreferences: false,
         token,
       });
@@ -71,6 +72,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         role: user.role,
+        learningMode: user.learningMode,
         hasPreferences: !!preferences,
         token,
       });

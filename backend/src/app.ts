@@ -29,9 +29,14 @@ Routes
 =================================
 */
 
+import userRoutes from "./routes/userRoutes";
+import analyticsRoutes from "./routes/analyticsRoutes";
+
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/preferences", preferenceRoutes);
 app.use("/api/admin", songRoutes);
+app.use("/api/admin/analytics", analyticsRoutes);
 app.use("/api/lessons", lessonsRouter);
 app.use("/api/playlists", playlistRoutes);
 

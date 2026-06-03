@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Home, BookOpen, Music, BarChart2, Settings, LogOut, ChevronRight, X, Check, XCircle, Menu, ChevronLeft,
-  Star, Trophy, Zap, Lock, Flame, Target, Award
+  Zap, Lock, Flame, Target, Award
 } from 'lucide-react';
 
 type ViewState = 'setup' | 'loading' | 'quiz' | 'results';
@@ -45,7 +45,7 @@ const LessonsPage = () => {
   const [confettiPieces, setConfettiPieces] = useState<any[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState<any>(null);
-  const confettiRef = useRef<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   // Ref to always hold latest answers (avoids stale closure in submit)
   const latestAnswersRef = useRef<any[]>([]);
 
@@ -55,11 +55,11 @@ const LessonsPage = () => {
     const interPassed = progress.intermediateCompleted >= 1;
     const hardCount = progress.hardCompleted;
     return [
-      { id: 1, level: 'easy', title: 'Easy Basics', emoji: '🌱', description: 'Master basic vocabulary, common nouns, and greeting structures.', badge: BADGES[0], isUnlocked: true, isCompleted: easyPassed, isActive: progress.currentStage === 'easy', stars: 1 },
-      { id: 2, level: 'intermediate', title: 'Intermediate Grammar', emoji: '📚', description: 'Dynamic sentence framing, verb conjugations, and conversational phrases.', badge: BADGES[1], isUnlocked: easyPassed, isCompleted: interPassed, isActive: progress.currentStage === 'intermediate', stars: 2 },
-      { id: 3, level: 'hard', title: 'Advanced Quiz 1', emoji: '🔥', description: 'First milestone of advanced lessons. Complex expressions and idioms.', badge: BADGES[2], isUnlocked: interPassed, isCompleted: hardCount >= 1, isActive: progress.currentStage === 'hard' && hardCount === 0, stars: 3 },
-      { id: 4, level: 'hard', title: 'Advanced Quiz 2', emoji: '⚡', description: 'Second milestone. Fluent sentence structuring and quick translations.', badge: BADGES[2], isUnlocked: interPassed && hardCount >= 1, isCompleted: hardCount >= 2, isActive: progress.currentStage === 'hard' && hardCount === 1, stars: 3 },
-      { id: 5, level: 'hard', title: 'Advanced Quiz 3', emoji: '👑', description: 'Final advanced milestone. Prove your skills and unlock Language Star!', badge: BADGES[2], isUnlocked: interPassed && hardCount >= 2, isCompleted: hardCount >= 3, isActive: progress.currentStage === 'hard' && hardCount === 2, stars: 3 },
+      { id: 1, level: 'easy', title: 'Easy Basics', emoji: '🌱', description: 'Master basic vocabulary, common nouns, and greeting structures.', badge: { ...BADGES[0], earned: easyPassed }, isUnlocked: true, isCompleted: easyPassed, isActive: progress.currentStage === 'easy', stars: 1 },
+      { id: 2, level: 'intermediate', title: 'Intermediate Grammar', emoji: '📚', description: 'Dynamic sentence framing, verb conjugations, and conversational phrases.', badge: { ...BADGES[1], earned: interPassed }, isUnlocked: easyPassed, isCompleted: interPassed, isActive: progress.currentStage === 'intermediate', stars: 2 },
+      { id: 3, level: 'hard', title: 'Advanced Quiz 1', emoji: '🔥', description: 'First milestone of advanced lessons. Complex expressions and idioms.', badge: { ...BADGES[2], earned: hardCount >= 1 }, isUnlocked: interPassed, isCompleted: hardCount >= 1, isActive: progress.currentStage === 'hard' && hardCount === 0, stars: 3 },
+      { id: 4, level: 'hard', title: 'Advanced Quiz 2', emoji: '⚡', description: 'Second milestone. Fluent sentence structuring and quick translations.', badge: { ...BADGES[2], earned: hardCount >= 2 }, isUnlocked: interPassed && hardCount >= 1, isCompleted: hardCount >= 2, isActive: progress.currentStage === 'hard' && hardCount === 1, stars: 3 },
+      { id: 5, level: 'hard', title: 'Advanced Quiz 3', emoji: '👑', description: 'Final advanced milestone. Prove your skills and unlock Language Star!', badge: { ...BADGES[2], earned: hardCount >= 3 }, isUnlocked: interPassed && hardCount >= 2, isCompleted: hardCount >= 3, isActive: progress.currentStage === 'hard' && hardCount === 2, stars: 3 },
     ];
   };
 
@@ -81,6 +81,12 @@ const LessonsPage = () => {
       const token = localStorage.getItem('token');
       const res = await fetch('http://localhost:5000/api/lessons/progress', { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) { const data = await res.json(); setRoadmapProgress(data); }
+      
+      const userRes = await fetch('http://localhost:5000/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+      if (userRes.ok) {
+        const user = await userRes.json();
+        setCurrentUser(user);
+      }
     } catch (err) { console.error(err); }
   };
 
@@ -151,6 +157,25 @@ const LessonsPage = () => {
       latestAnswersRef.current = updatedAnswers; // sync ref immediately
       setUserAnswers(updatedAnswers);
       setIsAnswerChecked(true);
+    }
+  };
+
+  const toggleLearningMode = async () => {
+    if (!currentUser) return;
+    const newMode = currentUser.learningMode === 'music' ? 'traditional' : 'music';
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/users/me/mode', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: newMode })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentUser({ ...currentUser, learningMode: data.mode });
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -392,9 +417,9 @@ const LessonsPage = () => {
 
           <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', flexWrap: 'wrap' }}>
             {[
-              { lang: 'hindi' as Language, flag: '🇮🇳', name: 'Hindi', sub: 'हिन्दी', level: 'N3 Level', color: '#ff9933', glow: 'rgba(255,153,51,0.2)' },
-              { lang: 'spanish' as Language, flag: '🇪🇸', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e', glow: 'rgba(198,11,30,0.2)' },
-            ].map(({ lang, flag, name, sub, level, color, glow }) => {
+              { lang: 'hindi' as Language, flag: '🇮🇳', name: 'Hindi', sub: 'हिन्दी', level: 'N3 Level', color: '#ff9933' },
+              { lang: 'spanish' as Language, flag: '🇪🇸', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e' },
+            ].map(({ lang, flag, name, sub, level, color }) => {
               const prog = roadmapProgress?.[lang];
               const completedCount = prog ? (prog.easyCompleted >= 1 ? 1 : 0) + (prog.intermediateCompleted >= 1 ? 1 : 0) + Math.min(prog.hardCompleted, 3) : 0;
               const totalNodes = 5;
@@ -996,9 +1021,13 @@ const LessonsPage = () => {
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-          <NavItem icon={<Home size={20} />} label="Home" onClick={() => navigate('/dashboard?tab=home')} collapsed={isSidebarCollapsed} />
+          {currentUser?.learningMode !== 'traditional' && (
+            <NavItem icon={<Home size={20} />} label="Home" onClick={() => navigate('/dashboard?tab=home')} collapsed={isSidebarCollapsed} />
+          )}
           <NavItem icon={<BookOpen size={20} />} label="Lessons" active collapsed={isSidebarCollapsed} />
-          <NavItem icon={<Music size={20} />} label="Library" onClick={() => navigate('/dashboard?tab=library')} collapsed={isSidebarCollapsed} />
+          {currentUser?.learningMode !== 'traditional' && (
+            <NavItem icon={<Music size={20} />} label="Library" onClick={() => navigate('/dashboard?tab=library')} collapsed={isSidebarCollapsed} />
+          )}
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" onClick={() => navigate('/dashboard?tab=statistics')} collapsed={isSidebarCollapsed} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
@@ -1007,7 +1036,31 @@ const LessonsPage = () => {
         </div>
       </aside>
 
-      <main className="main-content" style={{ flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center', transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
+      <main className="main-content" style={{ flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center', transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)', position: 'relative' }}>
+        
+        {/* Toggle Mode Button (Top Right) */}
+        <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 50 }}>
+          <button 
+            onClick={toggleLearningMode}
+            className="btn-hover"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#fff',
+              padding: '8px 16px',
+              borderRadius: '20px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            {currentUser?.learningMode === 'traditional' ? 'Switch to Music Mode' : 'Switch to Traditional Mode'}
+          </button>
+        </div>
+
         {view === 'setup' && renderSetup()}
         {view === 'loading' && renderLoading()}
         {view === 'quiz' && renderQuiz()}

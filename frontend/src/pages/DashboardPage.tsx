@@ -57,6 +57,7 @@ const DashboardPage = () => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState<any>(null);
   const [hideVideo, setHideVideo] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const learningLanguageKey = useMemo(() => {
     const lang = preferences?.languagesToLearn?.[0]?.toLowerCase() || 'spanish';
@@ -95,6 +96,19 @@ const DashboardPage = () => {
         const token = localStorage.getItem('token');
         if (!token) { navigate('/login'); return; }
         
+        // Fetch User
+        const userRes = await fetch('http://localhost:5000/api/users/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (userRes.ok) {
+          const user = await userRes.json();
+          setCurrentUser(user);
+          // If they are in traditional mode and currently on 'home' or 'library', redirect to statistics (as dashboard doesn't have lessons inside it)
+          if (user.learningMode === 'traditional') {
+            setActiveTab('statistics'); // Or we just don't show the dashboard at all? Actually statistics is fine.
+          }
+        }
+
         // Fetch Preferences
         const prefRes = await fetch('http://localhost:5000/api/preferences', {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -136,10 +150,12 @@ const DashboardPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab') as 'home' | 'statistics' | 'library';
-    if (tabParam && ['home', 'statistics', 'library'].includes(tabParam)) {
+    if (currentUser?.learningMode === 'traditional' && (!tabParam || tabParam === 'home' || tabParam === 'library')) {
+      setActiveTab('statistics');
+    } else if (tabParam && ['home', 'statistics', 'library'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
-  }, [location.search]);
+  }, [location.search, currentUser]);
 
   const fetchHistory = async () => {
     setHistoryLoading(true);
@@ -170,7 +186,7 @@ const DashboardPage = () => {
     setShowReviewModal(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/lessons/attempt/${attemptId}`, {
+      const res = await fetch(`http://localhost:5000/api/lessons/history/${attemptId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -178,11 +194,31 @@ const DashboardPage = () => {
         setSelectedAttempt(data);
       }
     } catch (err) {
-      console.error(err);
-      alert("Failed to load attempt details.");
-      setShowReviewModal(false);
+      console.error("Error fetching attempt details:", err);
     } finally {
       setReviewLoading(false);
+    }
+  };
+
+  const toggleLearningMode = async () => {
+    if (!currentUser) return;
+    const newMode = currentUser.learningMode === 'music' ? 'traditional' : 'music';
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/users/me/mode', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: newMode })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentUser({ ...currentUser, learningMode: data.mode });
+        if (data.mode === 'traditional' && (activeTab === 'home' || activeTab === 'library')) {
+          setActiveTab('statistics');
+        }
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -542,15 +578,21 @@ const DashboardPage = () => {
     setPlaylistsLoading(true);
     try {
       const token = localStorage.getItem('token');
+      if (!token) { navigate('/login'); return; }
       const res = await fetch('http://localhost:5000/api/playlists', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.status === 401) { navigate('/login'); return; }
       if (res.ok) {
         const data = await res.json();
+        console.log('[Playlists] fetched:', data.length, 'playlists');
         setPlaylists(data);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        console.error('[Playlists] fetch failed:', res.status, err.message);
       }
     } catch (err) {
-      console.error(err);
+      console.error('[Playlists] network error:', err);
     } finally {
       setPlaylistsLoading(false);
     }
@@ -1176,9 +1218,13 @@ const DashboardPage = () => {
         </div>
         
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-          <NavItem icon={<Home size={20} />} label="Home" active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+          {currentUser?.learningMode !== 'traditional' && (
+            <NavItem icon={<Home size={20} />} label="Home" active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+          )}
           <NavItem icon={<BookOpen size={20} />} label="Lessons" onClick={() => navigate('/lessons')} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<Music size={20} />} label="Library" active={activeTab === 'library'} onClick={() => { setActiveTab('library'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+          {currentUser?.learningMode !== 'traditional' && (
+            <NavItem icon={<Music size={20} />} label="Library" active={activeTab === 'library'} onClick={() => { setActiveTab('library'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+          )}
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
@@ -1188,8 +1234,32 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="main-content" style={{ flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}>
-        {activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' ? renderLibrary() : (
+      <main className="main-content" style={{ flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative' }}>
+        
+        {/* Toggle Mode Button (Top Right) */}
+        <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 50 }}>
+          <button 
+            onClick={toggleLearningMode}
+            className="btn-hover"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#fff',
+              padding: '8px 16px',
+              borderRadius: '20px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            {currentUser?.learningMode === 'traditional' ? 'Switch to Music Mode' : 'Switch to Traditional Mode'}
+          </button>
+        </div>
+
+        {activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
           <div style={{ width: '100%', maxWidth: '1200px' }}>
           
           <div className="dashboard-layout-custom" style={{ 
@@ -1664,7 +1734,7 @@ const DashboardPage = () => {
             </section>
           </div>
           </div>
-        )}
+        ) : null}
       </main>
 
       {showQuizModal && (
