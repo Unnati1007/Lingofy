@@ -45,7 +45,23 @@ router.post("/generate", protect, async (req: AuthRequest, res: Response) => {
       level: activeLevel
     });
 
-    const lessonData = await generateLesson(language, activeLevel, uniquePreviousWords, totalAttempts);
+    const isMusicMode = req.user.learningMode === 'music';
+    let musicPhrases: string[] = [];
+
+    if (isMusicMode) {
+      // Pick random songs to get lyrics
+      const songs = await Song.aggregate([{ $match: { language: new RegExp(`^${language}$`, 'i') } }, { $sample: { size: 2 } }]);
+      if (songs.length > 0) {
+        const songIds = songs.map(s => s._id);
+        const segments = await LyricSegment.aggregate([
+          { $match: { songId: { $in: songIds } } },
+          { $sample: { size: 10 } }
+        ]);
+        musicPhrases = segments.map(seg => seg.text).filter(t => t && t.trim().length > 0);
+      }
+    }
+
+    const lessonData = await generateLesson(language, activeLevel, uniquePreviousWords, totalAttempts, isMusicMode, musicPhrases);
     res.status(200).json(lessonData);
   } catch (error) {
     console.error("Error generating lesson:", error);
@@ -204,18 +220,18 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
         badges.push('easy_explorer');
         currentStage = 'intermediate';
       }
-      if (intermediateCount >= 1 && easyCount >= 1) {
+      if (intermediateCount >= 2 && easyCount >= 1) {
         badges.push('intermediate_scholar');
         currentStage = 'hard';
       }
-      if (hardCount >= 3 && intermediateCount >= 1 && easyCount >= 1) {
+      if (hardCount >= 3 && intermediateCount >= 2 && easyCount >= 1) {
         badges.push('language_star');
         currentStage = 'completed';
       }
 
       return {
         easyCompleted: Math.min(easyCount, 1),
-        intermediateCompleted: Math.min(intermediateCount, 1),
+        intermediateCompleted: Math.min(intermediateCount, 2),
         hardCompleted: Math.min(hardCount, 3),
         currentStage,
         badges
@@ -250,18 +266,18 @@ router.get("/admin/progress/:userId", protect, adminOnly, async (req: AuthReques
         badges.push('easy_explorer');
         currentStage = 'intermediate';
       }
-      if (intermediateCount >= 1 && easyCount >= 1) {
+      if (intermediateCount >= 2 && easyCount >= 1) {
         badges.push('intermediate_scholar');
         currentStage = 'hard';
       }
-      if (hardCount >= 3 && intermediateCount >= 1 && easyCount >= 1) {
+      if (hardCount >= 3 && intermediateCount >= 2 && easyCount >= 1) {
         badges.push('language_star');
         currentStage = 'completed';
       }
 
       return {
         easyCompleted: Math.min(easyCount, 1),
-        intermediateCompleted: Math.min(intermediateCount, 1),
+        intermediateCompleted: Math.min(intermediateCount, 2),
         hardCompleted: Math.min(hardCount, 3),
         currentStage,
         badges

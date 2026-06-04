@@ -78,7 +78,9 @@ export const generateLesson = async (
   language: 'hindi' | 'spanish',
   levelOrCount: 'easy' | 'intermediate' | 'hard' | number = 'easy',
   previousWords: string[] = [],
-  quizAttemptCount: number = 0
+  quizAttemptCount: number = 0,
+  isMusicMode: boolean = false,
+  musicPhrases: string[] = []
 ) => {
   const randomSeed = Math.floor(Math.random() * 100000);
   const randomTopics = getRandomTopics(language);
@@ -96,19 +98,15 @@ export const generateLesson = async (
   let levelDescription = "";
   if (levelStr === 'easy') {
     if (quizAttemptCount === 0) {
-      levelDescription = "Easy level — ATTEMPT 1 (Complete beginner A1: basic greetings, numbers 1-10, colors, family words. Very short simple words only. No sentences yet.)";
-    } else if (quizAttemptCount === 1) {
-      levelDescription = "Easy level — ATTEMPT 2 (A1 progressing: common nouns, simple phrases like 'I am hungry', basic verbs eat/drink/sleep/go. Still simple but slightly more vocabulary.)";
+      levelDescription = "Super easy level — QUIZ 1 of 2 (Absolute Beginner A1: ONLY the 50 most common words, single words only, basic greetings like Hello/Goodbye, numbers 1-5. NO sentences. Extremely easy.)";
     } else {
-      levelDescription = "Easy level — ATTEMPT 3+ (A1 consolidation: mix of greetings, basic phrases, common verbs and adjectives. User is now comfortable with basics, push slightly harder vocabulary within A1 range.)";
+      levelDescription = "Easy level — QUIZ 2 of 2 (A1: Very basic 2-3 word phrases, simple common nouns, colors, and basic verbs. Keep it very easy and beginner friendly.)";
     }
   } else if (levelStr === 'intermediate') {
     if (quizAttemptCount === 0) {
-      levelDescription = "Intermediate level — ATTEMPT 1 (B1: compound sentences, conjugated verbs, adjectives in context, daily shopping phrases, question formation like 'Where is the...?')";
-    } else if (quizAttemptCount === 1) {
-      levelDescription = "Intermediate level — ATTEMPT 2 (B1/B2: more complex sentence structures, past tense, negation patterns, conversational phrases used in daily life.)";
+      levelDescription = "Intermediate level — QUIZ 1 of 2 (B1/B2: High difficulty spike. Complex sentence structures, past and future tenses, challenging vocabulary, long conversational phrases.)";
     } else {
-      levelDescription = "Intermediate level — ATTEMPT 3+ (B2: challenging vocabulary, nuanced meanings, idiomatic daily expressions, fill-in-the-blank with complex sentences.)";
+      levelDescription = "Intermediate level — QUIZ 2 of 2 (B2: Very challenging intermediate. Nuanced meanings, idiomatic expressions, fill-in-the-blank with long complex sentences. Make it noticeably harder.)";
     }
   } else {
     if (quizAttemptCount === 0) {
@@ -125,6 +123,27 @@ export const generateLesson = async (
     ? `\nCRITICAL — BANNED WORDS (user has already seen these — NEVER use them as targetWord or in options):\n${previousWords.slice(-60).join(', ')}\n`
     : '';
 
+  const musicModeInstructions = isMusicMode ? `
+3. Generate exactly 10 questions. 
+   - EXACTLY 4 of these questions MUST be of type 'listen_translate'.
+   - EXACTLY 2 of these questions MUST be of type 'translate_word', where the 'targetWord' is a FULL LINE or PHRASE (5-8 words long) directly from the song lyrics, and the user must choose the correct translation.
+   - The remaining 4 should be randomly distributed among 'translate_word' (single word), 'multiple_choice', 'fill_blank', and 'match_meaning'.` : `
+3. Generate exactly 10 questions randomly distributed among the 4 question types: translate_word, multiple_choice, fill_blank, match_meaning.`;
+
+  const musicModeStructure = isMusicMode ? `
+   listen_translate:
+   - questionText: "Listen to the audio and select the correct translation:"
+   - targetWord: ${musicPhrases.length > 0 ? `MUST be one of these exact phrases from our song library: ${musicPhrases.map(p => `"${p}"`).join(', ')}` : `a 3-4 word phrase in ${language}`} (this will be read aloud by TTS)
+   - options: 4 English meanings
+   - correctAnswer: correct English meaning
+
+   translate_word (when used for a FULL PHRASE):
+   - questionText: "What is the English translation for this phrase?"
+   - targetWord: ${musicPhrases.length > 0 ? `MUST be one of these exact phrases from our song library: ${musicPhrases.map(p => `"${p}"`).join(', ')}` : `a 5-8 word phrase in ${language}`}
+   - options: 4 English phrases
+   - correctAnswer: correct English meaning
+` : '';
+
   const prompt = `
 You are a language tutor for Lingofy, a music-based language 
 learning app. Your job is to teach English speakers basic 
@@ -139,9 +158,9 @@ ABSOLUTE RULES — READ CAREFULLY:
 
 1. ALL questionText must be written in ENGLISH ONLY
    Never write the question itself in Hindi or Spanish
-   
+   ${musicModeInstructions}
 2. Question structure depends on type:
-
+${musicModeStructure}
    translate_word:
    - questionText: "What is the ${language} word/phrase for '[English word]'?"
    - targetWord: the English word (shown large on screen)
@@ -215,7 +234,7 @@ JSON Schema:
   "questions": [
     {
       "id": 1,
-      "type": "translate_word | multiple_choice | fill_blank | match_meaning",
+      "type": "${isMusicMode ? 'translate_word | multiple_choice | fill_blank | match_meaning | listen_translate' : 'translate_word | multiple_choice | fill_blank | match_meaning'}",
       "questionText": "ALWAYS IN ENGLISH",
       "targetWord": "word shown large on screen (English for translate_word, ${language} for match_meaning)",
       "sentence": "full sentence with ___ for fill_blank type only",
@@ -261,9 +280,24 @@ ABSOLUTE RULES — READ CAREFULLY:
 
 1. Every single question must be directly related to the vocabulary, words, phrases, or sentences from the provided lyrics.
 2. ALL questionText must be written in ENGLISH ONLY. Never write the question itself in Hindi or Spanish.
-3. Generate exactly 12 questions (minimum 2 of each of the 4 question types: translate_word, multiple_choice, fill_blank, match_meaning).
+3. Generate exactly 10 questions. 
+   - EXACTLY 4 questions MUST be of type 'listen_translate'.
+   - EXACTLY 2 questions MUST be of type 'translate_word', where the 'targetWord' is a FULL LINE or PHRASE (5-8 words long) directly from the song lyrics, and the user must choose the correct English translation from the 'options'.
+   - The remaining 4 questions should be randomly distributed among 'translate_word' (single word), 'multiple_choice', 'fill_blank', and 'match_meaning'.
 
 4. Question structure depends on type:
+
+   listen_translate:
+   - questionText: "Listen to the audio and select the correct translation:"
+   - targetWord: a 3-4 word phrase from the song in ${language} (this will be read aloud by TTS)
+   - options: 4 English meanings
+   - correctAnswer: correct English meaning
+
+   translate_word (when used for a FULL PHRASE):
+   - questionText: "What is the English translation for this phrase?"
+   - targetWord: a 5-8 word full phrase from the song in ${language}
+   - options: 4 English phrases
+   - correctAnswer: correct English meaning
 
    translate_word:
    - questionText: "What is the ${language} word/phrase for '[English word/phrase]'?" (make sure the English word/phrase is from the lyrics)
@@ -313,9 +347,9 @@ JSON Schema:
   "questions": [
     {
       "id": 1,
-      "type": "translate_word | multiple_choice | fill_blank | match_meaning",
+      "type": "translate_word | multiple_choice | fill_blank | match_meaning | listen_translate",
       "questionText": "ALWAYS IN ENGLISH",
-      "targetWord": "word shown large on screen (English for translate_word, ${language} for match_meaning)",
+      "targetWord": "word shown large on screen (English for translate_word, ${language} for match_meaning and listen_translate)",
       "sentence": "full sentence with ___ for fill_blank type only",
       "options": ["option1", "option2", "option3", "option4"],
       "correctAnswer": "must exactly match one option",

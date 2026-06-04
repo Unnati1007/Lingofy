@@ -10,7 +10,7 @@ type Language = 'hindi' | 'spanish';
 
 interface Question {
   id: number;
-  type: 'multiple_choice' | 'fill_blank' | 'translate_word' | 'match_meaning';
+  type: 'multiple_choice' | 'fill_blank' | 'translate_word' | 'match_meaning' | 'listen_translate';
   questionText: string;
   targetWord: string;
   options: string[];
@@ -52,7 +52,7 @@ const LessonsPage = () => {
   const getRoadmapNodes = (progress: any) => {
     if (!progress) return [];
     const easyPassed = progress.easyCompleted >= 1;
-    const interPassed = progress.intermediateCompleted >= 1;
+    const interPassed = progress.intermediateCompleted >= 2;
     const hardCount = progress.hardCompleted;
     return [
       { id: 1, level: 'easy', title: 'Easy Basics', emoji: '🌱', description: 'Master basic vocabulary, common nouns, and greeting structures.', badge: { ...BADGES[0], earned: easyPassed }, isUnlocked: true, isCompleted: easyPassed, isActive: progress.currentStage === 'easy', stars: 1 },
@@ -240,6 +240,13 @@ const LessonsPage = () => {
     else setView('setup');
   };
 
+  const playAudio = (text: string, lang: Language) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang === 'hindi' ? 'hi-IN' : 'es-ES';
+    utterance.rate = 0.85; // slightly slower for learners
+    window.speechSynthesis.speak(utterance);
+  };
+
   const renderCelebration = () => {
     if (!showCelebration || !celebrationData) return null;
     const score = celebrationData.score;
@@ -421,8 +428,8 @@ const LessonsPage = () => {
               { lang: 'spanish' as Language, flag: '🇪🇸', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e' },
             ].map(({ lang, flag, name, sub, level, color }) => {
               const prog = roadmapProgress?.[lang];
-              const completedCount = prog ? (prog.easyCompleted >= 1 ? 1 : 0) + (prog.intermediateCompleted >= 1 ? 1 : 0) + Math.min(prog.hardCompleted, 3) : 0;
-              const totalNodes = 5;
+              const completedCount = prog ? Math.min(prog.easyCompleted, 1) + Math.min(prog.intermediateCompleted, 2) + Math.min(prog.hardCompleted, 3) : 0;
+              const totalNodes = 6;
               return (
                 <div
                   key={lang}
@@ -451,7 +458,7 @@ const LessonsPage = () => {
                       </div>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'center' }}>
                         {BADGES.map((b, i) => {
-                          const earned = i === 0 ? prog.easyCompleted >= 1 : i === 1 ? prog.intermediateCompleted >= 1 : prog.hardCompleted >= 3;
+                          const earned = i === 0 ? prog.easyCompleted >= 1 : i === 1 ? prog.intermediateCompleted >= 2 : prog.hardCompleted >= 3;
                           return <span key={b.id} style={{ fontSize: '20px', opacity: earned ? 1 : 0.15, filter: earned ? 'none' : 'grayscale(1)', transition: 'all 0.3s' }}>{b.icon}</span>;
                         })}
                       </div>
@@ -475,7 +482,7 @@ const LessonsPage = () => {
     const nodes = getRoadmapNodes(progress);
     const selectedNode = nodes[selectedNodeIdx];
     const totalXP = progress ? (progress.easyCompleted * 100) + (progress.intermediateCompleted * 150) + (progress.hardCompleted * 200) : 0;
-    const totalCompleted = progress ? (progress.easyCompleted >= 1 ? 1 : 0) + (progress.intermediateCompleted >= 1 ? 1 : 0) + Math.min(progress.hardCompleted || 0, 3) : 0;
+    const totalCompleted = progress ? Math.min(progress.easyCompleted, 1) + Math.min(progress.intermediateCompleted, 2) + Math.min(progress.hardCompleted || 0, 3) : 0;
     const streak = Math.floor(Math.random() * 7) + 1; // TODO: pull from API
 
     return (
@@ -513,7 +520,7 @@ const LessonsPage = () => {
             </div>
             <div style={{ background: 'rgba(18,209,94,0.1)', border: '1px solid rgba(18,209,94,0.2)', padding: '8px 16px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Target size={14} color="#12d15e" />
-              <span style={{ color: '#12d15e', fontWeight: '800', fontSize: '14px' }}>{totalCompleted}/5 Done</span>
+              <span style={{ color: '#12d15e', fontWeight: '800', fontSize: '14px' }}>{totalCompleted}/6 Done</span>
             </div>
           </div>
         </div>
@@ -523,7 +530,7 @@ const LessonsPage = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
             {[
               { label: 'Easy Quizzes', value: progress.easyCompleted, max: 1, color: '#12d15e', icon: '🌱', passed: progress.easyCompleted >= 1 },
-              { label: 'Intermediate', value: progress.intermediateCompleted, max: 1, color: '#a855f7', icon: '📚', passed: progress.intermediateCompleted >= 1 },
+              { label: 'Intermediate', value: progress.intermediateCompleted, max: 2, color: '#a855f7', icon: '📚', passed: progress.intermediateCompleted >= 2 },
               { label: 'Hard Quizzes', value: progress.hardCompleted, max: 3, color: '#ef4444', icon: '🔥', passed: progress.hardCompleted >= 3 },
             ].map(stat => (
               <div key={stat.label} style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${stat.passed ? stat.color + '40' : 'rgba(255,255,255,0.05)'}`, borderRadius: '20px', padding: '20px 24px', position: 'relative', overflow: 'hidden' }}>
@@ -688,7 +695,7 @@ const LessonsPage = () => {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {BADGES.map((badge, i) => {
-                  const earned = i === 0 ? (progress?.easyCompleted >= 1) : i === 1 ? (progress?.intermediateCompleted >= 1) : (progress?.hardCompleted >= 3);
+                  const earned = i === 0 ? (progress?.easyCompleted >= 1) : i === 1 ? (progress?.intermediateCompleted >= 2) : (progress?.hardCompleted >= 3);
                   return (
                     <div key={badge.id} style={{
                       display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px',
@@ -740,8 +747,8 @@ const LessonsPage = () => {
     const question = questions[currentQuestionIdx];
     if (!question) return null;
     const progressPct = (currentQuestionIdx / (questions.length || 10)) * 100;
-    const typeColor = question.type === 'fill_blank' ? '#22c55e' : '#1a73e8';
-    const typeLabel = question.type === 'multiple_choice' ? 'Choose the correct answer' : question.type === 'fill_blank' ? 'Complete the sentence' : question.type === 'translate_word' ? 'Translate this word' : 'Match the meaning';
+    const typeColor = question.type === 'fill_blank' ? '#22c55e' : question.type === 'listen_translate' ? '#a855f7' : '#1a73e8';
+    const typeLabel = question.type === 'multiple_choice' ? 'Choose the correct answer' : question.type === 'fill_blank' ? 'Complete the sentence' : question.type === 'translate_word' ? 'Translate this word' : question.type === 'listen_translate' ? 'Listen and Translate' : 'Match the meaning';
 
     return (
       <div style={{ maxWidth: '620px', width: '100%', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -799,6 +806,26 @@ const LessonsPage = () => {
             <div style={{ fontSize: '36px', fontWeight: '800', padding: '16px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', display: 'inline-block', color: '#fff' }}>
               {question.targetWord}
             </div>
+          </div>
+        )}
+
+        {/* Listen and Translate display */}
+        {question.type === 'listen_translate' && language && (
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            <button 
+              onClick={() => playAudio(question.targetWord, language)}
+              style={{
+                background: 'rgba(168,85,247,0.1)', border: '1px solid #a855f7',
+                borderRadius: '50%', width: '80px', height: '80px', display: 'inline-flex',
+                alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                boxShadow: '0 0 20px rgba(168,85,247,0.4)', transition: 'transform 0.2s', fontSize: '36px',
+                color: '#fff'
+              }}
+              className="btn-hover"
+            >
+              🔊
+            </button>
+            <div style={{ marginTop: '12px', fontSize: '13px', color: '#a855f7', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>Play Audio</div>
           </div>
         )}
 

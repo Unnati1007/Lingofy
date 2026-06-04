@@ -1280,10 +1280,10 @@ const DashboardPage = () => {
               {(() => {
                 const progressObj = roadmapProgress?.[activeCardLanguage] || { easyCompleted: 0, intermediateCompleted: 0, hardCompleted: 0, currentStage: 'easy', badges: [] };
                 const totalCompleted = progressObj.easyCompleted + progressObj.intermediateCompleted + progressObj.hardCompleted;
-                const progressPercent = Math.round((totalCompleted / 5) * 100);
+                const progressPercent = Math.round((totalCompleted / 6) * 100);
                 
                 const isEasyPassed = progressObj.easyCompleted >= 1;
-                const isInterPassed = progressObj.intermediateCompleted >= 1;
+                const isInterPassed = progressObj.intermediateCompleted >= 2;
                 const isHardPassed = progressObj.hardCompleted >= 3;
 
                 return (
@@ -1450,7 +1450,8 @@ const DashboardPage = () => {
                       <button 
                         onClick={() => {
                           const levelToUse = progressObj.currentStage === 'completed' ? 'hard' : progressObj.currentStage;
-                          navigate(`/lessons?language=${activeCardLanguage}&level=${levelToUse}`);
+                          const songParam = currentSong?._id ? `&songId=${currentSong._id}` : '';
+                          navigate(`/lessons?language=${activeCardLanguage}&level=${levelToUse}${songParam}`);
                         }}
                         className="btn-hover"
                         style={{ 

@@ -424,7 +424,7 @@ const AdminDashboard = () => {
                           <span style={{ fontSize: '18px', opacity: selectedUserProgress.hindi.badges.includes('language_star') ? 1 : 0.2 }} title="Language Star">⭐</span>
                         </div>
                         <div style={{ fontSize: '10px', opacity: 0.5 }}>
-                          E: {selectedUserProgress.hindi.easyCompleted}/1 | I: {selectedUserProgress.hindi.intermediateCompleted}/1 | H: {selectedUserProgress.hindi.hardCompleted}/3
+                          E: {selectedUserProgress.hindi.easyCompleted}/1 | I: {selectedUserProgress.hindi.intermediateCompleted}/2 | H: {selectedUserProgress.hindi.hardCompleted}/3
                         </div>
                       </div>
 
@@ -442,7 +442,7 @@ const AdminDashboard = () => {
                           <span style={{ fontSize: '18px', opacity: selectedUserProgress.spanish.badges.includes('language_star') ? 1 : 0.2 }} title="Language Star">⭐</span>
                         </div>
                         <div style={{ fontSize: '10px', opacity: 0.5 }}>
-                          E: {selectedUserProgress.spanish.easyCompleted}/1 | I: {selectedUserProgress.spanish.intermediateCompleted}/1 | H: {selectedUserProgress.spanish.hardCompleted}/3
+                          E: {selectedUserProgress.spanish.easyCompleted}/1 | I: {selectedUserProgress.spanish.intermediateCompleted}/2 | H: {selectedUserProgress.spanish.hardCompleted}/3
                         </div>
                       </div>
                     </div>

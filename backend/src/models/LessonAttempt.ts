@@ -31,7 +31,7 @@ const QuestionSchema: Schema = new Schema({
   id: { type: Number, required: true },
   type: { 
     type: String, 
-    enum: ['multiple_choice', 'fill_blank', 'translate_word', 'match_meaning'],
+    enum: ['multiple_choice', 'fill_blank', 'translate_word', 'match_meaning', 'listen_translate'],
     required: true 
   },
   questionText: { type: String, required: true },
