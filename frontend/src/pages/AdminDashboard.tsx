@@ -1118,6 +1118,27 @@ const AdminDashboard = () => {
                     <span>•</span>
                     <span>Score: <strong>{selectedAttempt.score}/{selectedAttempt.questions?.length}</strong></span>
                   </div>
+
+                  {/* HCI Research Metrics */}
+                  {(selectedAttempt.cognitiveLoad || selectedAttempt.reflectionText) && (
+                    <div style={{ background: 'rgba(168, 85, 247, 0.05)', border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: '12px', padding: '16px', marginTop: '16px' }}>
+                      <h4 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#a855f7', fontWeight: 'bold', letterSpacing: '0.5px', marginBottom: '12px' }}>HCI Research Metrics</h4>
+                      {selectedAttempt.cognitiveLoad && (
+                        <div style={{ marginBottom: '12px' }}>
+                          <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>NASA-TLX Effort Rating: </span>
+                          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff' }}>{selectedAttempt.cognitiveLoad} / 5</span>
+                        </div>
+                      )}
+                      {selectedAttempt.reflectionText && (
+                        <div>
+                          <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '4px' }}>Qualitative Reflection:</span>
+                          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px', fontSize: '13px', color: '#fff', fontStyle: 'italic', borderLeft: '2px solid #a855f7' }}>
+                            "{selectedAttempt.reflectionText}"
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px', display: 'flex', flexDirection: 'column', gap: '20px' }}>

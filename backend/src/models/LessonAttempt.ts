@@ -26,6 +26,8 @@ export interface ILessonAttempt extends Document {
   score: number;
   xpEarned: number;
   status: 'in_progress' | 'completed' | 'abandoned';
+  cognitiveLoad?: number;
+  reflectionText?: string;
   startedAt: Date;
   completedAt?: Date;
   totalTimeSpentSeconds?: number;
@@ -59,9 +61,11 @@ const LessonAttemptSchema: Schema = new Schema({
   level: { type: String, enum: ['easy', 'beginner', 'intermediate', 'hard', 'dynamic'], required: true },
   questions: { type: [QuestionSchema], required: true },
   userAnswers: { type: [UserAnswerSchema], default: [] },
-  score: { type: Number, default: 0, min: 0 },
+  score: { type: Number, default: 0 },
   xpEarned: { type: Number, default: 0 },
-  status: { type: String, enum: ['in_progress', 'completed', 'abandoned'], default: 'completed' },
+  status: { type: String, enum: ['in_progress', 'completed', 'abandoned'], default: 'in_progress' },
+  cognitiveLoad: { type: Number, min: 1, max: 5 },
+  reflectionText: { type: String },
   startedAt: { type: Date, default: Date.now },
   completedAt: { type: Date },
   totalTimeSpentSeconds: { type: Number, default: 0 },

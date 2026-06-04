@@ -38,13 +38,14 @@ const DashboardPage = () => {
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [preferences, setPreferences] = useState<any>(null);
+  const [syncOffset, setSyncOffset] = useState<number>(0);
+  const [translationLang, setTranslationLang] = useState<'none'|'en'|'hi'|'es'>('none');
+  const [playbackMode, setPlaybackMode] = useState<string>('100');
   const [loading, setLoading] = useState(true);
-  const [translationLang, setTranslationLang] = useState<'none' | 'en' | 'hi' | 'es'>('en');
   const [roadmapProgress, setRoadmapProgress] = useState<any>(null);
   const [activeCardLanguage, setActiveCardLanguage] = useState<'hindi' | 'spanish'>('spanish');
   const [segments, setSegments] = useState<any[]>([]);
   const [ytReady, setYtReady] = useState(false);
-  const [syncOffset, setSyncOffset] = useState(0); // Manual sync adjustment
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [modalMode, setModalMode] = useState<'completed' | 'practice'>('practice');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -330,10 +331,16 @@ const DashboardPage = () => {
     }
   }, [currentSong]);
 
-  // Adjusted timing calculation
-  const activeIndex = segments.findIndex(
-    seg => (currentTime + syncOffset) >= seg.startTime && (currentTime + syncOffset) < seg.endTime
-  );
+  // Adjusted timing calculation to keep lyrics highlighted during instrumental gaps
+  let activeIndex = -1;
+  const time = currentTime + syncOffset;
+  for (let i = 0; i < segments.length; i++) {
+    if (time >= segments[i].startTime) {
+      activeIndex = i;
+    } else {
+      break;
+    }
+  }
 
   useEffect(() => {
     if (activeIndex !== -1) {
@@ -1654,8 +1661,30 @@ const DashboardPage = () => {
 
                 <div>
                   <div style={{ marginBottom: '20px' }}>
-                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginBottom: '8px', position: 'relative' }}>
-                      <div style={{ width: `${(currentTime / (currentSong.durationSeconds || 180)) * 100}%`, height: '100%', background: '#12d15e', transition: 'width 0.2s linear' }}></div>
+                    <div style={{ position: 'relative', width: '100%', height: '6px', marginBottom: '12px' }}>
+                      {/* Visual Bar */}
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', pointerEvents: 'none' }}>
+                        <div style={{ width: `${(currentTime / (currentSong.durationSeconds || 180)) * 100}%`, height: '100%', background: '#12d15e', borderRadius: '4px', position: 'relative' }}>
+                          {/* Circle Handle */}
+                          <div style={{ position: 'absolute', right: '-6px', top: '50%', transform: 'translateY(-50%)', width: '12px', height: '12px', background: '#fff', borderRadius: '50%', boxShadow: '0 0 6px rgba(0,0,0,0.8)' }}></div>
+                        </div>
+                      </div>
+                      {/* Native Range Input (Invisible) */}
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max={currentSong.durationSeconds || 180} 
+                        step="0.1"
+                        value={currentTime}
+                        onChange={(e) => {
+                          const newTime = parseFloat(e.target.value);
+                          setCurrentTime(newTime);
+                          if (playerRef.current && playerRef.current.seekTo) {
+                            playerRef.current.seekTo(newTime, true);
+                          }
+                        }}
+                        style={{ position: 'absolute', top: '-5px', left: 0, width: '100%', height: '16px', opacity: 0, cursor: 'pointer', margin: 0 }} 
+                      />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', opacity: 0.5 }}>
                       <span>{formatTime(currentTime)}</span>
@@ -1677,11 +1706,47 @@ const DashboardPage = () => {
                   </div>
 
                   {/* Manual Sync Adjustment */}
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '24px', opacity: 0.8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '16px', opacity: 0.8 }}>
                     <span style={{ fontSize: '10px', fontWeight: 'bold', opacity: 0.5 }}>SYNC:</span>
                     <button onClick={() => setSyncOffset(prev => prev - 1)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '10px' }}>-1s</button>
                     <span style={{ color: '#12d15e', fontWeight: 'bold', fontSize: '11px', minWidth: '25px', textAlign: 'center' }}>{syncOffset > 0 ? `+${syncOffset}` : syncOffset}s</span>
                     <button onClick={() => setSyncOffset(prev => prev + 1)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '10px' }}>+1s</button>
+                  </div>
+
+                  {/* Playback Mode Selector (HCI Feature) */}
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 'bold', opacity: 0.5 }}>MODE:</span>
+                    <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '3px', borderRadius: '8px', gap: '2px' }}>
+                      <button 
+                        onClick={() => {
+                          setPlaybackMode('100');
+                          if (playerRef.current && playerRef.current.setVolume) {
+                            playerRef.current.unMute();
+                            playerRef.current.setVolume(100);
+                          }
+                        }}
+                        style={{ padding: '4px 12px', borderRadius: '6px', border: 'none', background: playbackMode === '100' ? '#fff' : 'transparent', color: playbackMode === '100' ? '#000' : '#fff', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer', transition: '0.2s' }}
+                      >Full Audio</button>
+                      <button 
+                        onClick={() => {
+                          setPlaybackMode('20');
+                          if (playerRef.current && playerRef.current.setVolume) {
+                            playerRef.current.unMute();
+                            playerRef.current.setVolume(20);
+                          }
+                        }}
+                        style={{ padding: '4px 12px', borderRadius: '6px', border: 'none', background: playbackMode === '20' ? '#fff' : 'transparent', color: playbackMode === '20' ? '#000' : '#fff', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer', transition: '0.2s' }}
+                      >Low Vol</button>
+                      <button 
+                        onClick={() => {
+                          setPlaybackMode('0');
+                          if (playerRef.current && playerRef.current.mute) {
+                            playerRef.current.mute();
+                          }
+                        }}
+                        style={{ padding: '4px 12px', borderRadius: '6px', border: 'none', background: playbackMode === '0' ? '#fff' : 'transparent', color: playbackMode === '0' ? '#000' : '#fff', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer', transition: '0.2s' }}
+                      >Muted</button>
+                    </div>
                   </div>
 
                   {/* Lyrics Language Toggle */}
@@ -1778,6 +1843,12 @@ const DashboardPage = () => {
                       <div 
                         id={`line-${idx}`}
                         key={idx} 
+                        onClick={() => {
+                          if (playerRef.current && playerRef.current.seekTo) {
+                            playerRef.current.seekTo(line.startTime, true);
+                            setCurrentTime(line.startTime);
+                          }
+                        }}
                         style={{ 
                           display: 'grid',
                           gridTemplateColumns: translationLang === 'none' ? '1fr' : '1fr 1fr',
@@ -1786,7 +1857,16 @@ const DashboardPage = () => {
                           transition: 'all 0.3s ease',
                           transform: isActive ? 'scale(1.015)' : 'scale(1)',
                           transformOrigin: 'left',
-                          padding: '4px 0'
+                          padding: '6px 12px',
+                          borderRadius: '12px',
+                          cursor: 'pointer',
+                          background: isActive ? 'rgba(255,255,255,0.03)' : 'transparent'
+                        }}
+                        onMouseOver={(e) => {
+                          if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                        }}
+                        onMouseOut={(e) => {
+                          if (!isActive) e.currentTarget.style.background = 'transparent';
                         }}
                       >
                         {/* Original Lyric Column */}

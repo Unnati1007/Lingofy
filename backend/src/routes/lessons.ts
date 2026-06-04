@@ -132,7 +132,7 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
 // POST /api/lessons/submit
 router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
   try {
-    const { attemptId, language, level, questions, userAnswers, totalTimeSpentSeconds } = req.body;
+    const { attemptId, language, level, questions, userAnswers, totalTimeSpentSeconds, cognitiveLoad, reflectionText } = req.body;
 
     if (!attemptId || !language || !questions || !userAnswers) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -195,6 +195,9 @@ router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
     attempt.completedAt = new Date();
     attempt.totalTimeSpentSeconds = totalTimeSpentSeconds || 0;
     attempt.avgTimePerTextQuestionSeconds = textOnlyQuestionCount > 0 ? (textOnlyTimeSpentSeconds / textOnlyQuestionCount) : 0;
+    
+    if (cognitiveLoad !== undefined) attempt.cognitiveLoad = cognitiveLoad;
+    if (reflectionText !== undefined) attempt.reflectionText = reflectionText;
 
     await attempt.save();
 

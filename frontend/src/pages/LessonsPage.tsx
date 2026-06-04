@@ -5,7 +5,7 @@ import {
   Zap, Lock, Flame, Target, Award
 } from 'lucide-react';
 
-type ViewState = 'setup' | 'loading' | 'quiz' | 'results';
+type ViewState = 'setup' | 'loading' | 'quiz' | 'hci_form' | 'results';
 type Language = 'hindi' | 'spanish';
 
 interface Question {
@@ -49,6 +49,9 @@ const LessonsPage = () => {
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
   const [totalStartTime, setTotalStartTime] = useState<number>(0);
+  // HCI Research state
+  const [cognitiveLoad, setCognitiveLoad] = useState<number>(3);
+  const [reflectionText, setReflectionText] = useState<string>('');
   // Ref to always hold latest answers (avoids stale closure in submit)
   const latestAnswersRef = useRef<any[]>([]);
 
@@ -147,8 +150,8 @@ const LessonsPage = () => {
         setIsAnswerChecked(false);
         setQuestionStartTime(Date.now());
       } else {
-        // Use ref so we always have the latest answers including the last one
-        submitLesson(latestAnswersRef.current);
+        // Show HCI Form before final submit
+        setView('hci_form');
       }
     } else {
       if (!selectedAnswer) return;
@@ -211,7 +214,9 @@ const LessonsPage = () => {
           level: quizLevel, 
           questions, 
           userAnswers: finalAnswers,
-          totalTimeSpentSeconds: Math.round((Date.now() - totalStartTime) / 1000)
+          totalTimeSpentSeconds: Math.round((Date.now() - totalStartTime) / 1000),
+          cognitiveLoad,
+          reflectionText
         })
       });
       if (!res.ok) {
@@ -1106,6 +1111,48 @@ const LessonsPage = () => {
             {currentUser?.learningMode === 'traditional' ? 'Switch to Music Mode' : 'Switch to Traditional Mode'}
           </button>
         </div>
+
+        {view === 'hci_form' && (
+          <div style={{ maxWidth: '600px', width: '100%', margin: '0 auto', background: '#222', borderRadius: '24px', padding: '40px', marginTop: '40px', border: '1px solid #333' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px', color: '#fff' }}>Research Reflection</h2>
+            <p style={{ color: '#aaa', marginBottom: '32px' }}>Please answer these two quick questions to help our HCI study.</p>
+
+            <div style={{ marginBottom: '32px' }}>
+              <label style={{ display: 'block', marginBottom: '16px', fontWeight: 'bold', color: '#fff' }}>1. How mentally demanding was this task?</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#aaa', fontSize: '12px' }}>
+                <span>Very Easy</span>
+                <span>Very Demanding</span>
+              </div>
+              <input 
+                type="range" 
+                min="1" 
+                max="5" 
+                value={cognitiveLoad}
+                onChange={(e) => setCognitiveLoad(parseInt(e.target.value))}
+                style={{ width: '100%', accentColor: '#12d15e', cursor: 'pointer' }}
+              />
+              <div style={{ textAlign: 'center', marginTop: '8px', color: '#12d15e', fontWeight: 'bold' }}>Rating: {cognitiveLoad} / 5</div>
+            </div>
+
+            <div style={{ marginBottom: '32px' }}>
+              <label style={{ display: 'block', marginBottom: '12px', fontWeight: 'bold', color: '#fff' }}>2. What helped you remember? Did the music help or distract you?</label>
+              <textarea 
+                rows={4}
+                value={reflectionText}
+                onChange={(e) => setReflectionText(e.target.value)}
+                placeholder="Your qualitative feedback..."
+                style={{ width: '100%', padding: '16px', borderRadius: '12px', background: 'rgba(0,0,0,0.2)', border: '1px solid #444', color: '#fff', fontSize: '14px', resize: 'vertical' }}
+              />
+            </div>
+
+            <button 
+              onClick={() => submitLesson(latestAnswersRef.current)}
+              style={{ width: '100%', padding: '16px', borderRadius: '12px', background: '#12d15e', color: '#000', fontWeight: 'bold', fontSize: '16px', border: 'none', cursor: 'pointer' }}
+            >
+              Submit & See Results
+            </button>
+          </div>
+        )}
 
         {view === 'setup' && renderSetup()}
         {view === 'loading' && renderLoading()}
