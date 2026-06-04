@@ -14,6 +14,7 @@ export interface IUserAnswer {
   questionId: number;
   answer: string;
   isCorrect: boolean;
+  timeSpentSeconds?: number;
 }
 
 export interface ILessonAttempt extends Document {
@@ -24,7 +25,11 @@ export interface ILessonAttempt extends Document {
   userAnswers: IUserAnswer[];
   score: number;
   xpEarned: number;
-  completedAt: Date;
+  status: 'in_progress' | 'completed' | 'abandoned';
+  startedAt: Date;
+  completedAt?: Date;
+  totalTimeSpentSeconds?: number;
+  avgTimePerTextQuestionSeconds?: number;
 }
 
 const QuestionSchema: Schema = new Schema({
@@ -44,7 +49,8 @@ const QuestionSchema: Schema = new Schema({
 const UserAnswerSchema: Schema = new Schema({
   questionId: { type: Number, required: true },
   answer: { type: String, required: true },
-  isCorrect: { type: Boolean, required: true }
+  isCorrect: { type: Boolean, required: true },
+  timeSpentSeconds: { type: Number, default: 0 }
 });
 
 const LessonAttemptSchema: Schema = new Schema({
@@ -52,10 +58,14 @@ const LessonAttemptSchema: Schema = new Schema({
   language: { type: String, enum: ['hindi', 'spanish'], required: true },
   level: { type: String, enum: ['easy', 'beginner', 'intermediate', 'hard', 'dynamic'], required: true },
   questions: { type: [QuestionSchema], required: true },
-  userAnswers: { type: [UserAnswerSchema], required: true },
-  score: { type: Number, required: true, min: 0 },
-  xpEarned: { type: Number, required: true },
-  completedAt: { type: Date, default: Date.now }
+  userAnswers: { type: [UserAnswerSchema], default: [] },
+  score: { type: Number, default: 0, min: 0 },
+  xpEarned: { type: Number, default: 0 },
+  status: { type: String, enum: ['in_progress', 'completed', 'abandoned'], default: 'completed' },
+  startedAt: { type: Date, default: Date.now },
+  completedAt: { type: Date },
+  totalTimeSpentSeconds: { type: Number, default: 0 },
+  avgTimePerTextQuestionSeconds: { type: Number, default: 0 }
 });
 
 export default mongoose.model<ILessonAttempt>('LessonAttempt', LessonAttemptSchema);

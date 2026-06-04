@@ -71,3 +71,38 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const updateProfile = async (req: any, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    const { name, nativeLanguage, learningLanguage, age, dailyGoal, proficiency } = req.body;
+
+    if (name) user.name = name;
+    if (nativeLanguage) user.nativeLanguage = nativeLanguage;
+    if (learningLanguage) user.learningLanguage = learningLanguage;
+    if (age !== undefined) user.age = Number(age);
+    if (dailyGoal !== undefined) user.dailyGoal = Number(dailyGoal);
+    if (proficiency) user.proficiency = proficiency;
+
+    await user.save();
+
+    res.json({ message: "Profile updated successfully", user: {
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      nativeLanguage: user.nativeLanguage,
+      learningLanguage: user.learningLanguage,
+      age: user.age,
+      dailyGoal: user.dailyGoal,
+      proficiency: user.proficiency,
+      learningMode: user.learningMode
+    }});
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

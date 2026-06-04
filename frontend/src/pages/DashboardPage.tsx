@@ -49,7 +49,7 @@ const DashboardPage = () => {
   const [modalMode, setModalMode] = useState<'completed' | 'practice'>('practice');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile'>('home');
   const [history, setHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
@@ -58,6 +58,18 @@ const DashboardPage = () => {
   const [activeTooltip, setActiveTooltip] = useState<any>(null);
   const [hideVideo, setHideVideo] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Profile Edit States
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    nativeLanguage: '',
+    learningLanguage: '',
+    age: '',
+    dailyGoal: '15',
+    proficiency: 'beginner'
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
 
   const learningLanguageKey = useMemo(() => {
     const lang = preferences?.languagesToLearn?.[0]?.toLowerCase() || 'spanish';
@@ -101,10 +113,18 @@ const DashboardPage = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (userRes.ok) {
-          const user = await userRes.json();
-          setCurrentUser(user);
+          const userData = await userRes.json();
+          setCurrentUser(userData);
+          setProfileForm({
+            name: userData.name || '',
+            nativeLanguage: userData.nativeLanguage || '',
+            learningLanguage: userData.learningLanguage || '',
+            age: userData.age ? userData.age.toString() : '',
+            dailyGoal: userData.dailyGoal ? userData.dailyGoal.toString() : '15',
+            proficiency: userData.proficiency || 'beginner'
+          });
           // If they are in traditional mode and currently on 'home' or 'library', redirect to statistics (as dashboard doesn't have lessons inside it)
-          if (user.learningMode === 'traditional') {
+          if (userData.learningMode === 'traditional') {
             setActiveTab('statistics'); // Or we just don't show the dashboard at all? Actually statistics is fine.
           }
         }
@@ -221,6 +241,38 @@ const DashboardPage = () => {
       console.error(err);
     }
   };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    setProfileSuccessMessage('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/users/me/profile', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: profileForm.name,
+          nativeLanguage: profileForm.nativeLanguage,
+          learningLanguage: profileForm.learningLanguage,
+          age: profileForm.age ? parseInt(profileForm.age) : undefined,
+          dailyGoal: profileForm.dailyGoal ? parseInt(profileForm.dailyGoal) : undefined,
+          proficiency: profileForm.proficiency
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentUser(data.user);
+        setProfileSuccessMessage('Profile updated successfully!');
+        setTimeout(() => setProfileSuccessMessage(''), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
 
   // Chart data calculations
   const chartData = useMemo(() => {
@@ -1057,6 +1109,91 @@ const DashboardPage = () => {
     );
   };
 
+  const renderProfile = () => {
+    return (
+      <div style={{ padding: '32px' }}>
+        <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px' }}>Profile</h2>
+        <p style={{ opacity: 0.6, fontSize: '15px', marginBottom: '32px' }}>Update your personal details, demographics, and learning goals.</p>
+
+        <form onSubmit={handleSaveProfile} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Full Name</label>
+              <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} required style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Email <span style={{opacity:0.5}}>(Read Only)</span></label>
+              <input type="email" value={currentUser?.email || ''} readOnly style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)', color: 'rgba(255,255,255,0.5)', outline: 'none', cursor: 'not-allowed' }} />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Native Language</label>
+              <select value={profileForm.nativeLanguage} onChange={(e) => setProfileForm({...profileForm, nativeLanguage: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', outline: 'none' }}>
+                <option value="">Select Native Language</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Target Language</label>
+              <select value={profileForm.learningLanguage} onChange={(e) => setProfileForm({...profileForm, learningLanguage: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', outline: 'none' }}>
+                <option value="">Select Target Language</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Age</label>
+              <input type="number" min="1" max="120" value={profileForm.age} onChange={(e) => setProfileForm({...profileForm, age: e.target.value})} placeholder="e.g. 25" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Daily Goal (Minutes)</label>
+              <select value={profileForm.dailyGoal} onChange={(e) => setProfileForm({...profileForm, dailyGoal: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', outline: 'none' }}>
+                <option value="10">10 mins (Casual)</option>
+                <option value="15">15 mins (Regular)</option>
+                <option value="30">30 mins (Serious)</option>
+                <option value="60">60 mins (Intense)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Current Proficiency <span style={{opacity:0.5}}>(Read Only)</span></label>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              {['beginner', 'intermediate', 'advanced'].map((lvl) => (
+                <div
+                  key={lvl}
+                  style={{
+                    flex: 1, padding: '10px', borderRadius: '10px', border: `1px solid ${profileForm.proficiency === lvl ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
+                    background: profileForm.proficiency === lvl ? 'rgba(18, 209, 94, 0.1)' : 'rgba(255,255,255,0.02)',
+                    color: profileForm.proficiency === lvl ? '#12d15e' : 'rgba(255,255,255,0.5)', fontWeight: 'bold', textAlign: 'center', transition: 'all 0.2s', textTransform: 'capitalize',
+                    cursor: 'not-allowed'
+                  }}
+                >{lvl}</div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
+            {profileSuccessMessage && <span style={{ color: '#12d15e', fontSize: '13px', fontWeight: 'bold' }}>{profileSuccessMessage}</span>}
+            <button type="submit" disabled={savingProfile} className="btn-hover" style={{ background: '#12d15e', color: '#000', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: '800', cursor: savingProfile ? 'not-allowed' : 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
+              {savingProfile ? 'Saving...' : 'Save Profile'}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0f0f0f', color: '#fff' }}>
@@ -1228,7 +1365,7 @@ const DashboardPage = () => {
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
-          <NavItem icon={<Settings size={20} />} label="Settings" collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Settings size={20} />} label="Profile" active={activeTab === 'profile'} onClick={() => { setActiveTab('profile'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); navigate('/login'); }} collapsed={isSidebarCollapsed} />
         </div>
       </aside>
@@ -1259,7 +1396,7 @@ const DashboardPage = () => {
           </button>
         </div>
 
-        {activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
+        {activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
           <div style={{ width: '100%', maxWidth: '1200px' }}>
           
           <div className="dashboard-layout-custom" style={{ 

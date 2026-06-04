@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import Song from "../../models/music/Song";
 import LyricSegment from "../../models/music/LyricSegment";
+import User from "../../models/user/User";
 
 import { YoutubeTranscript } from 'youtube-transcript';
 
@@ -153,6 +154,54 @@ export const getSegments = async (req: Request, res: Response): Promise<void> =>
     const { songId } = req.params;
     const segments = await LyricSegment.find({ songId }).sort({ segmentOrder: 1 });
     res.json(segments);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getSongSuggestions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // 1. Aggregate User preferences
+    const users = await User.find({ role: 'user' });
+    let hindiCount = 0;
+    let spanishCount = 0;
+
+    users.forEach(u => {
+      const lang = u.learningLanguage?.toLowerCase() || '';
+      if (lang === 'hindi') hindiCount++;
+      if (lang === 'spanish') spanishCount++;
+    });
+
+    const suggestions = [];
+
+    // Pre-defined curated list of popular songs
+    const hindiSongs = [
+      { title: "Tum Hi Ho", artist: "Arijit Singh", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=Umqb9KENgmk", reason: `High demand! ${hindiCount} users are learning Hindi.` },
+      { title: "Chaleya", artist: "Arijit Singh, Shilpa Rao", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=VAdGW7QDJiU", reason: `Popular modern hit for your ${hindiCount} Hindi learners.` },
+      { title: "Jai Ho", artist: "A.R. Rahman", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=xwtdhWltSIg", reason: `Classic upbeat song. Perfect for Hindi learners.` }
+    ];
+
+    const spanishSongs = [
+      { title: "Despacito", artist: "Luis Fonsi, Daddy Yankee", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=kJQP7kiw5Fk", reason: `Global phenomenon! ${spanishCount} users are learning Spanish.` },
+      { title: "Bailando", artist: "Enrique Iglesias", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=NUsoVlDFqZg", reason: `Great rhythm for vocabulary building for your ${spanishCount} Spanish learners.` },
+      { title: "La Bamba", artist: "Los Lobos", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=jSKJQ18ZoIA", reason: `Classic folk song, excellent for beginners.` }
+    ];
+
+    // Combine them, sort by the language with more learners
+    if (hindiCount >= spanishCount) {
+      if (hindiCount > 0) suggestions.push(...hindiSongs);
+      if (spanishCount > 0) suggestions.push(...spanishSongs);
+    } else {
+      if (spanishCount > 0) suggestions.push(...spanishSongs);
+      if (hindiCount > 0) suggestions.push(...hindiSongs);
+    }
+
+    // Fallback if no users have preferences yet
+    if (suggestions.length === 0) {
+      suggestions.push(hindiSongs[0], spanishSongs[0]);
+    }
+
+    res.json(suggestions);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

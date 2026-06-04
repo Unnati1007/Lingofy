@@ -12,7 +12,8 @@ import {
   Loader2,
   CheckCircle2,
   X,
-  BarChart3
+  BarChart3,
+  Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -32,7 +33,7 @@ const AdminDashboard = () => {
   const [translations, setTranslations] = useState<{ hindi: any[], spanish: any[] } | null>(null);
   const [showToast, setShowToast] = useState(false);
   
-  const [activeView, setActiveView] = useState<'add-song' | 'users' | 'analytics'>('analytics');
+  const [activeView, setActiveView] = useState<'add-song' | 'users' | 'analytics' | 'profile'>('analytics');
   const [analyticsData, setAnalyticsData] = useState<{ traditional: any, music: any } | null>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
@@ -44,6 +45,23 @@ const AdminDashboard = () => {
   const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
+  
+  // Admin Profile Edit States
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    nativeLanguage: '',
+    learningLanguage: '',
+    age: '',
+    dailyGoal: '15',
+    proficiency: 'advanced'
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
+
+  // Song suggestions state
+  const [songSuggestions, setSongSuggestions] = useState<any[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -127,8 +145,49 @@ const AdminDashboard = () => {
       navigate('/login');
     } else if (role !== 'admin') {
       navigate('/dashboard');
+    } else {
+      // Fetch admin profile
+      axios.get('http://localhost:5000/api/users/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(res => {
+        setCurrentUser(res.data);
+        setProfileForm({
+          name: res.data.name || '',
+          nativeLanguage: res.data.nativeLanguage || '',
+          learningLanguage: res.data.learningLanguage || '',
+          age: res.data.age ? res.data.age.toString() : '',
+          dailyGoal: res.data.dailyGoal ? res.data.dailyGoal.toString() : '15',
+          proficiency: res.data.proficiency || 'advanced'
+        });
+      }).catch(err => console.error(err));
     }
   }, [navigate]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    setProfileSuccessMessage('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.put('http://localhost:5000/api/users/me/profile', {
+        name: profileForm.name,
+        nativeLanguage: profileForm.nativeLanguage,
+        learningLanguage: profileForm.learningLanguage,
+        age: profileForm.age ? parseInt(profileForm.age) : undefined,
+        dailyGoal: profileForm.dailyGoal ? parseInt(profileForm.dailyGoal) : undefined,
+        proficiency: profileForm.proficiency
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setCurrentUser(res.data.user);
+      setProfileSuccessMessage('Admin profile updated successfully!');
+      setTimeout(() => setProfileSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   React.useEffect(() => {
     if (activeView === 'users') {
@@ -138,8 +197,25 @@ const AdminDashboard = () => {
       setSelectedUserProgress(null);
     } else if (activeView === 'analytics') {
       fetchAnalytics();
+    } else if (activeView === 'add-song') {
+      fetchSongSuggestions();
     }
   }, [activeView]);
+
+  const fetchSongSuggestions = async () => {
+    setSuggestionsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/admin/song-suggestions', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setSongSuggestions(response.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
 
   const fetchAnalytics = async () => {
     try {
@@ -252,6 +328,17 @@ const AdminDashboard = () => {
       { name: 'Traditional Mode', value: analyticsData.traditional.totalAttempts || 0 },
       { name: 'Music Mode', value: analyticsData.music.totalAttempts || 0 }
     ];
+
+    const dropoutData = [
+      { name: 'Traditional Mode', rate: Math.round(analyticsData.traditional.dropoutRate || 0), fill: '#ef4444' },
+      { name: 'Music Mode', rate: Math.round(analyticsData.music.dropoutRate || 0), fill: '#12d15e' }
+    ];
+
+    const timeData = [
+      { name: 'Traditional Mode', time: Math.round(analyticsData.traditional.averageTimeSpentSeconds || 0), fill: '#ef4444' },
+      { name: 'Music Mode', time: Math.round(analyticsData.music.averageTimeSpentSeconds || 0), fill: '#12d15e' }
+    ];
+
     const COLORS = ['#ef4444', '#12d15e'];
 
     return (
@@ -259,6 +346,20 @@ const AdminDashboard = () => {
         <div style={{ marginBottom: '32px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>Research Analytics</h1>
           <p style={{ opacity: 0.5 }}>Compare performance metrics between the Traditional (Control) and Music (Experimental) groups.</p>
+        </div>
+
+        {/* Top Summary Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Traditional Mode Users</h3>
+            <div style={{ fontSize: '48px', fontWeight: '900', color: '#ef4444' }}>{analyticsData.traditional.uniqueUsersCount || 0}</div>
+            <p style={{ opacity: 0.7, fontSize: '13px', marginTop: '4px' }}>Unique Participants</p>
+          </div>
+          <div style={{ background: 'rgba(18, 209, 94, 0.1)', border: '1px solid rgba(18, 209, 94, 0.2)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#12d15e', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Music Mode Users</h3>
+            <div style={{ fontSize: '48px', fontWeight: '900', color: '#12d15e' }}>{analyticsData.music.uniqueUsersCount || 0}</div>
+            <p style={{ opacity: 0.7, fontSize: '13px', marginTop: '4px' }}>Unique Participants</p>
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
@@ -299,9 +400,107 @@ const AdminDashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Total number of quizzes initiated by users in each group.</p>
+            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Compares the total number of quizzes initiated by each group.</p>
           </div>
         </div>
+
+        {/* Telemetry Charts Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+          {/* Dropout Rate Chart */}
+          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px', textAlign: 'center' }}>Task Dropout Rate (%)</h3>
+            <div style={{ height: '300px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dropoutData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                  <RechartsTooltip cursor={{ fill: '#27272a' }} contentStyle={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
+                  <Bar dataKey="rate" radius={[6, 6, 0, 0]}>
+                    {dropoutData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Percentage of users who abandoned the quiz before finishing.</p>
+          </div>
+
+          {/* Average Time Spent Chart */}
+          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px', textAlign: 'center' }}>Avg Cognitive Load (Time per Text Question)</h3>
+            <div style={{ height: '300px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={timeData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                  <RechartsTooltip cursor={{ fill: '#27272a' }} contentStyle={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
+                  <Bar dataKey="time" radius={[6, 6, 0, 0]}>
+                    {timeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Average seconds taken to answer purely text-based questions (excluding audio playback time) to accurately compare cognitive hesitation.</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderProfileView = () => {
+    return (
+      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>Profile</h1>
+          <p style={{ opacity: 0.5 }}>Manage your administrative account details and preferences.</p>
+        </div>
+
+        <form onSubmit={handleSaveProfile} style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          
+          <div style={{ paddingBottom: '20px', borderBottom: '1px solid #1e1e21' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px' }}>Personal Information</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Full Name</label>
+                <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} required style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #27272a', background: '#18181b', color: '#fff', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Email Address <span style={{opacity:0.5}}>(Read Only)</span></label>
+                <input type="email" value={currentUser?.email || ''} readOnly style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #27272a', background: '#09090b', color: 'rgba(255,255,255,0.5)', outline: 'none', cursor: 'not-allowed' }} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ paddingBottom: '20px', borderBottom: '1px solid #1e1e21' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px' }}>System Preferences</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Role Level</label>
+                <input type="text" value="Super Administrator" readOnly style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #27272a', background: '#09090b', color: '#a855f7', fontWeight: 'bold', outline: 'none', cursor: 'not-allowed' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Theme Settings</label>
+                <select disabled style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #27272a', background: '#09090b', color: 'rgba(255,255,255,0.5)', outline: 'none', cursor: 'not-allowed' }}>
+                  <option>Dark Mode (Default)</option>
+                  <option>Light Mode</option>
+                  <option>System Default</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
+            {profileSuccessMessage && <span style={{ color: '#12d15e', fontSize: '13px', fontWeight: 'bold' }}>{profileSuccessMessage}</span>}
+            <button type="submit" disabled={savingProfile} style={{ background: '#12d15e', color: '#000', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: '800', cursor: savingProfile ? 'not-allowed' : 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
+              {savingProfile ? 'Saving...' : 'Save Admin Profile'}
+            </button>
+          </div>
+        </form>
       </div>
     );
   };
@@ -568,6 +767,12 @@ const AdminDashboard = () => {
 
         <div style={{ borderTop: '1px solid #18181b', paddingTop: '20px' }}>
           <SidebarItem 
+            icon={<Settings size={18} />} 
+            label="Profile" 
+            active={activeView === 'profile'} 
+            onClick={() => setActiveView('profile')} 
+          />
+          <SidebarItem 
             icon={<LogOut size={18} />} 
             label="Logout" 
             onClick={() => { localStorage.clear(); navigate('/login'); }} 
@@ -593,13 +798,49 @@ const AdminDashboard = () => {
 
         {/* Content Area */}
         <div style={{ padding: '40px', overflowY: 'auto', flex: 1 }}>
-          {activeView === 'analytics' ? renderAnalyticsView() : activeView === 'users' ? renderUsersView() : (
+          {activeView === 'analytics' ? renderAnalyticsView() : activeView === 'users' ? renderUsersView() : activeView === 'profile' ? renderProfileView() : (
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             
             <div style={{ marginBottom: '32px' }}>
               <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>Add New Song</h1>
               <p style={{ opacity: 0.5 }}>Expand your library by adding high-quality musical content.</p>
             </div>
+
+            {/* Song Suggestions Banner */}
+            {suggestionsLoading ? (
+              <div style={{ marginBottom: '32px', textAlign: 'center', opacity: 0.5, padding: '24px' }}>Loading smart recommendations...</div>
+            ) : songSuggestions.length > 0 && (
+              <div style={{ marginBottom: '32px', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(18, 209, 94, 0.15) 100%)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '24px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  ✨ Recommended by User Preferences
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                  {songSuggestions.map((suggestion, idx) => (
+                    <div key={idx} style={{ background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <div>
+                          <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff' }}>{suggestion.title}</h4>
+                          <p style={{ fontSize: '12px', opacity: 0.7 }}>{suggestion.artist}</p>
+                        </div>
+                        <span style={{ background: '#12d15e', color: '#000', fontSize: '10px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>{suggestion.language}</span>
+                      </div>
+                      <p style={{ fontSize: '11px', opacity: 0.5, marginBottom: '16px', fontStyle: 'italic' }}>{suggestion.reason}</p>
+                      
+                      <button 
+                        onClick={() => {
+                          setForm({ ...form, title: suggestion.title, artist: suggestion.artist, language: suggestion.language, audioUrl: suggestion.youtubeUrl });
+                        }}
+                        style={{ width: '100%', padding: '8px', background: '#27272a', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#18181b'}
+                        onMouseOut={(e) => e.currentTarget.style.background = '#27272a'}
+                      >
+                        Use Suggestion
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '32px', alignItems: 'start' }}>
               

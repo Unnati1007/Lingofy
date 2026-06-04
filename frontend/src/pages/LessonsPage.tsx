@@ -46,6 +46,9 @@ const LessonsPage = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
+  const [totalStartTime, setTotalStartTime] = useState<number>(0);
   // Ref to always hold latest answers (avoids stale closure in submit)
   const latestAnswersRef = useRef<any[]>([]);
 
@@ -119,6 +122,10 @@ const LessonsPage = () => {
       if (!res.ok) throw new Error('Failed to generate lesson');
       const data = await res.json();
       setQuestions(data.questions);
+      setAttemptId(data.attemptId);
+      const now = Date.now();
+      setQuestionStartTime(now);
+      setTotalStartTime(now);
       setCurrentQuestionIdx(0);
       setUserAnswers([]);
       latestAnswersRef.current = []; // reset ref on new lesson
@@ -138,6 +145,7 @@ const LessonsPage = () => {
         setCurrentQuestionIdx(prev => prev + 1);
         setSelectedAnswer('');
         setIsAnswerChecked(false);
+        setQuestionStartTime(Date.now());
       } else {
         // Use ref so we always have the latest answers including the last one
         submitLesson(latestAnswersRef.current);
@@ -147,12 +155,14 @@ const LessonsPage = () => {
       const question = questions[currentQuestionIdx];
       const cleanUser = selectedAnswer.trim().toLowerCase();
       const cleanCorrect = question.correctAnswer.trim().toLowerCase();
+      const timeSpentSeconds = Math.round((Date.now() - questionStartTime) / 1000);
+
       let isCorrect = cleanUser === cleanCorrect;
       if (!isCorrect && language === 'hindi' && question.type === 'translate_word') {
         const matches = [...question.explanation.matchAll(/'([^']+)'/g)].map(m => m[1].toLowerCase().trim());
         if (matches.includes(cleanUser)) isCorrect = true;
       }
-      const newAnswer = { questionId: question.id, answer: selectedAnswer, isCorrect };
+      const newAnswer = { questionId: question.id, answer: selectedAnswer, isCorrect, timeSpentSeconds };
       const updatedAnswers = [...userAnswers, newAnswer];
       latestAnswersRef.current = updatedAnswers; // sync ref immediately
       setUserAnswers(updatedAnswers);
@@ -195,7 +205,14 @@ const LessonsPage = () => {
       const res = await fetch('http://localhost:5000/api/lessons/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ language: activeLang, level: quizLevel, questions, userAnswers: finalAnswers })
+        body: JSON.stringify({ 
+          attemptId,
+          language: activeLang, 
+          level: quizLevel, 
+          questions, 
+          userAnswers: finalAnswers,
+          totalTimeSpentSeconds: Math.round((Date.now() - totalStartTime) / 1000)
+        })
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
@@ -424,9 +441,9 @@ const LessonsPage = () => {
 
           <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', flexWrap: 'wrap' }}>
             {[
-              { lang: 'hindi' as Language, flag: '🇮🇳', name: 'Hindi', sub: 'हिन्दी', level: 'N3 Level', color: '#ff9933' },
-              { lang: 'spanish' as Language, flag: '🇪🇸', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e' },
-            ].map(({ lang, flag, name, sub, level, color }) => {
+              { lang: 'hindi' as Language, img: 'https://flagcdn.com/w160/in.png', name: 'Hindi', sub: 'हिन्दी', level: 'N3 Level', color: '#ff9933' },
+              { lang: 'spanish' as Language, img: 'https://flagcdn.com/w160/es.png', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e' },
+            ].map(({ lang, img, name, sub, level, color }) => {
               const prog = roadmapProgress?.[lang];
               const completedCount = prog ? Math.min(prog.easyCompleted, 1) + Math.min(prog.intermediateCompleted, 2) + Math.min(prog.hardCompleted, 3) : 0;
               const totalNodes = 6;
@@ -442,7 +459,9 @@ const LessonsPage = () => {
                     boxShadow: '0 12px 40px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px'
                   }}
                 >
-                  <div style={{ fontSize: '72px', filter: 'drop-shadow(0 0 16px rgba(255,255,255,0.12))', transition: 'transform 0.3s' }}>{flag}</div>
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: `3px solid ${color}40`, marginBottom: '8px', boxShadow: `0 8px 24px ${color}30`, flexShrink: 0 }}>
+                    <img src={img} alt={`${name} flag`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontWeight: '800', fontSize: '24px', color: '#fff' }}>{name}</div>
                     <div style={{ fontSize: '14px', color, fontWeight: '600', marginTop: '2px' }}>{sub}</div>

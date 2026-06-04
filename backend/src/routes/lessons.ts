@@ -62,7 +62,18 @@ router.post("/generate", protect, async (req: AuthRequest, res: Response) => {
     }
 
     const lessonData = await generateLesson(language, activeLevel, uniquePreviousWords, totalAttempts, isMusicMode, musicPhrases);
-    res.status(200).json(lessonData);
+    
+    // Create in_progress attempt
+    const attempt = await LessonAttempt.create({
+      userId: req.user._id,
+      language,
+      level: activeLevel,
+      questions: lessonData.questions,
+      status: 'in_progress',
+      startedAt: new Date()
+    });
+
+    res.status(200).json({ ...lessonData, attemptId: attempt._id });
   } catch (error) {
     console.error("Error generating lesson:", error);
     res.status(500).json({ message: "Failed to generate lesson. Please try again.", error: (error as Error).message, stack: (error as Error).stack });
@@ -100,7 +111,18 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
     }).filter(item => item.english);
 
     const lessonData = await generateSongLesson(language, song.title, song.artistName || '', lyricsWithTranslations);
-    res.status(200).json(lessonData);
+    
+    // Create in_progress attempt
+    const attempt = await LessonAttempt.create({
+      userId: req.user._id,
+      language,
+      level: 'dynamic',
+      questions: lessonData.questions,
+      status: 'in_progress',
+      startedAt: new Date()
+    });
+
+    res.status(200).json({ ...lessonData, attemptId: attempt._id });
   } catch (error) {
     console.error("Error generating song lesson:", error);
     res.status(500).json({ message: "Failed to generate lesson from song. Please try again.", error: (error as Error).message });
@@ -110,16 +132,21 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
 // POST /api/lessons/submit
 router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
   try {
-    const { language, level, questions, userAnswers } = req.body;
+    const { attemptId, language, level, questions, userAnswers, totalTimeSpentSeconds } = req.body;
 
-    if (!language || !questions || !userAnswers) {
+    if (!attemptId || !language || !questions || !userAnswers) {
       return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const attempt = await LessonAttempt.findById(attemptId);
+    if (!attempt || attempt.userId.toString() !== req.user._id.toString()) {
+      return res.status(404).json({ message: "Attempt not found or unauthorized" });
     }
 
     let score = 0;
     const results = userAnswers.map((ua: any) => {
       const question = questions.find((q: any) => q.id === ua.questionId);
-      if (!question) return { ...ua, isCorrect: false };
+      if (!question) return { ...ua, isCorrect: false, timeSpentSeconds: ua.timeSpentSeconds || 0 };
 
       const cleanUser = ua.answer.trim().toLowerCase();
       const cleanCorrect = question.correctAnswer.trim().toLowerCase();
@@ -137,26 +164,37 @@ router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
         questionId: ua.questionId,
         isCorrect,
         correctAnswer: question.correctAnswer,
-        explanation: question.explanation
+        explanation: question.explanation,
+        timeSpentSeconds: ua.timeSpentSeconds || 0
       };
     });
 
     const xpEarned = score * 10;
-    const activeLevel = ['easy', 'intermediate', 'hard'].includes(level) ? level : 'easy';
+    
+    let textOnlyTimeSpentSeconds = 0;
+    let textOnlyQuestionCount = 0;
 
-    const attempt = new LessonAttempt({
-      userId: req.user._id,
-      language,
-      level: activeLevel,
-      questions,
-      userAnswers: results.map((r: any) => ({
+    // Update the existing attempt
+    attempt.userAnswers = results.map((r: any) => {
+      const q = questions.find((q: any) => q.id === r.questionId);
+      if (q && q.type !== 'listen_translate') {
+        textOnlyTimeSpentSeconds += (r.timeSpentSeconds || 0);
+        textOnlyQuestionCount++;
+      }
+      return {
         questionId: r.questionId,
         answer: userAnswers.find((ua: any) => ua.questionId === r.questionId)?.answer || '',
-        isCorrect: r.isCorrect
-      })),
-      score,
-      xpEarned
+        isCorrect: r.isCorrect,
+        timeSpentSeconds: r.timeSpentSeconds
+      };
     });
+    
+    attempt.score = score;
+    attempt.xpEarned = xpEarned;
+    attempt.status = 'completed';
+    attempt.completedAt = new Date();
+    attempt.totalTimeSpentSeconds = totalTimeSpentSeconds || 0;
+    attempt.avgTimePerTextQuestionSeconds = textOnlyQuestionCount > 0 ? (textOnlyTimeSpentSeconds / textOnlyQuestionCount) : 0;
 
     await attempt.save();
 

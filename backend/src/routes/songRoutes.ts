@@ -1,5 +1,5 @@
 import express from "express";
-import { addSong, getSongs, autoTranslate, getSegments } from "../controllers/music/songController";
+import { addSong, getSongs, autoTranslate, getSegments, getSongSuggestions } from "../controllers/music/songController";
 import { protect } from "../middleware/authMiddleware";
 import { adminOnly } from "../middleware/roleMiddleware";
 import User from "../models/user/User";
@@ -7,6 +7,7 @@ import LessonAttempt from "../models/LessonAttempt";
 
 const router = express.Router();
 
+router.get("/song-suggestions", protect, adminOnly, getSongSuggestions);
 router.post("/song", protect, adminOnly, addSong);
 router.get("/", getSongs);
 router.post("/translate/:songId", protect, adminOnly, autoTranslate);

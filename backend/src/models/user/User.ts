@@ -8,6 +8,9 @@ export interface IUser extends Document {
   password: string;
   nativeLanguage?: string;
   learningLanguage?: string;
+  age?: number;
+  dailyGoal?: number;
+  proficiency?: string;
   researchConsent: boolean;
   role: "user" | "admin";
   learningMode: "music" | "traditional";
@@ -46,6 +49,23 @@ const UserSchema: Schema<IUser> = new Schema(
     learningLanguage: {
       type: String,
       trim: true
+    },
+
+    age: {
+      type: Number,
+      min: 0,
+      max: 120
+    },
+
+    dailyGoal: {
+      type: Number,
+      default: 15
+    },
+
+    proficiency: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced'],
+      default: 'beginner'
     },
 
     researchConsent: {
