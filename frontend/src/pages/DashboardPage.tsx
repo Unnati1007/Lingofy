@@ -59,6 +59,7 @@ const DashboardPage = () => {
   const [activeTooltip, setActiveTooltip] = useState<any>(null);
   const [hideVideo, setHideVideo] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [heatmapMonthOffset, setHeatmapMonthOffset] = useState(0);
 
   // Profile Edit States
   const [profileForm, setProfileForm] = useState({
@@ -483,14 +484,18 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Streak Heatmap (Last 30 Days) */}
+        {/* Streak Heatmap */}
         {(() => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
+          const targetDate = new Date();
+          targetDate.setMonth(targetDate.getMonth() - heatmapMonthOffset);
+          
+          const year = targetDate.getFullYear();
+          const month = targetDate.getMonth();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          
           const heatmapDays = [];
-          for (let i = 29; i >= 0; i--) {
-            const d = new Date(today);
-            d.setDate(d.getDate() - i);
+          for (let i = 1; i <= daysInMonth; i++) {
+            const d = new Date(year, month, i);
             const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
             
             const dayAttempts = history.filter(a => {
@@ -509,21 +514,44 @@ const DashboardPage = () => {
             if (intensity === 2) return 'rgba(18, 209, 94, 0.7)';
             return 'rgba(18, 209, 94, 1)';
           };
+          
+          const monthName = targetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
           return (
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', marginBottom: '40px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px 0' }}>Activity Streak</h3>
-                  <p style={{ opacity: 0.5, fontSize: '13px', margin: 0 }}>Your activity over the last 30 days</p>
+                  <p style={{ opacity: 0.5, fontSize: '13px', margin: 0 }}>Your activity for {monthName}</p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', opacity: 0.6 }}>
-                  <span>Less</span>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(0) }} />
-                  <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(1) }} />
-                  <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(2) }} />
-                  <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(3) }} />
-                  <span>More</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  {/* Month filter controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px' }}>
+                    <button 
+                      onClick={() => setHeatmapMonthOffset(prev => prev + 1)}
+                      style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px 8px', borderRadius: '8px' }}
+                      className="btn-hover"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', minWidth: '100px', textAlign: 'center' }}>{monthName}</span>
+                    <button 
+                      onClick={() => setHeatmapMonthOffset(prev => Math.max(0, prev - 1))}
+                      disabled={heatmapMonthOffset === 0}
+                      style={{ background: 'transparent', border: 'none', color: heatmapMonthOffset === 0 ? 'rgba(255,255,255,0.2)' : '#fff', cursor: heatmapMonthOffset === 0 ? 'not-allowed' : 'pointer', padding: '4px 8px', borderRadius: '8px' }}
+                      className="btn-hover"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', opacity: 0.6 }}>
+                    <span>Less</span>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(0) }} />
+                    <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(1) }} />
+                    <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(2) }} />
+                    <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(3) }} />
+                    <span>More</span>
+                  </div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -639,7 +667,10 @@ const DashboardPage = () => {
 
           {/* History List Card */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '24px' }}>Quiz History</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Quiz History</h3>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '100px', color: '#fff' }}>Total: {history.length}</span>
+            </div>
             
             {historyLoading ? (
               <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

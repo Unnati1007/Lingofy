@@ -662,7 +662,7 @@ const LessonsPage = () => {
         </div>
 
         {/* ── Main content (Flex to take remaining height) ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', flex: 1, minHeight: 0 }} className="lessons-main-grid">
+        <div style={{ display: 'grid', gridTemplateColumns: activeTab === 'roadmap' ? '1fr 380px' : '1fr', gap: '24px', flex: 1, minHeight: 0 }} className="lessons-main-grid">
           
           {/* Left: Content Area */}
           <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
@@ -748,7 +748,7 @@ const LessonsPage = () => {
                 <h2 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 8px 0' }}>Targeted Practice</h2>
                 <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '32px' }}>Hone specific skills with specialized exercises using our advanced AI tutor.</p>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '32px' }}>
                   {[
                     { id: 'Vocabulary', icon: '📝', desc: 'Expand your word knowledge' },
                     { id: 'Listening', icon: '🎧', desc: 'Improve audio comprehension' },
@@ -795,10 +795,11 @@ const LessonsPage = () => {
           </div>
 
           {/* Right: Detail + Badges Panel */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
-            
-            {/* Selected Node Card (Only show if Roadmap tab is active) */}
-            {activeTab === 'roadmap' && selectedNode && (
+          {activeTab === 'roadmap' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
+              
+              {/* Selected Node Card */}
+              {selectedNode && (
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', boxShadow: '0 8px 40px rgba(0,0,0,0.4)', flexShrink: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <span style={{
@@ -838,8 +839,8 @@ const LessonsPage = () => {
               </div>
             )}
 
-
-          </div>
+            </div>
+          )}
         </div>
 
         <style>{`

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 import User from "../models/user/User";
 import UserPreferences from "../models/user/UserPreference";
 
@@ -79,6 +80,104 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     } else {
       res.status(401).json({ message: "Invalid email or password" });
     }
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    
+    if (!user) {
+      res.status(404).json({ message: "User with this email does not exist" });
+      return;
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+    user.resetPasswordCode = code;
+    user.resetPasswordExpires = expires;
+    await user.save();
+
+    // Configure nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Lingofy" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Lingofy - Your Password Reset Code',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; text-align: center;">
+          <h2 style="color: #12793d;">Lingofy Password Reset</h2>
+          <p>We received a request to reset the password for your Lingofy account.</p>
+          <p>Here is your 6-digit verification code:</p>
+          <div style="margin: 30px auto; padding: 20px; background-color: #f4f4f4; border-radius: 8px; max-width: 200px; font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #333;">
+            ${code}
+          </div>
+          <p style="color: #666; font-size: 14px;">This code will expire in 15 minutes.</p>
+          <p style="color: #666; font-size: 14px;">If you did not request this, please ignore this email.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`[EMAIL SENT] Password reset code sent to ${email}`);
+
+    res.json({ message: "Reset code sent to your email" });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const verifyResetCode = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, code } = req.body;
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+      resetPasswordCode: code,
+      resetPasswordExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      res.status(400).json({ message: "Invalid or expired reset code" });
+      return;
+    }
+
+    res.json({ message: "Code verified successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, code, newPassword } = req.body;
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+      resetPasswordCode: code,
+      resetPasswordExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      res.status(400).json({ message: "Invalid or expired reset code" });
+      return;
+    }
+
+    user.password = newPassword;
+    user.resetPasswordCode = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ message: "Password reset successfully" });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

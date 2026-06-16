@@ -16,6 +16,8 @@ export interface IUser extends Document {
   learningMode: "music" | "traditional";
   createdAt: Date;
   updatedAt: Date;
+  resetPasswordCode?: string;
+  resetPasswordExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -83,6 +85,14 @@ const UserSchema: Schema<IUser> = new Schema(
       type: String,
       enum: ["music", "traditional"],
       default: "music"
+    },
+
+    resetPasswordCode: {
+      type: String
+    },
+
+    resetPasswordExpires: {
+      type: Date
     }
   },
   {

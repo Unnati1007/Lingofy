@@ -4,6 +4,16 @@ import { useNavigate } from 'react-router-dom';
 const LoginPage = () => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  
+  // Forgot Password States
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotCode, setForgotCode] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [forgotMessage, setForgotMessage] = useState('');
+
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -36,15 +46,73 @@ const LoginPage = () => {
     }
   };
 
+  const handleForgotEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(''); setForgotMessage('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/forgot-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setForgotMessage(data.message);
+        setForgotStep(2);
+      } else {
+        setForgotError(data.message);
+      }
+    } catch (err) { setForgotError('An error occurred'); }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(''); setForgotMessage('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/verify-code', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, code: forgotCode })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setForgotMessage(data.message);
+        setForgotStep(3);
+      } else {
+        setForgotError(data.message);
+      }
+    } catch (err) { setForgotError('An error occurred'); }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(''); setForgotMessage('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/reset-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail, code: forgotCode, newPassword: forgotNewPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Password reset successfully! Please log in with your new password.');
+        setShowForgotModal(false);
+        setForgotStep(1);
+        setForgotEmail('');
+        setForgotCode('');
+        setForgotNewPassword('');
+      } else {
+        setForgotError(data.message);
+      }
+    } catch (err) { setForgotError('An error occurred'); }
+  };
+
   return (
     <div className="auth-container">
-      <div className="logo-container" style={{ position: 'absolute', top: '40px' }}>
-        <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '60px', height: '60px' }} />
-        <div className="logo-text" style={{ fontSize: '24px' }}>Lingofy</div>
+      <div className="logo-container" style={{ position: 'absolute', top: '20px' }}>
+        <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '40px', height: '40px' }} />
+        <div className="logo-text" style={{ fontSize: '20px' }}>Lingofy</div>
       </div>
 
-      <div className="auth-card" style={{ marginTop: '60px' }}>
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '30px' }}>
+      <div className="auth-card" style={{ marginTop: '20px' }}>
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
           <button className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"/>
@@ -65,7 +133,7 @@ const LoginPage = () => {
           </button>
         </div>
 
-        <div style={{ width: '100%', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '30px' }}></div>
+        <div style={{ width: '100%', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '20px' }}></div>
 
         <form style={{ width: '100%' }} onSubmit={handleLogin}>
           <div className="input-group">
@@ -92,7 +160,7 @@ const LoginPage = () => {
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontSize: '12px' }}>
             <input type="checkbox" id="remember" style={{ accentColor: '#12793d' }} />
             <label htmlFor="remember" style={{ color: '#ccc' }}>Remember Me</label>
           </div>
@@ -102,10 +170,61 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <div style={{ marginTop: '24px' }}>
-          <a href="#" style={{ fontSize: '13px', color: '#ccc', textDecoration: 'underline' }}>Forgot your Password?</a>
+        <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); setShowForgotModal(true); setForgotStep(1); setForgotError(''); setForgotMessage(''); }} style={{ fontSize: '13px', color: '#ccc', textDecoration: 'underline' }}>Forgot your Password?</a>
+          <div style={{ fontSize: '13px', color: '#ccc' }}>
+            Don't have an account? <span onClick={() => navigate('/signup')} style={{ color: '#12d15e', cursor: 'pointer', fontWeight: 'bold' }}>Register</span>
+          </div>
         </div>
       </div>
+      {showForgotModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: '#1a1a1a', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '400px', border: '1px solid #333' }}>
+            <h2 style={{ margin: '0 0 24px 0', fontSize: '24px', fontWeight: 'bold' }}>Reset Password</h2>
+            
+            {forgotError && <div style={{ color: '#ef4444', marginBottom: '16px', fontSize: '14px' }}>{forgotError}</div>}
+            {forgotMessage && <div style={{ color: '#12d15e', marginBottom: '16px', fontSize: '14px' }}>{forgotMessage}</div>}
+            
+            {forgotStep === 1 && (
+              <form onSubmit={handleForgotEmail}>
+                <div className="input-group">
+                  <label>Enter your email address</label>
+                  <input type="email" className="input-field" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} required />
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setShowForgotModal(false)} style={{ flex: 1 }}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Send Code</button>
+                </div>
+              </form>
+            )}
+
+            {forgotStep === 2 && (
+              <form onSubmit={handleVerifyCode}>
+                <div className="input-group">
+                  <label>Enter the 6-digit code</label>
+                  <input type="text" className="input-field" value={forgotCode} onChange={e => setForgotCode(e.target.value)} required />
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setForgotStep(1)} style={{ flex: 1 }}>Back</button>
+                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Verify</button>
+                </div>
+              </form>
+            )}
+
+            {forgotStep === 3 && (
+              <form onSubmit={handleResetPassword}>
+                <div className="input-group">
+                  <label>Enter new password</label>
+                  <input type="password" className="input-field" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} required minLength={6} />
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Reset Password</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

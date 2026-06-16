@@ -40,13 +40,13 @@ const SignupPage = () => {
 
   return (
     <div className="auth-container">
-      <div className="logo-container" style={{ position: 'absolute', top: '40px' }}>
-        <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '60px', height: '60px' }} />
-        <div className="logo-text" style={{ fontSize: '24px' }}>Lingofy</div>
+      <div className="logo-container" style={{ position: 'absolute', top: '20px' }}>
+        <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '40px', height: '40px' }} />
+        <div className="logo-text" style={{ fontSize: '20px' }}>Lingofy</div>
       </div>
 
-      <div className="auth-card" style={{ marginTop: '60px' }}>
-        <h2 style={{ marginBottom: '30px', fontSize: '24px', fontWeight: 'bold' }}>Sign Up</h2>
+      <div className="auth-card" style={{ marginTop: '20px' }}>
+        <h2 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: 'bold' }}>Sign Up</h2>
 
         <form style={{ width: '100%' }} onSubmit={handleSignup}>
           <div className="input-group">
@@ -89,6 +89,12 @@ const SignupPage = () => {
             Sign Up
           </button>
         </form>
+
+        <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+          <div style={{ fontSize: '13px', color: '#ccc' }}>
+            Already have an account? <span onClick={() => navigate('/login')} style={{ color: '#12d15e', cursor: 'pointer', fontWeight: 'bold' }}>Log In</span>
+          </div>
+        </div>
       </div>
     </div>
   );
