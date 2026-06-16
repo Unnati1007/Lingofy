@@ -122,6 +122,8 @@ export const generateLesson = async (
     } else {
       levelDescription = "Intermediate level — QUIZ 2 of 2 (B2: Very challenging intermediate. Nuanced meanings, idiomatic expressions, fill-in-the-blank with long complex sentences. Make it noticeably harder.)";
     }
+  } else if (levelStr === 'pronunciation') {
+    levelDescription = "Pronunciation & Audio level. Focus purely on spoken phrases, phonetics, and listening comprehension. Questions must rely heavily on audio if possible.";
   } else {
     if (quizAttemptCount === 0) {
       levelDescription = "Hard level — QUIZ 1 of 3 (C1: advanced idiomatic expressions, complex emotions, native-level phrases from music/literature, subtle word choice differences.)";
@@ -137,11 +139,15 @@ export const generateLesson = async (
     ? `\nCRITICAL — BANNED WORDS (user has already seen these — NEVER use them as targetWord or in options):\n${previousWords.slice(-60).join(', ')}\n`
     : '';
 
+  const isPronunciationMode = levelStr === 'pronunciation';
+
   const musicModeInstructions = isMusicMode ? `
 3. Generate exactly 10 questions. 
    - EXACTLY 4 of these questions MUST be of type 'listen_translate'.
    - EXACTLY 2 of these questions MUST be of type 'translate_word', where the 'targetWord' is a FULL LINE or PHRASE (5-8 words long) directly from the song lyrics, and the user must choose the correct translation.
-   - The remaining 4 should be randomly distributed among 'translate_word' (single word), 'multiple_choice', 'fill_blank', and 'match_meaning'.` : `
+   - The remaining 4 should be randomly distributed among 'translate_word' (single word), 'multiple_choice', 'fill_blank', and 'match_meaning'.` : isPronunciationMode ? `
+3. Generate exactly 10 questions.
+   - All questions should focus on spoken language, conversational phrases, and audio translation. You may use 'listen_translate' heavily if supported, or standard 'translate_word' and 'multiple_choice'.` : `
 3. Generate exactly 10 questions randomly distributed among the 4 question types: translate_word, multiple_choice, fill_blank, match_meaning.`;
 
   const musicModeStructure = isMusicMode ? `

@@ -266,6 +266,7 @@ router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
       const prevInterCount = prevAttempts.filter(a => a.level === 'intermediate').length;
       const prevHardCount = prevAttempts.filter(a => a.level === 'hard').length;
       const prevFocusCount = prevAttempts.filter(a => a.level === 'focus').length;
+      const prevPronunciationCount = prevAttempts.filter(a => a.level === 'pronunciation').length;
 
       let newBadgeName = null;
 
@@ -277,6 +278,8 @@ router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
         newBadgeName = 'Language Star';
       } else if (attempt.level === 'focus' && prevFocusCount === 0) {
         newBadgeName = 'Focus Scholar';
+      } else if (attempt.level === 'pronunciation' && prevPronunciationCount === 0) {
+        newBadgeName = 'Pronunciation Master';
       }
 
       if (newBadgeName) {
@@ -341,6 +344,7 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
       const intermediateCount = langAttempts.filter(a => a.level === 'intermediate').length;
       const hardCount = langAttempts.filter(a => a.level === 'hard').length;
       const focusCount = langAttempts.filter(a => a.level === 'focus').length;
+      const pronunciationCount = langAttempts.filter(a => a.level === 'pronunciation').length;
 
       let currentStage = 'easy';
       const badges: string[] = [];
@@ -359,6 +363,9 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
       }
       if (focusCount >= 1) {
         badges.push('focus_scholar');
+      }
+      if (pronunciationCount >= 1) {
+        badges.push('Pronunciation Master');
       }
 
       return {
