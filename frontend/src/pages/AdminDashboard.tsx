@@ -230,6 +230,25 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteUser = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to permanently delete this user?")) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/users/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      // Remove from UI
+      setUsers(users.filter(u => u._id !== id));
+      if (selectedUser?._id === id) {
+        setSelectedUser(null);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to delete user');
+    }
+  };
+
   const fetchAnalytics = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -531,22 +550,38 @@ const AdminDashboard = () => {
                         <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '2px' }}>{user.email}</div>
                       </div>
                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                        <button
-                          onClick={(e) => handleToggleUserMode(e, user._id, user.learningMode)}
-                          style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            color: '#fff',
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            fontSize: '10px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            marginBottom: '4px'
-                          }}
-                        >
-                          Switch Mode
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+                          <button
+                            onClick={(e) => handleToggleUserMode(e, user._id, user.learningMode)}
+                            style={{
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              color: '#fff',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              fontSize: '10px',
+                              fontWeight: 'bold',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Switch Mode
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteUser(e, user._id)}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#ef4444',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              fontSize: '10px',
+                              fontWeight: 'bold',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
                         <span style={{ fontSize: '11px', opacity: 0.4 }}>
                           Joined {new Date(user.createdAt).toLocaleDateString()}
                         </span>

@@ -64,12 +64,18 @@ router.post("/generate", protect, async (req: AuthRequest, res: Response) => {
 
     const lessonData = await generateLesson(language, activeLevel, uniquePreviousWords, totalAttempts, isMusicMode, musicPhrases);
     
+    // Ensure all questions have a correctAnswer to satisfy Mongoose validation
+    const sanitizedQuestions = lessonData.questions.map((q: any) => ({
+      ...q,
+      correctAnswer: q.correctAnswer || "N/A"
+    }));
+
     // Create in_progress attempt
     const attempt = await LessonAttempt.create({
       userId: req.user._id,
       language,
       level: activeLevel,
-      questions: lessonData.questions,
+      questions: sanitizedQuestions,
       status: 'in_progress',
       startedAt: new Date()
     });
@@ -113,12 +119,18 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
 
     const lessonData = await generateSongLesson(language, song.title, song.artistName || '', lyricsWithTranslations);
     
+    // Ensure all questions have a correctAnswer to satisfy Mongoose validation
+    const sanitizedQuestions = lessonData.questions.map((q: any) => ({
+      ...q,
+      correctAnswer: q.correctAnswer || "N/A"
+    }));
+
     // Create in_progress attempt
     const attempt = await LessonAttempt.create({
       userId: req.user._id,
       language,
       level: 'dynamic',
-      questions: lessonData.questions,
+      questions: sanitizedQuestions,
       status: 'in_progress',
       startedAt: new Date()
     });
@@ -144,12 +156,18 @@ router.post("/generate-focus", protect, async (req: AuthRequest, res: Response) 
 
     const lessonData = await generateFocusLesson(language, focusArea);
     
+    // Ensure all questions have a correctAnswer to satisfy Mongoose validation
+    const sanitizedQuestions = lessonData.questions.map((q: any) => ({
+      ...q,
+      correctAnswer: q.correctAnswer || "N/A"
+    }));
+
     // Create in_progress attempt
     const attempt = await LessonAttempt.create({
       userId: req.user._id,
       language,
       level: 'focus', // Changed from dynamic to distinguish from song lessons
-      questions: lessonData.questions,
+      questions: sanitizedQuestions,
       status: 'in_progress',
       startedAt: new Date()
     });

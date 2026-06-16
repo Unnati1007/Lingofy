@@ -4,26 +4,25 @@ import { Music, Check, Languages, User, ChevronRight } from 'lucide-react';
 
 const genres = ['Pop', 'Latin', 'Folk', 'Rock', 'Bollywood', 'Lo-fi', 'Jazz', 'EDM', 'Classical', 'Rap', 'Indie', 'K-Pop', 'Soul'];
 const artists = ['Badshah', 'Lady Gaga', 'RADWIMPS', 'Drake', 'Shakira', 'Shreya Ghoshal', 'Arijit Singh', 'Neha Kakkar', 'ColdPlay', 'Prateek Kuhad', 'Dua Lipa', 'BTS', 'EXO', 'BlackPink', 'Shawn Mendes'];
+const availableLanguages = ['Spanish', 'French', 'Korean', 'Japanese', 'Hindi', 'German', 'Italian', 'Mandarin', 'Portuguese', 'Russian', 'Arabic', 'Turkish', 'Dutch', 'Swedish', 'Polish', 'English'];
 
 const PreferencesPage = () => {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
-  const [languages, setLanguages] = useState('');
-  const [knownLanguages, setKnownLanguages] = useState('');
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedKnownLanguages, setSelectedKnownLanguages] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
-  const toggleGenre = (genre: string) => {
-    setSelectedGenres(prev => 
-      prev.includes(genre) ? prev.filter(g => g !== genre) : [...prev, genre]
-    );
+  const toggleSelection = (item: string, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
+    setter(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
 
-  const toggleArtist = (artist: string) => {
-    setSelectedArtists(prev => 
-      prev.includes(artist) ? prev.filter(a => a !== artist) : [...prev, artist]
-    );
-  };
+  const toggleGenre = (genre: string) => toggleSelection(genre, setSelectedGenres);
+  const toggleArtist = (artist: string) => toggleSelection(artist, setSelectedArtists);
+  const toggleLanguage = (lang: string) => toggleSelection(lang, setSelectedLanguages);
+  const toggleKnownLanguage = (lang: string) => toggleSelection(lang, setSelectedKnownLanguages);
+
 
   const handleSavePreferences = async () => {
     if (isSaving) return;
@@ -40,7 +39,7 @@ const PreferencesPage = () => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          languagesToLearn: languages.split(',').map(l => l.trim()).filter(l => l !== ''),
+          languagesToLearn: selectedLanguages,
           favoriteGenres: selectedGenres,
           favoriteArtists: selectedArtists,
           vocabularyLevel: 'beginner',
@@ -56,7 +55,7 @@ const PreferencesPage = () => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          knownLanguages: knownLanguages.split(',').map(l => l.trim()).filter(l => l !== '')
+          knownLanguages: selectedKnownLanguages
         })
       });
 
@@ -117,47 +116,55 @@ const PreferencesPage = () => {
             </div>
             <h3 style={{ fontSize: '20px', fontWeight: '600' }}>Which languages are we learning today?</h3>
           </div>
-          <input 
-            type="text" 
-            className="input-field" 
-            placeholder="e.g. Spanish, Korean, French..." 
-            value={languages}
-            onChange={(e) => setLanguages(e.target.value)}
-            style={{ 
-              background: 'rgba(0,0,0,0.2)', 
-              border: '1px solid rgba(255,255,255,0.1)', 
-              width: '100%',
-              padding: '16px 20px',
-              borderRadius: '14px',
-              fontSize: '16px',
-              color: '#fff',
-              outline: 'none',
-              transition: 'border-color 0.3s ease',
-              marginBottom: '20px'
-            }}
-          />
+          
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '32px' }}>
+            {availableLanguages.map(lang => {
+              const isSelected = selectedLanguages.includes(lang);
+              return (
+                <div 
+                  key={`learn-${lang}`}
+                  onClick={() => toggleLanguage(lang)}
+                  style={{
+                    padding: '10px 20px', borderRadius: '100px',
+                    background: isSelected ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'rgba(255,255,255,0.05)',
+                    border: '1px solid', borderColor: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.1)',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                    boxShadow: isSelected ? '0 10px 15px -3px rgba(59, 130, 246, 0.3)' : 'none'
+                  }}
+                >
+                  {isSelected && <Check size={14} strokeWidth={3} />}
+                  <span style={{ fontSize: '14px', fontWeight: isSelected ? '600' : '400' }}>{lang}</span>
+                </div>
+              );
+            })}
+          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', marginTop: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '500', opacity: 0.9 }}>And what languages do you already know?</h3>
           </div>
-          <input 
-            type="text" 
-            className="input-field" 
-            placeholder="e.g. English, Hindi..." 
-            value={knownLanguages}
-            onChange={(e) => setKnownLanguages(e.target.value)}
-            style={{ 
-              background: 'rgba(0,0,0,0.2)', 
-              border: '1px solid rgba(255,255,255,0.1)', 
-              width: '100%',
-              padding: '16px 20px',
-              borderRadius: '14px',
-              fontSize: '16px',
-              color: '#fff',
-              outline: 'none',
-              transition: 'border-color 0.3s ease'
-            }}
-          />
+          
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            {availableLanguages.map(lang => {
+              const isSelected = selectedKnownLanguages.includes(lang);
+              return (
+                <div 
+                  key={`know-${lang}`}
+                  onClick={() => toggleKnownLanguage(lang)}
+                  style={{
+                    padding: '8px 16px', borderRadius: '100px',
+                    background: isSelected ? 'rgba(255,255,255,0.15)' : 'transparent',
+                    border: '1px solid', borderColor: isSelected ? '#fff' : 'rgba(255,255,255,0.1)',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                    transition: 'all 0.2s', opacity: isSelected ? 1 : 0.6
+                  }}
+                >
+                  <span style={{ fontSize: '13px', fontWeight: isSelected ? '600' : '400' }}>{lang}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Section 2: Genres */}

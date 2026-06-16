@@ -15,15 +15,30 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { credential } = req.body;
-    
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
+    const { credential, access_token } = req.body;
+    let payload: any = null;
+
+    if (access_token) {
+      // Handle frontend access_token from useGoogleLogin
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      if (!response.ok) {
+        res.status(400).json({ message: "Invalid Google access token" });
+        return;
+      }
+      payload = await response.json();
+    } else if (credential) {
+      // Handle standard ID Token credential
+      const ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    }
+
     if (!payload) {
-      res.status(400).json({ message: "Invalid Google token" });
+      res.status(400).json({ message: "No Google credentials provided" });
       return;
     }
 
