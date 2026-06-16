@@ -3,6 +3,7 @@ import express, { Response } from "express";
 import { protect, AuthRequest } from "../middleware/authMiddleware";
 import LessonAttempt from "../models/LessonAttempt";
 import { generateLesson, generateSongLesson } from "../services/lessonService";
+import { generateFocusLesson } from "../services/focusAreaService";
 import Song from "../models/music/Song";
 import LyricSegment from "../models/music/LyricSegment";
 import { adminOnly } from "../middleware/roleMiddleware";
@@ -126,6 +127,37 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
   } catch (error) {
     console.error("Error generating song lesson:", error);
     res.status(500).json({ message: "Failed to generate lesson from song. Please try again.", error: (error as Error).message });
+  }
+});
+
+// POST /api/lessons/generate-focus
+router.post("/generate-focus", protect, async (req: AuthRequest, res: Response) => {
+  try {
+    const { language, focusArea } = req.body;
+
+    if (!['hindi', 'spanish'].includes(language)) {
+      return res.status(400).json({ message: "Invalid language" });
+    }
+    if (!focusArea) {
+      return res.status(400).json({ message: "Focus area is required" });
+    }
+
+    const lessonData = await generateFocusLesson(language, focusArea);
+    
+    // Create in_progress attempt
+    const attempt = await LessonAttempt.create({
+      userId: req.user._id,
+      language,
+      level: 'focus', // Changed from dynamic to distinguish from song lessons
+      questions: lessonData.questions,
+      status: 'in_progress',
+      startedAt: new Date()
+    });
+
+    res.status(200).json({ ...lessonData, attemptId: attempt._id });
+  } catch (error) {
+    console.error("Error generating focus lesson:", error);
+    res.status(500).json({ message: "Failed to generate focus lesson. Please try again.", error: (error as Error).message });
   }
 });
 
@@ -253,6 +285,7 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
       const easyCount = langAttempts.filter(a => a.level === 'easy' || a.level === 'beginner').length;
       const intermediateCount = langAttempts.filter(a => a.level === 'intermediate').length;
       const hardCount = langAttempts.filter(a => a.level === 'hard').length;
+      const focusCount = langAttempts.filter(a => a.level === 'focus').length;
 
       let currentStage = 'easy';
       const badges: string[] = [];
@@ -269,11 +302,15 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
         badges.push('language_star');
         currentStage = 'completed';
       }
+      if (focusCount >= 1) {
+        badges.push('focus_scholar');
+      }
 
       return {
         easyCompleted: Math.min(easyCount, 1),
         intermediateCompleted: Math.min(intermediateCount, 2),
         hardCompleted: Math.min(hardCount, 3),
+        focusCompleted: focusCount,
         currentStage,
         badges
       };

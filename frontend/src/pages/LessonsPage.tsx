@@ -23,6 +23,7 @@ const BADGES = [
   { id: 'easy', icon: '🎖️', name: 'Easy Explorer', desc: 'Completed Easy Basics', color: '#12d15e', bg: 'rgba(18,209,94,0.15)', level: 'easy' },
   { id: 'intermediate', icon: '🏆', name: 'Inter Scholar', desc: 'Completed Intermediate', color: '#a855f7', bg: 'rgba(168,85,247,0.15)', level: 'intermediate' },
   { id: 'star', icon: '⭐', name: 'Language Star', desc: 'Mastered all 3 Hard Quizzes', color: '#facc15', bg: 'rgba(250,204,21,0.15)', level: 'hard' },
+  { id: 'focus', icon: '🎯', name: 'Focus Master', desc: 'Completed a Focus Area Quiz', color: '#ec4899', bg: 'rgba(236,72,153,0.15)', level: 'focus' },
 ];
 
 const LessonsPage = () => {
@@ -49,11 +50,46 @@ const LessonsPage = () => {
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [questionStartTime, setQuestionStartTime] = useState<number>(0);
   const [totalStartTime, setTotalStartTime] = useState<number>(0);
+  
+  // Focus Area State
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'focus'>('roadmap');
+  const [focusArea, setFocusArea] = useState<string>('Vocabulary');
+  
   // HCI Research state
   const [cognitiveLoad, setCognitiveLoad] = useState<number>(3);
   const [reflectionText, setReflectionText] = useState<string>('');
   // Ref to always hold latest answers (avoids stale closure in submit)
   const latestAnswersRef = useRef<any[]>([]);
+
+  const startFocusLesson = async () => {
+    if (!language) return;
+    setView('loading');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/lessons/generate-focus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ language, focusArea })
+      });
+      if (!res.ok) throw new Error('Failed to generate focus lesson');
+      const data = await res.json();
+      setQuestions(data.questions);
+      setAttemptId(data.attemptId);
+      const now = Date.now();
+      setQuestionStartTime(now);
+      setTotalStartTime(now);
+      setCurrentQuestionIdx(0);
+      setUserAnswers([]);
+      latestAnswersRef.current = [];
+      setSelectedAnswer('');
+      setIsAnswerChecked(false);
+      setView('quiz');
+    } catch (error) {
+      console.error(error);
+      alert("Couldn't generate focus lesson. Please try again.");
+      setView('setup');
+    }
+  };
 
   const getRoadmapNodes = (progress: any) => {
     if (!progress) return [];
@@ -435,60 +471,109 @@ const LessonsPage = () => {
   const renderSetup = () => {
     if (!language) {
       return (
-        <div style={{ maxWidth: '900px', width: '100%', margin: '0 auto', paddingTop: '60px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎓</div>
-            <h1 style={{ fontSize: '40px', fontWeight: '800', margin: '0 0 12px 0', background: 'linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.5) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Choose Your Language Journey
+        <div style={{ 
+          height: 'calc(100vh - 80px)', 
+          width: '100%', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Add some ambient background glows */}
+          <div style={{ position: 'absolute', top: '20%', left: '20%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(255,153,51,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: '20%', right: '20%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(198,11,30,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
+
+          <div style={{ textAlign: 'center', marginBottom: '48px', zIndex: 1 }}>
+            <div style={{ fontSize: '56px', marginBottom: '16px', animation: 'float 3s ease-in-out infinite' }}>🌎</div>
+            <h1 style={{ fontSize: '48px', fontWeight: '900', margin: '0 0 16px 0', background: 'linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-1px' }}>
+              Choose Your Journey
             </h1>
-            <p style={{ opacity: 0.5, fontSize: '16px', margin: 0 }}>Select a language to view your interactive roadmap and start earning badges</p>
+            <p style={{ opacity: 0.6, fontSize: '18px', maxWidth: '500px', margin: '0 auto', lineHeight: '1.6' }}>
+              Select a language to unlock your interactive roadmap, practice specific focus areas, and earn exclusive badges.
+            </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '40px', justifyContent: 'center', zIndex: 1, flexWrap: 'wrap' }}>
             {[
-              { lang: 'hindi' as Language, img: 'https://flagcdn.com/w160/in.png', name: 'Hindi', sub: 'हिन्दी', level: 'N3 Level', color: '#ff9933' },
-              { lang: 'spanish' as Language, img: 'https://flagcdn.com/w160/es.png', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e' },
-            ].map(({ lang, img, name, sub, level, color }) => {
+              { lang: 'hindi' as Language, img: 'https://flagcdn.com/w160/in.png', name: 'Hindi', sub: 'हिन्दी', level: 'N3 Level', color: '#ff9933', glow: 'rgba(255,153,51,0.2)' },
+              { lang: 'spanish' as Language, img: 'https://flagcdn.com/w160/es.png', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e', glow: 'rgba(198,11,30,0.2)' },
+            ].map(({ lang, img, name, sub, level, color, glow }) => {
               const prog = roadmapProgress?.[lang];
-              const completedCount = prog ? Math.min(prog.easyCompleted, 1) + Math.min(prog.intermediateCompleted, 2) + Math.min(prog.hardCompleted, 3) : 0;
-              const totalNodes = 6;
+              const completedCount = prog ? Math.min(prog.easyCompleted, 1) + Math.min(prog.intermediateCompleted, 2) + Math.min(prog.hardCompleted, 3) + Math.min(prog.focusCompleted, 1) : 0;
+              const totalNodes = 7; // 1 easy + 2 int + 3 hard + 1 focus
+
               return (
                 <div
                   key={lang}
                   onClick={() => setLanguage(lang)}
-                  className="lang-card-hover"
+                  className="premium-lang-card"
                   style={{
-                    width: '280px', padding: '40px 28px', background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.06)', borderRadius: '28px',
-                    cursor: 'pointer', transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px'
+                    width: '320px', 
+                    padding: '40px 32px', 
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                    border: '1px solid rgba(255,255,255,0.08)', 
+                    borderRadius: '32px',
+                    cursor: 'pointer', 
+                    transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px',
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}
                 >
-                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: `3px solid ${color}40`, marginBottom: '8px', boxShadow: `0 8px 24px ${color}30`, flexShrink: 0 }}>
+                  <div className="card-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100%', background: `radial-gradient(circle at 50% 0%, ${glow} 0%, transparent 70%)`, opacity: 0, transition: 'opacity 0.4s ease' }} />
+                  
+                  <div style={{ width: '90px', height: '90px', borderRadius: '50%', overflow: 'hidden', border: `4px solid rgba(255,255,255,0.1)`, boxShadow: `0 12px 32px ${glow}`, flexShrink: 0, zIndex: 1 }}>
                     <img src={img} alt={`${name} flag`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: '800', fontSize: '24px', color: '#fff' }}>{name}</div>
-                    <div style={{ fontSize: '14px', color, fontWeight: '600', marginTop: '2px' }}>{sub}</div>
-                    <div style={{ fontSize: '12px', opacity: 0.4, marginTop: '4px' }}>{level}</div>
+                  
+                  <div style={{ textAlign: 'center', zIndex: 1 }}>
+                    <div style={{ fontWeight: '900', fontSize: '28px', color: '#fff', letterSpacing: '0.5px' }}>{name}</div>
+                    <div style={{ fontSize: '15px', color, fontWeight: '700', marginTop: '4px', letterSpacing: '1px', textTransform: 'uppercase' }}>{sub}</div>
                   </div>
-                  {prog && (
-                    <div style={{ width: '100%' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', opacity: 0.5, marginBottom: '6px' }}>
-                        <span>Progress</span><span>{completedCount}/{totalNodes} stages</span>
+
+                  {prog ? (
+                    <div style={{ width: '100%', zIndex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: '20px', padding: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', opacity: 0.7, marginBottom: '8px', fontWeight: '600' }}>
+                        <span>Progress</span><span>{Math.round((completedCount/totalNodes)*100)}%</span>
                       </div>
-                      <div style={{ height: '5px', background: 'rgba(255,255,255,0.08)', borderRadius: '100px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${(completedCount / totalNodes) * 100}%`, background: `linear-gradient(90deg, ${color}, #12d15e)`, borderRadius: '100px', transition: 'width 0.8s ease' }} />
+                      <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${(completedCount / totalNodes) * 100}%`, background: color, borderRadius: '100px', transition: 'width 1s cubic-bezier(0.4,0,0.2,1)' }} />
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '16px', justifyContent: 'center' }}>
                         {BADGES.map((b, i) => {
-                          const earned = i === 0 ? prog.easyCompleted >= 1 : i === 1 ? prog.intermediateCompleted >= 2 : prog.hardCompleted >= 3;
-                          return <span key={b.id} style={{ fontSize: '20px', opacity: earned ? 1 : 0.15, filter: earned ? 'none' : 'grayscale(1)', transition: 'all 0.3s' }}>{b.icon}</span>;
+                          const earned = i === 0 ? prog.easyCompleted >= 1 
+                                     : i === 1 ? prog.intermediateCompleted >= 2 
+                                     : i === 2 ? prog.hardCompleted >= 3 
+                                     : prog.focusCompleted >= 1;
+                          return (
+                            <span key={b.id} title={b.name} style={{ 
+                              fontSize: '18px', 
+                              opacity: earned ? 1 : 0.2, 
+                              filter: earned ? `drop-shadow(0 2px 4px ${b.color}80)` : 'grayscale(1)', 
+                              transition: 'all 0.3s' 
+                            }}>
+                              {b.icon}
+                            </span>
+                          );
                         })}
                       </div>
                     </div>
+                  ) : (
+                    <div style={{ zIndex: 1, padding: '20px', opacity: 0.5, fontSize: '14px', textAlign: 'center' }}>
+                      Ready to begin your {name} learning journey?
+                    </div>
                   )}
-                  <div style={{ marginTop: '8px', background: color, color: '#fff', padding: '10px 24px', borderRadius: '100px', fontWeight: '700', fontSize: '14px', opacity: 0.9 }}>
+
+                  <div className="start-btn" style={{ 
+                    marginTop: 'auto', zIndex: 1, width: '100%',
+                    background: prog ? 'rgba(255,255,255,0.1)' : color, 
+                    color: '#fff', padding: '14px 24px', borderRadius: '16px', 
+                    fontWeight: '800', fontSize: '15px', textAlign: 'center',
+                    border: prog ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                    transition: 'all 0.3s ease'
+                  }}>
                     {prog ? 'Continue Journey →' : 'Start Journey →'}
                   </div>
                 </div>
@@ -496,7 +581,14 @@ const LessonsPage = () => {
             })}
           </div>
           <style>{`
-            .lang-card-hover:hover { transform: translateY(-10px) scale(1.02); background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.15) !important; box-shadow: 0 24px 60px rgba(0,0,0,0.5) !important; }
+            @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+            .premium-lang-card:hover { 
+              transform: translateY(-12px) scale(1.02); 
+              border-color: rgba(255,255,255,0.2) !important; 
+              box-shadow: 0 32px 64px rgba(0,0,0,0.4) !important; 
+            }
+            .premium-lang-card:hover .card-glow { opacity: 1 !important; }
+            .premium-lang-card:hover .start-btn { background: #fff !important; color: #000 !important; }
           `}</style>
         </div>
       );
@@ -510,9 +602,9 @@ const LessonsPage = () => {
     const streak = Math.floor(Math.random() * 7) + 1; // TODO: pull from API
 
     return (
-      <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)' }}>
         {/* ── Top Header ─────────────────────── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button
               onClick={() => setLanguage(null)}
@@ -549,191 +641,225 @@ const LessonsPage = () => {
           </div>
         </div>
 
-        {/* ── Stats Row ──────────────────────── */}
-        {progress && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
-            {[
-              { label: 'Easy Quizzes', value: progress.easyCompleted, max: 1, color: '#12d15e', icon: '🌱', passed: progress.easyCompleted >= 1 },
-              { label: 'Intermediate', value: progress.intermediateCompleted, max: 2, color: '#a855f7', icon: '📚', passed: progress.intermediateCompleted >= 2 },
-              { label: 'Hard Quizzes', value: progress.hardCompleted, max: 3, color: '#ef4444', icon: '🔥', passed: progress.hardCompleted >= 3 },
-            ].map(stat => (
-              <div key={stat.label} style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${stat.passed ? stat.color + '40' : 'rgba(255,255,255,0.05)'}`, borderRadius: '20px', padding: '20px 24px', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, height: '3px', width: `${(stat.value / stat.max) * 100}%`, background: stat.color, borderRadius: '0 0 4px 4px', transition: 'width 0.8s ease' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: '11px', opacity: 0.4, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{stat.label}</div>
-                    <div style={{ fontSize: '28px', fontWeight: '800', color: stat.passed ? stat.color : '#fff' }}>{stat.value}<span style={{ fontSize: '16px', opacity: 0.4 }}>/{stat.max}</span></div>
-                  </div>
-                  <div style={{ fontSize: '28px', opacity: stat.passed ? 1 : 0.2 }}>{stat.icon}</div>
-                </div>
-                {stat.passed && (
-                  <div style={{ marginTop: '8px', fontSize: '11px', color: stat.color, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Check size={12} /> Passed!
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* ── Tabs ──────────────────────── */}
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+          <button
+            onClick={() => setActiveTab('roadmap')}
+            style={{ background: 'transparent', border: 'none', color: activeTab === 'roadmap' ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === 'roadmap' ? '2px solid #12d15e' : '2px solid transparent', transition: 'all 0.2s' }}
+          >
+            Learning Roadmap
+          </button>
+          <button
+            onClick={() => setActiveTab('focus')}
+            style={{ background: 'transparent', border: 'none', color: activeTab === 'focus' ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === 'focus' ? '2px solid #a855f7' : '2px solid transparent', transition: 'all 0.2s' }}
+          >
+            Focus Area
+          </button>
+        </div>
 
-        {/* ── Main split: Roadmap + Detail Panel ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '32px', alignItems: 'start' }} className="lessons-main-grid">
+        {/* ── Main content (Flex to take remaining height) ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', flex: 1, minHeight: 0 }} className="lessons-main-grid">
           
-          {/* Left: Winding Roadmap */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '28px', padding: '40px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', minHeight: '560px' }}>
-            <h2 style={{ fontSize: '13px', fontWeight: '800', margin: '0 0 48px 0', opacity: 0.4, textTransform: 'uppercase', letterSpacing: '2px', alignSelf: 'flex-start' }}>LEARNING ROADMAP</h2>
-
-            {/* Connector Line */}
-            <div style={{ position: 'absolute', top: '120px', bottom: '60px', width: '3px', background: 'rgba(255,255,255,0.06)', zIndex: 1, left: '50%', transform: 'translateX(-50%)' }}>
-              {progress && (() => {
-                const completedPct = nodes.filter(n => n.isCompleted).length;
-                return <div style={{ width: '100%', height: `${(completedPct / 4) * 100}%`, background: 'linear-gradient(180deg, #12d15e, #a855f7)', boxShadow: '0 0 12px rgba(18,209,94,0.4)', transition: 'height 0.8s ease', borderRadius: '4px' }} />;
-              })()}
-            </div>
-
-            {/* Nodes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '64px', width: '100%', position: 'relative', padding: '0 24px' }}>
-              {nodes.map((node, index) => {
-                const isSelected = selectedNodeIdx === index;
-                const isHovered = hoveredNode === index;
-                const offsets = ['0px', '-50px', '0px', '50px', '0px'];
-                const offset = offsets[index];
-
-                let nodeColor = 'rgba(255,255,255,0.04)';
-                let nodeBorder = '2px solid rgba(255,255,255,0.08)';
-                let textColor = 'rgba(255,255,255,0.25)';
-                let glow = 'none';
-                let levelColor = '#12d15e';
-                if (node.level === 'intermediate') levelColor = '#a855f7';
-                if (node.level === 'hard') levelColor = '#ef4444';
-
-                if (node.isCompleted) { nodeColor = levelColor; nodeBorder = `2px solid ${levelColor}`; textColor = '#000'; glow = `0 0 24px ${levelColor}50`; }
-                else if (node.isActive) { nodeColor = '#111'; nodeBorder = `3px solid ${levelColor}`; textColor = levelColor; glow = `0 0 28px ${levelColor}60`; }
-                else if (!node.isUnlocked) { nodeColor = 'rgba(255,255,255,0.01)'; nodeBorder = '2px dashed rgba(255,255,255,0.06)'; }
-                if (isSelected || isHovered) { glow = `0 0 32px ${levelColor}80`; nodeBorder = `3px solid ${levelColor}`; }
-
-                return (
-                  <div
-                    key={node.id}
-                    onClick={() => { if (node.isUnlocked) { setSelectedNodeIdx(index); setQuizLevel(node.level); } }}
-                    onMouseEnter={() => setHoveredNode(index)}
-                    onMouseLeave={() => setHoveredNode(null)}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 2, transform: `translateX(${offset})`, transition: 'transform 0.3s ease', cursor: node.isUnlocked ? 'pointer' : 'not-allowed' }}
-                  >
-                    {/* Node Circle */}
-                    <div style={{
-                      width: '68px', height: '68px', borderRadius: '50%', background: nodeColor, border: nodeBorder,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px',
-                      boxShadow: glow, transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
-                      transform: (isSelected || isHovered) && node.isUnlocked ? 'scale(1.15)' : 'scale(1)'
-                    }}>
-                      {node.isCompleted ? <Check size={28} color={textColor} strokeWidth={3} /> : !node.isUnlocked ? <Lock size={20} color="rgba(255,255,255,0.15)" /> : node.emoji}
-                    </div>
-
-                    {/* Label */}
-                    <div style={{
-                      position: 'absolute', [index % 2 === 0 ? 'left' : 'right']: '86px',
-                      width: '200px', textAlign: index % 2 === 0 ? 'left' : 'right', pointerEvents: 'none'
-                    }}>
-                      <div style={{ fontSize: '14px', fontWeight: '700', color: node.isUnlocked ? '#fff' : 'rgba(255,255,255,0.2)', transition: 'color 0.3s', marginBottom: '2px' }}>
-                        {node.title}
-                      </div>
-                      <div style={{ fontSize: '11px', fontWeight: 'bold', color: node.isCompleted ? '#12d15e' : node.isActive ? '#facc15' : 'rgba(255,255,255,0.2)' }}>
-                        {node.isCompleted ? '✓ Completed' : node.isActive ? '▶ Active' : !node.isUnlocked ? '🔒 Locked' : '○ Unlocked'}
-                      </div>
-                      {/* Star rating */}
-                      <div style={{ display: 'flex', gap: '2px', marginTop: '4px', justifyContent: index % 2 === 0 ? 'flex-start' : 'flex-end' }}>
-                        {[1,2,3].map(s => <span key={s} style={{ fontSize: '10px', color: s <= node.stars ? '#facc15' : 'rgba(255,255,255,0.1)' }}>★</span>)}
-                      </div>
-                    </div>
-
-                    {/* Active Pulse Ring */}
-                    {node.isActive && (
-                      <div style={{ position: 'absolute', width: '88px', height: '88px', borderRadius: '50%', border: `2px solid ${levelColor}`, animation: 'pulse-ring 2s infinite', opacity: 0.4, pointerEvents: 'none' }} />
-                    )}
+          {/* Left: Content Area */}
+          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            
+            {activeTab === 'roadmap' ? (
+              <>
+                {/* Horizontal Roadmap Nodes */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, gap: '20px', position: 'relative' }}>
+                  {/* Horizontal Connector Line */}
+                  <div style={{ position: 'absolute', top: '50%', left: '40px', right: '40px', height: '3px', background: 'rgba(255,255,255,0.06)', zIndex: 1, transform: 'translateY(-50%)' }}>
+                    {progress && (() => {
+                      const completedPct = nodes.filter(n => n.isCompleted).length;
+                      return <div style={{ height: '100%', width: `${(completedPct / 4) * 100}%`, background: 'linear-gradient(90deg, #12d15e, #a855f7)', boxShadow: '0 0 12px rgba(18,209,94,0.4)', transition: 'width 0.8s ease', borderRadius: '4px' }} />;
+                    })()}
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Nodes */}
+                  {nodes.map((node, index) => {
+                    const isSelected = selectedNodeIdx === index;
+                    const isHovered = hoveredNode === index;
+                    
+                    let nodeColor = 'rgba(255,255,255,0.04)';
+                    let nodeBorder = '2px solid rgba(255,255,255,0.08)';
+                    let textColor = 'rgba(255,255,255,0.25)';
+                    let glow = 'none';
+                    let levelColor = '#12d15e';
+                    if (node.level === 'intermediate') levelColor = '#a855f7';
+                    if (node.level === 'hard') levelColor = '#ef4444';
+
+                    if (node.isCompleted) { nodeColor = levelColor; nodeBorder = `2px solid ${levelColor}`; textColor = '#000'; glow = `0 0 24px ${levelColor}50`; }
+                    else if (node.isActive) { nodeColor = '#111'; nodeBorder = `3px solid ${levelColor}`; textColor = levelColor; glow = `0 0 28px ${levelColor}60`; }
+                    else if (!node.isUnlocked) { nodeColor = 'rgba(255,255,255,0.01)'; nodeBorder = '2px dashed rgba(255,255,255,0.06)'; }
+                    if (isSelected || isHovered) { glow = `0 0 32px ${levelColor}80`; nodeBorder = `3px solid ${levelColor}`; }
+
+                    return (
+                      <div
+                        key={node.id}
+                        onClick={() => { if (node.isUnlocked) { setSelectedNodeIdx(index); setQuizLevel(node.level); } }}
+                        onMouseEnter={() => setHoveredNode(index)}
+                        onMouseLeave={() => setHoveredNode(null)}
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 2, cursor: node.isUnlocked ? 'pointer' : 'not-allowed', width: '80px' }}
+                      >
+                        {/* Node Circle */}
+                        <div style={{
+                          width: '56px', height: '56px', borderRadius: '50%', background: nodeColor, border: nodeBorder,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px',
+                          boxShadow: glow, transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+                          transform: (isSelected || isHovered) && node.isUnlocked ? 'scale(1.15)' : 'scale(1)',
+                          marginBottom: '12px'
+                        }}>
+                          {node.isCompleted ? <Check size={24} color={textColor} strokeWidth={3} /> : !node.isUnlocked ? <Lock size={16} color="rgba(255,255,255,0.15)" /> : node.emoji}
+                        </div>
+                        <div style={{ fontSize: '11px', fontWeight: '700', color: node.isUnlocked ? '#fff' : 'rgba(255,255,255,0.2)', transition: 'color 0.3s', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          {node.title.replace('Advanced', 'Adv.')}
+                        </div>
+                        {node.isActive && (
+                          <div style={{ position: 'absolute', top: '0', width: '56px', height: '56px', borderRadius: '50%', border: `2px solid ${levelColor}`, animation: 'pulse-ring 2s infinite', opacity: 0.4, pointerEvents: 'none' }} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Stats Row Compact */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: 'auto' }}>
+                  {[
+                    { label: 'Easy Quizzes', value: progress.easyCompleted, max: 1, color: '#12d15e', icon: '🌱', passed: progress.easyCompleted >= 1 },
+                    { label: 'Intermediate', value: progress.intermediateCompleted, max: 2, color: '#a855f7', icon: '📚', passed: progress.intermediateCompleted >= 2 },
+                    { label: 'Hard Quizzes', value: progress.hardCompleted, max: 3, color: '#ef4444', icon: '🔥', passed: progress.hardCompleted >= 3 },
+                  ].map(stat => (
+                    <div key={stat.label} style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${stat.passed ? stat.color + '40' : 'rgba(255,255,255,0.05)'}`, borderRadius: '16px', padding: '12px', position: 'relative', overflow: 'hidden', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, height: '2px', width: `${(stat.value / stat.max) * 100}%`, background: stat.color, transition: 'width 0.8s ease' }} />
+                      <div>
+                        <div style={{ fontSize: '10px', opacity: 0.4, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>{stat.label}</div>
+                        <div style={{ fontSize: '18px', fontWeight: '800', color: stat.passed ? stat.color : '#fff' }}>{stat.value}<span style={{ fontSize: '12px', opacity: 0.4 }}>/{stat.max}</span></div>
+                      </div>
+                      <div style={{ fontSize: '20px', opacity: stat.passed ? 1 : 0.2 }}>{stat.icon}</div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 8px 0' }}>Targeted Practice</h2>
+                <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '32px' }}>Hone specific skills with specialized exercises using our advanced AI tutor.</p>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
+                  {[
+                    { id: 'Vocabulary', icon: '📝', desc: 'Expand your word knowledge' },
+                    { id: 'Listening', icon: '🎧', desc: 'Improve audio comprehension' },
+                    { id: 'Grammar', icon: '📐', desc: 'Master sentence structure' },
+                    { id: 'Culture (idioms, slangs)', icon: '🎭', desc: 'Learn idioms and slangs' },
+                  ].map(fa => (
+                    <div 
+                      key={fa.id}
+                      onClick={() => setFocusArea(fa.id)}
+                      style={{ 
+                        background: focusArea === fa.id ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.03)', 
+                        border: `2px solid ${focusArea === fa.id ? '#a855f7' : 'rgba(255,255,255,0.08)'}`, 
+                        borderRadius: '16px', padding: '16px', cursor: 'pointer', transition: 'all 0.2s',
+                        display: 'flex', flexDirection: 'column', gap: '8px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '24px' }}>{fa.icon}</span>
+                        <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: `2px solid ${focusArea === fa.id ? '#a855f7' : 'rgba(255,255,255,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {focusArea === fa.id && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#a855f7' }} />}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '700', fontSize: '15px', color: focusArea === fa.id ? '#fff' : 'rgba(255,255,255,0.8)' }}>{fa.id}</div>
+                        <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '2px' }}>{fa.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={startFocusLesson}
+                  style={{
+                    width: '100%', background: '#a855f7', color: '#fff', border: 'none', padding: '16px', borderRadius: '16px',
+                    fontWeight: '800', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    boxShadow: '0 8px 24px rgba(168,85,247,0.3)', transition: 'all 0.3s'
+                  }}
+                  className="btn-hover"
+                >
+                  <Target size={20} /> Start {focusArea} Practice
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Right: Detail + Badges Panel */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
             
-            {/* Selected Node Card */}
-            {selectedNode && (
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '24px', padding: '28px', boxShadow: '0 8px 40px rgba(0,0,0,0.4)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            {/* Selected Node Card (Only show if Roadmap tab is active) */}
+            {activeTab === 'roadmap' && selectedNode && (
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', boxShadow: '0 8px 40px rgba(0,0,0,0.4)', flexShrink: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <span style={{
                     background: selectedNode.level === 'easy' ? 'rgba(18,209,94,0.12)' : selectedNode.level === 'intermediate' ? 'rgba(168,85,247,0.12)' : 'rgba(239,68,68,0.12)',
                     color: selectedNode.level === 'easy' ? '#12d15e' : selectedNode.level === 'intermediate' ? '#a855f7' : '#ef4444',
-                    padding: '5px 12px', borderRadius: '100px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px'
+                    padding: '4px 10px', borderRadius: '100px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px'
                   }}>
                     {selectedNode.level} Stage
                   </span>
                   <div style={{ display: 'flex', gap: '3px' }}>
-                    {[1,2,3].map(s => <span key={s} style={{ fontSize: '14px', color: s <= selectedNode.stars ? '#facc15' : 'rgba(255,255,255,0.1)' }}>★</span>)}
+                    {[1,2,3].map(s => <span key={s} style={{ fontSize: '12px', color: s <= selectedNode.stars ? '#facc15' : 'rgba(255,255,255,0.1)' }}>★</span>)}
                   </div>
                 </div>
 
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>{selectedNode.emoji}</div>
-                <h2 style={{ fontSize: '22px', fontWeight: '800', margin: '0 0 10px 0' }}>{selectedNode.title}</h2>
-                <p style={{ opacity: 0.6, fontSize: '13px', lineHeight: '1.6', margin: '0 0 20px 0' }}>{selectedNode.description}</p>
-
-                {/* Badge preview */}
-                <div style={{ background: selectedNode.badge.earned ? `${selectedNode.badge.bg}` : 'rgba(255,255,255,0.02)', border: `1px solid ${selectedNode.badge.earned ? selectedNode.badge.color + '40' : 'rgba(255,255,255,0.05)'}`, borderRadius: '16px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px', transition: 'all 0.3s' }}>
-                  <div style={{ fontSize: '32px', filter: selectedNode.badge.earned ? 'none' : 'grayscale(1)', opacity: selectedNode.badge.earned ? 1 : 0.2, transition: 'all 0.3s' }}>{selectedNode.badge.icon}</div>
-                  <div>
-                    <div style={{ fontSize: '10px', opacity: 0.4, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Badge Target</div>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: selectedNode.badge.earned ? selectedNode.badge.color : '#fff' }}>{selectedNode.badge.name}</div>
-                    <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '2px' }}>{selectedNode.badge.earned ? '✓ Earned!' : 'Complete stage to unlock'}</div>
-                  </div>
-                </div>
+                <div style={{ fontSize: '28px', marginBottom: '8px' }}>{selectedNode.emoji}</div>
+                <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 8px 0' }}>{selectedNode.title}</h2>
+                <p style={{ opacity: 0.6, fontSize: '12px', lineHeight: '1.5', margin: '0 0 16px 0' }}>{selectedNode.description}</p>
 
                 <button
                   onClick={() => startLesson(language, undefined, selectedNode.level)}
                   disabled={!selectedNode.isUnlocked}
                   style={{
                     width: '100%', background: selectedNode.isUnlocked ? (selectedNode.level === 'easy' ? '#12d15e' : selectedNode.level === 'intermediate' ? '#a855f7' : '#ef4444') : 'rgba(255,255,255,0.05)',
-                    color: selectedNode.isUnlocked ? '#000' : 'rgba(255,255,255,0.2)', border: 'none', padding: '16px', borderRadius: '16px',
-                    fontWeight: '800', fontSize: '15px', cursor: selectedNode.isUnlocked ? 'pointer' : 'not-allowed',
+                    color: selectedNode.isUnlocked ? '#000' : 'rgba(255,255,255,0.2)', border: 'none', padding: '14px', borderRadius: '14px',
+                    fontWeight: '800', fontSize: '14px', cursor: selectedNode.isUnlocked ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                     boxShadow: selectedNode.isUnlocked ? '0 8px 24px rgba(0,0,0,0.3)' : 'none', transition: 'all 0.3s'
                   }}
                   className={selectedNode.isUnlocked ? 'btn-hover' : ''}
                 >
                   {selectedNode.isUnlocked ? (
-                    <><BookOpen size={18} /> {selectedNode.isCompleted ? 'Practice Again' : `Start ${selectedNode.title}`} <ChevronRight size={16} /></>
+                    <><BookOpen size={16} /> {selectedNode.isCompleted ? 'Practice Again' : `Start ${selectedNode.title}`} <ChevronRight size={16} /></>
                   ) : (
-                    <><Lock size={16} /> Complete previous stage first</>
+                    <><Lock size={14} /> Complete previous stage</>
                   )}
                 </button>
               </div>
             )}
 
             {/* Badges Shelf */}
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                <Award size={16} color="#facc15" />
-                <h3 style={{ margin: 0, fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5 }}>My Badges</h3>
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '20px', flex: 1, overflowY: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <Award size={14} color="#facc15" />
+                <h3 style={{ margin: 0, fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5 }}>My Badges</h3>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {BADGES.map((badge, i) => {
-                  const earned = i === 0 ? (progress?.easyCompleted >= 1) : i === 1 ? (progress?.intermediateCompleted >= 2) : (progress?.hardCompleted >= 3);
+                  const earned = i === 0 ? (progress?.easyCompleted >= 1) 
+                    : i === 1 ? (progress?.intermediateCompleted >= 2) 
+                    : i === 2 ? (progress?.hardCompleted >= 3)
+                    : (progress?.focusCompleted >= 1);
                   return (
                     <div key={badge.id} style={{
-                      display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px',
+                      display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px',
                       background: earned ? badge.bg : 'rgba(255,255,255,0.01)',
                       border: `1px solid ${earned ? badge.color + '30' : 'rgba(255,255,255,0.04)'}`,
-                      borderRadius: '14px', transition: 'all 0.3s'
+                      borderRadius: '12px', transition: 'all 0.3s'
                     }}>
-                      <span style={{ fontSize: '28px', filter: earned ? 'none' : 'grayscale(1)', opacity: earned ? 1 : 0.15, transition: 'all 0.4s', transform: earned ? 'scale(1)' : 'scale(0.8)' }}>{badge.icon}</span>
+                      <span style={{ fontSize: '24px', filter: earned ? 'none' : 'grayscale(1)', opacity: earned ? 1 : 0.15, transition: 'all 0.4s', transform: earned ? 'scale(1)' : 'scale(0.8)' }}>{badge.icon}</span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: '700', fontSize: '13px', color: earned ? badge.color : 'rgba(255,255,255,0.3)' }}>{badge.name}</div>
-                        <div style={{ fontSize: '11px', opacity: 0.4, marginTop: '2px' }}>{badge.desc}</div>
+                        <div style={{ fontWeight: '700', fontSize: '12px', color: earned ? badge.color : 'rgba(255,255,255,0.3)' }}>{badge.name}</div>
+                        <div style={{ fontSize: '10px', opacity: 0.4, marginTop: '2px' }}>{badge.desc}</div>
                       </div>
                       {earned && (
-                        <div style={{ background: badge.color, borderRadius: '100px', padding: '3px 8px', fontSize: '10px', fontWeight: '800', color: '#000' }}>EARNED</div>
+                        <div style={{ background: badge.color, borderRadius: '100px', padding: '2px 6px', fontSize: '9px', fontWeight: '800', color: '#000' }}>EARNED</div>
                       )}
                     </div>
                   );
@@ -747,6 +873,10 @@ const LessonsPage = () => {
           @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.5; } 70% { transform: scale(1.3); opacity: 0; } 100% { transform: scale(1.3); opacity: 0; } }
           .lessons-main-grid { @media (max-width: 900px) { grid-template-columns: 1fr !important; } }
           .btn-hover:hover { filter: brightness(1.12); transform: translateY(-2px); }
+          /* Custom scrollbar for inner areas if they overflow */
+          ::-webkit-scrollbar { width: 6px; }
+          ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+          ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
         `}</style>
       </div>
     );

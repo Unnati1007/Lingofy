@@ -483,6 +483,70 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        {/* Streak Heatmap (Last 30 Days) */}
+        {(() => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const heatmapDays = [];
+          for (let i = 29; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            
+            const dayAttempts = history.filter(a => {
+              const attemptDate = new Date(a.completedAt);
+              const aStr = attemptDate.getFullYear() + '-' + String(attemptDate.getMonth() + 1).padStart(2, '0') + '-' + String(attemptDate.getDate()).padStart(2, '0');
+              return aStr === dateStr;
+            });
+            const count = dayAttempts.length;
+            const intensity = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : 3;
+            heatmapDays.push({ date: d, intensity, count, dateStr });
+          }
+
+          const getColor = (intensity: number) => {
+            if (intensity === 0) return 'rgba(255,255,255,0.05)';
+            if (intensity === 1) return 'rgba(18, 209, 94, 0.4)';
+            if (intensity === 2) return 'rgba(18, 209, 94, 0.7)';
+            return 'rgba(18, 209, 94, 1)';
+          };
+
+          return (
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', marginBottom: '40px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px 0' }}>Activity Streak</h3>
+                  <p style={{ opacity: 0.5, fontSize: '13px', margin: 0 }}>Your activity over the last 30 days</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', opacity: 0.6 }}>
+                  <span>Less</span>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(0) }} />
+                  <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(1) }} />
+                  <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(2) }} />
+                  <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: getColor(3) }} />
+                  <span>More</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {heatmapDays.map((day, i) => (
+                  <div 
+                    key={i} 
+                    title={`${day.dateStr}: ${day.count} activities`}
+                    style={{ 
+                      width: '28px', height: '28px', borderRadius: '6px', 
+                      background: getColor(day.intensity),
+                      border: day.intensity === 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                      transition: 'transform 0.2s',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '48px' }} className="content-grid-desktop">
           {/* Performance Chart Card */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', position: 'relative' }}>
