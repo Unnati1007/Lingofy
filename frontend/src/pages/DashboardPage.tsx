@@ -22,7 +22,11 @@ import {
   ListMusic,
   Plus,
   Trash2,
-  HelpCircle
+  HelpCircle,
+  Award,
+  Share2,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -52,7 +56,7 @@ const DashboardPage = () => {
   const [modalMode, setModalMode] = useState<'completed' | 'practice'>('practice');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements'>('home');
   const [history, setHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
@@ -62,6 +66,13 @@ const DashboardPage = () => {
   const [hideVideo, setHideVideo] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [heatmapMonthOffset, setHeatmapMonthOffset] = useState(0);
+
+  // Achievements & Session
+  const [sessionTime, setSessionTime] = useState(0);
+  const [showGoalMetPopup, setShowGoalMetPopup] = useState(false);
+  const [goalAlreadyMet, setGoalAlreadyMet] = useState(false);
+  const [shareBadgeModal, setShareBadgeModal] = useState<any>(null);
+  const [showCompleteProfilePopup, setShowCompleteProfilePopup] = useState(false);
 
   // Profile Edit States
   const [profileForm, setProfileForm] = useState({
@@ -135,6 +146,12 @@ const DashboardPage = () => {
             about: userData.about || '',
             knownLanguages: userData.knownLanguages ? userData.knownLanguages.join(', ') : ''
           });
+          
+          // Check if profile is incomplete
+          if (!userData.nativeLanguage || !userData.learningLanguage || !userData.age) {
+            setShowCompleteProfilePopup(true);
+          }
+
           // If they are in traditional mode and currently on 'home' or 'library', redirect to statistics (as dashboard doesn't have lessons inside it)
           if (userData.learningMode === 'traditional') {
             setActiveTab('statistics'); // Or we just don't show the dashboard at all? Actually statistics is fine.
@@ -172,6 +189,27 @@ const DashboardPage = () => {
     };
     fetchData();
   }, [navigate]);
+
+  useEffect(() => {
+    // Session Timer logic
+    const timer = setInterval(() => {
+      setSessionTime(prev => {
+        const newTime = prev + 1;
+        // Check if goal is met
+        if (profileForm.dailyGoal && !goalAlreadyMet) {
+          const goalSeconds = parseInt(profileForm.dailyGoal) * 60;
+          if (newTime >= goalSeconds) {
+            setShowGoalMetPopup(true);
+            setGoalAlreadyMet(true);
+            // Auto hide after 5 seconds
+            setTimeout(() => setShowGoalMetPopup(false), 5000);
+          }
+        }
+        return newTime;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [profileForm.dailyGoal, goalAlreadyMet]);
 
   useEffect(() => {
     if (learningLanguageKey) {
@@ -1356,6 +1394,104 @@ const DashboardPage = () => {
     );
   };
 
+  const handleShareBadge = async (type: 'whatsapp' | 'instagram' | 'copy', badge: any) => {
+    const text = `I just unlocked the "${badge.title}" badge on Lingofy! 🚀 Start learning with music today.`;
+    const url = "http://localhost:5173/dashboard";
+
+    if (type === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+    } else if (type === 'copy') {
+      await navigator.clipboard.writeText(text + ' ' + url);
+      alert('Link copied to clipboard!');
+    } else if (type === 'instagram') {
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Lingofy Achievement', text, url });
+        } catch (err) {
+          console.error('Error sharing:', err);
+        }
+      } else {
+        await navigator.clipboard.writeText(text + ' ' + url);
+        alert('Text copied! Open Instagram to paste and share your achievement on your Story or Feed.');
+      }
+    }
+  };
+
+  const renderAchievements = () => {
+    // Generate badge data dynamically based on languages and progress
+    const badges = [];
+    const langs = ['spanish', 'hindi', 'korean'];
+    
+    // 1. Language Badges
+    langs.forEach(lang => {
+      const prog = roadmapProgress?.[lang] || { easyCompleted: 0, intermediateCompleted: 0, hardCompleted: 0 };
+      badges.push({
+        id: `easy_${lang}`, title: `Explorer (${lang.charAt(0).toUpperCase()+lang.slice(1)})`, desc: 'Completed your first vocabulary lesson.', icon: '🎖️', color: '#3b82f6',
+        unlocked: prog.easyCompleted >= 1
+      });
+      badges.push({
+        id: `inter_${lang}`, title: `Scholar (${lang.charAt(0).toUpperCase()+lang.slice(1)})`, desc: 'Mastered intermediate sentence structures.', icon: '🏆', color: '#12d15e',
+        unlocked: prog.intermediateCompleted >= 2
+      });
+      badges.push({
+        id: `hard_${lang}`, title: `Master (${lang.charAt(0).toUpperCase()+lang.slice(1)})`, desc: 'Completed advanced comprehension challenges.', icon: '👑', color: '#eab308',
+        unlocked: prog.hardCompleted >= 3
+      });
+    });
+
+    // 2. Goal/Streak Badges (mocked logic based on session/history)
+    badges.push({
+      id: 'daily_goal', title: 'Goal Crusher', desc: 'Hit your daily session time goal.', icon: '🎯', color: '#ef4444',
+      unlocked: goalAlreadyMet
+    });
+    badges.push({
+      id: 'quiz_master', title: 'Quiz Master', desc: 'Completed over 10 quizzes.', icon: '🔥', color: '#f97316',
+      unlocked: history.length > 10
+    });
+
+    return (
+      <div style={{ padding: '32px', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+        <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px' }}>Achievements</h2>
+        <p style={{ opacity: 0.6, fontSize: '15px', marginBottom: '32px' }}>Track your language milestones and share your progress with friends.</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+          {badges.map(b => (
+            <div 
+              key={b.id}
+              onClick={() => b.unlocked ? setShareBadgeModal(b) : null}
+              style={{
+                background: b.unlocked ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.01)',
+                border: `1px solid ${b.unlocked ? b.color + '40' : 'rgba(255,255,255,0.05)'}`,
+                borderRadius: '20px', padding: '24px',
+                display: 'flex', alignItems: 'center', gap: '16px',
+                cursor: b.unlocked ? 'pointer' : 'default',
+                opacity: b.unlocked ? 1 : 0.4,
+                transition: 'all 0.3s ease',
+                transform: 'translateY(0)'
+              }}
+              onMouseEnter={(e) => b.unlocked && (e.currentTarget.style.transform = 'translateY(-4px)')}
+              onMouseLeave={(e) => b.unlocked && (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              <div style={{
+                width: '60px', height: '60px', borderRadius: '16px',
+                background: b.unlocked ? `${b.color}20` : 'rgba(0,0,0,0.5)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '32px', filter: b.unlocked ? `drop-shadow(0 0 10px ${b.color}80)` : 'grayscale(1)'
+              }}>
+                {b.icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px', color: b.unlocked ? '#fff' : 'rgba(255,255,255,0.5)' }}>{b.title}</h4>
+                <p style={{ fontSize: '12px', opacity: 0.6, margin: 0 }}>{b.desc}</p>
+                {b.unlocked && <span style={{ fontSize: '10px', color: b.color, fontWeight: 'bold', marginTop: '8px', display: 'inline-block' }}>Click to Share <Share2 size={10} style={{display:'inline', marginLeft:'2px'}}/></span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderProfile = () => {
     return (
       <div style={{ padding: '32px' }}>
@@ -1636,6 +1772,7 @@ const DashboardPage = () => {
             <NavItem icon={<Music size={20} />} label="Library" active={activeTab === 'library'} onClick={() => { setActiveTab('library'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           )}
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Award size={20} />} label="Achievements" active={activeTab === 'achievements'} onClick={() => { setActiveTab('achievements'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           <NavItem icon={<HelpCircle size={20} />} label="Documentation" active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
@@ -1657,7 +1794,7 @@ const DashboardPage = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
-            {activeTab === 'docs' ? renderDocs() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
+            {activeTab === 'docs' ? renderDocs() : activeTab === 'achievements' ? renderAchievements() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
               <div style={{ width: '100%', maxWidth: '1200px' }}>
           
           <div className="dashboard-layout-custom" style={{ 
@@ -1788,52 +1925,22 @@ const DashboardPage = () => {
                           </div>
                           <span style={{ fontSize: '10px', opacity: progressObj.currentStage === 'hard' ? 1 : 0.5, fontWeight: progressObj.currentStage === 'hard' ? 'bold' : 'normal' }}>Hard</span>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Badges Earned Section */}
-                    <div>
-                      <div style={{ fontSize: '11px', opacity: 0.4, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>Unlocked Badges</div>
-                      <div style={{ display: 'flex', gap: '12px' }}>
-                        <div 
-                          className="badge-wrapper"
-                          style={{ 
-                            background: isEasyPassed ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.01)', 
-                            border: `1px solid ${isEasyPassed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)'}`,
-                            borderRadius: '12px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', flex: 1,
-                            opacity: isEasyPassed ? 1 : 0.25, transition: 'all 0.3s ease'
-                          }}
-                        >
-                          <span style={{ fontSize: '20px', filter: isEasyPassed ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' : 'none' }}>🎖️</span>
-                          <div style={{ fontSize: '10px', fontWeight: 'bold', lineHeight: '1.2' }}>Easy Explorer</div>
-                        </div>
-
-                        <div 
-                          className="badge-wrapper"
-                          style={{ 
-                            background: isInterPassed ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.01)', 
-                            border: `1px solid ${isInterPassed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)'}`,
-                            borderRadius: '12px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', flex: 1,
-                            opacity: isInterPassed ? 1 : 0.25, transition: 'all 0.3s ease'
-                          }}
-                        >
-                          <span style={{ fontSize: '20px', filter: isInterPassed ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' : 'none' }}>🏆</span>
-                          <div style={{ fontSize: '10px', fontWeight: 'bold', lineHeight: '1.2' }}>Inter Scholar</div>
-                        </div>
-
-                        <div 
-                          className="badge-wrapper"
-                          style={{ 
-                            background: isHardPassed ? 'rgba(234,179,8,0.08)' : 'rgba(255,255,255,0.01)', 
-                            border: `1px solid ${isHardPassed ? 'rgba(234,179,8,0.2)' : 'rgba(255,255,255,0.02)'}`,
-                            borderRadius: '12px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', flex: 1,
-                            opacity: isHardPassed ? 1 : 0.25, transition: 'all 0.3s ease'
-                          }}
-                        >
-                          <span style={{ fontSize: '20px', filter: isHardPassed ? 'drop-shadow(0 0 6px rgba(234,179,8,0.6))' : 'none' }}>⭐</span>
-                          <div style={{ fontSize: '10px', fontWeight: 'bold', lineHeight: '1.2', color: isHardPassed ? '#facc15' : '#fff' }}>Lang Star</div>
-                        </div>
-                      </div>
+                                  {/* Achievements Link Section */}
+                    <div style={{ marginTop: '8px' }}>
+                      <button 
+                        onClick={() => setActiveTab('achievements')}
+                        style={{ 
+                          width: '100%',
+                          background: 'rgba(255,255,255,0.02)', 
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                          color: '#fff', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s'
+                        }}
+                        className="btn-hover"
+                      >
+                        <Award size={16} color="#a855f7" /> View All Achievements
+                      </button>
+                    </div>                      </div>
                     </div>
 
                     {/* Progress Bar & CTA Button */}
@@ -2646,6 +2753,125 @@ const DashboardPage = () => {
                 }}
               >
                 Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Badge Modal */}
+      {shareBadgeModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1e1e30 0%, #0c0c14 100%)',
+            border: `1px solid ${shareBadgeModal.color}50`, borderRadius: '28px',
+            padding: '40px', maxWidth: '400px', width: '100%', textAlign: 'center',
+            boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px ${shareBadgeModal.color}30`, position: 'relative'
+          }}>
+            <button 
+              onClick={() => setShareBadgeModal(null)}
+              style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            ><X size={16} /></button>
+
+            <div style={{
+              width: '100px', height: '100px', borderRadius: '24px', margin: '0 auto 24px auto',
+              background: `${shareBadgeModal.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '48px', filter: `drop-shadow(0 0 20px ${shareBadgeModal.color})`
+            }}>
+              {shareBadgeModal.icon}
+            </div>
+
+            <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>{shareBadgeModal.title}</h2>
+            <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '32px' }}>{shareBadgeModal.desc}</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button onClick={() => handleShareBadge('whatsapp', shareBadgeModal)} className="btn-hover" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: '#25D366', color: '#fff', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
+                <Share2 size={18} /> Share on WhatsApp
+              </button>
+              <button onClick={() => handleShareBadge('instagram', shareBadgeModal)} className="btn-hover" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: '#fff', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
+                <Share2 size={18} /> Share on Instagram
+              </button>
+              <button onClick={() => handleShareBadge('copy', shareBadgeModal)} className="btn-hover" style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
+                <Copy size={18} /> Copy Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Goal Met Popup Toast */}
+      <AnimatePresence>
+        {showGoalMetPopup && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            style={{
+              position: 'fixed', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
+              background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)', padding: '16px 24px', borderRadius: '16px',
+              display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 20px 40px rgba(18,209,94,0.4)', color: '#000', fontWeight: 'bold'
+            }}
+          >
+            <div style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '50%', padding: '8px' }}><Check size={24} color="#000" /></div>
+            <div>
+              <div style={{ fontSize: '16px' }}>Daily Goal Met! 🎉</div>
+              <div style={{ fontSize: '12px', opacity: 0.8, fontWeight: 'normal' }}>You spent {profileForm.dailyGoal} minutes learning today.</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Complete Profile Popup Modal */}
+      {showCompleteProfilePopup && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1e1e30 0%, #0c0c14 100%)',
+            border: '1px solid rgba(18, 209, 94, 0.3)', borderRadius: '28px',
+            padding: '40px', maxWidth: '400px', width: '100%', textAlign: 'center',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(18, 209, 94, 0.1)', position: 'relative'
+          }}>
+            <button 
+              onClick={() => setShowCompleteProfilePopup(false)}
+              style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            ><X size={16} /></button>
+
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 24px auto',
+              background: 'rgba(18, 209, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#12d15e', filter: 'drop-shadow(0 0 10px rgba(18, 209, 94, 0.3))'
+            }}>
+              <Settings size={40} />
+            </div>
+
+            <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Complete Your Profile</h2>
+            <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '32px', lineHeight: '1.6' }}>
+              Your profile is missing some details like your target learning language. Complete it now to get personalized song recommendations and track your progress accurately!
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => setShowCompleteProfilePopup(false)} 
+                className="btn-hover" 
+                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Later
+              </button>
+              <button 
+                onClick={() => { setShowCompleteProfilePopup(false); setActiveTab('profile'); }} 
+                className="btn-hover" 
+                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: '#12d15e', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Complete Now
               </button>
             </div>
           </div>
