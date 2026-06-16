@@ -20,7 +20,8 @@ import {
   ChevronLeft,
   ListMusic,
   Plus,
-  Trash2
+  Trash2,
+  HelpCircle
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -50,7 +51,7 @@ const DashboardPage = () => {
   const [modalMode, setModalMode] = useState<'completed' | 'practice'>('practice');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs'>('home');
   const [history, setHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
@@ -1211,6 +1212,137 @@ const DashboardPage = () => {
     );
   };
 
+  const renderDocs = () => {
+    return (
+      <div style={{ padding: '32px', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '56px', marginTop: '24px' }}>
+          <h2 style={{ fontSize: '42px', fontWeight: '900', marginBottom: '16px', background: 'linear-gradient(135deg, #fff 0%, #12d15e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-1px' }}>Welcome to Lingofy</h2>
+          <p style={{ opacity: 0.8, fontSize: '18px', maxWidth: '700px', margin: '0 auto', lineHeight: '1.6' }}>
+            Lingofy is a revolutionary music-integrated language learning platform. 
+            We combine the emotional engagement of music with structured learning to help you master languages naturally and intuitively!
+          </p>
+        </div>
+
+        {/* Benefits Section */}
+        <div style={{ marginBottom: '56px' }}>
+          <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '28px' }}>✨</span> Why Lingofy Works
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+            <div className="doc-card" style={{ background: 'linear-gradient(135deg, rgba(18, 209, 94, 0.08) 0%, rgba(0,0,0,0) 100%)', border: '1px solid rgba(18, 209, 94, 0.2)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', cursor: 'default' }}>
+              <div style={{ background: '#12d15e', color: '#000', width: '48px', height: '48px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', boxShadow: '0 8px 16px rgba(18, 209, 94, 0.3)' }}><Music size={24} /></div>
+              <h4 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Music-Driven Immersion</h4>
+              <p style={{ opacity: 0.7, fontSize: '14px', lineHeight: '1.6' }}>Learn through rhythm and melody. Music engages multiple areas of the brain, making vocabulary retention significantly faster and more enjoyable than traditional flashcards.</p>
+            </div>
+            <div className="doc-card" style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(0,0,0,0) 100%)', border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', cursor: 'default' }}>
+              <div style={{ background: '#a855f7', color: '#fff', width: '48px', height: '48px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', boxShadow: '0 8px 16px rgba(168, 85, 247, 0.3)' }}><Settings size={24} /></div>
+              <h4 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Adaptive Personalization</h4>
+              <p style={{ opacity: 0.7, fontSize: '14px', lineHeight: '1.6' }}>Your learning journey is tailored specifically to your proficiency level, daily goals, and favorite music genres, ensuring you stay motivated.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Features & Roadmap */}
+        <div style={{ marginBottom: '56px' }}>
+          <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <BookOpen size={28} color="#3b82f6" /> The Learning Roadmap
+          </h3>
+          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(0,0,0,0) 70%)', pointerEvents: 'none' }}></div>
+            <p style={{ opacity: 0.8, marginBottom: '32px', fontSize: '15px' }}>Lingofy tracks your progress across three distinct tiers. You must complete quizzes in your current tier to unlock the next level!</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', position: 'relative' }}>
+              <div style={{ position: 'absolute', left: '23px', top: '24px', bottom: '24px', width: '2px', background: 'rgba(255,255,255,0.05)', zIndex: 0 }}></div>
+              
+              <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+                <div style={{ background: 'rgba(18, 209, 94, 0.15)', color: '#12d15e', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold', flexShrink: 0, border: '4px solid #14141c' }}>1</div>
+                <div style={{ paddingTop: '8px' }}>
+                  <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#12d15e', marginBottom: '8px' }}>Easy Tier (Vocabulary)</h4>
+                  <p style={{ opacity: 0.6, fontSize: '14px', lineHeight: '1.6' }}>Focuses on extracting single target words from a song. You will learn basic nouns, verbs, and adjectives by hearing them directly in the lyrics.</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+                <div style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold', flexShrink: 0, border: '4px solid #14141c' }}>2</div>
+                <div style={{ paddingTop: '8px' }}>
+                  <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#a855f7', marginBottom: '8px' }}>Intermediate Tier (Sentences)</h4>
+                  <p style={{ opacity: 0.6, fontSize: '14px', lineHeight: '1.6' }}>Moves beyond single words. You will translate full sentences, understand basic grammar structures, and learn how words connect in context.</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
+                <div style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold', flexShrink: 0, border: '4px solid #14141c' }}>3</div>
+                <div style={{ paddingTop: '8px' }}>
+                  <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#eab308', marginBottom: '8px' }}>Hard Tier (Comprehension)</h4>
+                  <p style={{ opacity: 0.6, fontSize: '14px', lineHeight: '1.6' }}>Tests your deep understanding. You will listen to fast-paced lyrics, understand idioms, and complete advanced listening comprehension challenges.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Badges & Rewards */}
+        <div style={{ marginBottom: '56px' }}>
+          <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '28px' }}>🏆</span> Badges & Rewards
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+            <div className="doc-card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', textAlign: 'center', transition: 'all 0.3s ease' }}>
+              <div style={{ fontSize: '56px', marginBottom: '20px' }}>🎖️</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>Easy Explorer</h4>
+              <p style={{ opacity: 0.5, fontSize: '13px', lineHeight: '1.5' }}>Awarded when you pass your first Easy quiz and prove your basic vocabulary skills.</p>
+            </div>
+            <div className="doc-card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', textAlign: 'center', transition: 'all 0.3s ease' }}>
+              <div style={{ fontSize: '56px', marginBottom: '20px' }}>🏆</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>Inter Scholar</h4>
+              <p style={{ opacity: 0.5, fontSize: '13px', lineHeight: '1.5' }}>Unlocked by completing Intermediate sentences and mastering contextual grammar.</p>
+            </div>
+            <div className="doc-card" style={{ background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, rgba(0,0,0,0) 100%)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '24px', padding: '32px', textAlign: 'center', transition: 'all 0.3s ease', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(90deg, #facc15, #f59e0b)' }}></div>
+              <div style={{ fontSize: '56px', marginBottom: '20px', filter: 'drop-shadow(0 0 15px rgba(234, 179, 8, 0.6))' }}>⭐</div>
+              <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#facc15', marginBottom: '8px' }}>Language Star</h4>
+              <p style={{ opacity: 0.8, fontSize: '13px', lineHeight: '1.5' }}>The ultimate achievement! You have mastered the Hard tier and achieved fluency.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Deep Dive: Analytics */}
+        <div style={{ marginBottom: '48px' }}>
+          <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <BarChart2 size={28} color="#ec4899" /> Deep Dive: Analytics
+          </h3>
+          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px' }}>
+            <p style={{ opacity: 0.8, marginBottom: '24px', fontSize: '15px', lineHeight: '1.6' }}>
+              We don't just track your scores; we analyze your learning behavior. Head over to the <strong>Statistics</strong> tab to explore:
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '16px', borderLeft: '4px solid #12d15e' }}>
+                <h4 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#12d15e' }}>Activity Streak Heatmap</h4>
+                <p style={{ opacity: 0.7, fontSize: '14px', margin: 0, lineHeight: '1.5' }}>Similar to GitHub contributions, this visual grid shows your daily activity. The brighter the green, the more quizzes you've completed that day! Keep your streak alive to build strong habits.</p>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '16px', borderLeft: '4px solid #3b82f6' }}>
+                <h4 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#3b82f6' }}>Interactive Score Trends</h4>
+                <p style={{ opacity: 0.7, fontSize: '14px', margin: 0, lineHeight: '1.5' }}>A dynamic line chart mapping your performance over the last 7 quizzes. Hover over the data points to see exactly how much XP you earned on specific dates and track your improvement trajectory.</p>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '16px', borderLeft: '4px solid #a855f7' }}>
+                <h4 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#a855f7' }}>Comprehensive Quiz Review</h4>
+                <p style={{ opacity: 0.7, fontSize: '14px', margin: 0, lineHeight: '1.5' }}>Don't just see your score. Click "Review" on any past quiz attempt to pull up a detailed report of the exact questions you faced, your submitted answers vs the correct answers, and learn from your mistakes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Global CSS for doc hover effects */}
+        <style>{`
+          .doc-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border-color: rgba(255,255,255,0.2) !important;
+          }
+        `}</style>
+
+      </div>
+    );
+  };
+
   const renderProfile = () => {
     return (
       <div style={{ padding: '32px' }}>
@@ -1465,6 +1597,7 @@ const DashboardPage = () => {
             <NavItem icon={<Music size={20} />} label="Library" active={activeTab === 'library'} onClick={() => { setActiveTab('library'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           )}
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<HelpCircle size={20} />} label="Documentation" active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
           <NavItem icon={<Settings size={20} />} label="Profile" active={activeTab === 'profile'} onClick={() => { setActiveTab('profile'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
@@ -1498,7 +1631,7 @@ const DashboardPage = () => {
           </button>
         </div>
 
-        {activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
+        {activeTab === 'docs' ? renderDocs() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
           <div style={{ width: '100%', maxWidth: '1200px' }}>
           
           <div className="dashboard-layout-custom" style={{ 

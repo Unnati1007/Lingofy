@@ -149,14 +149,6 @@ const LoginPage = () => {
             </svg>
             <span>Login with Google</span>
           </button>
-          <button type="button" className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook" width="20" height="20" />
-            <span>Login with Facebook</span>
-          </button>
-          <button type="button" className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg" alt="Apple" width="20" height="20" />
-            <span>Login with Apple</span>
-          </button>
         </div>
 
         <div style={{ width: '100%', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '20px' }}></div>
