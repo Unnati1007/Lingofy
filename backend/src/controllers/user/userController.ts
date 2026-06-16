@@ -80,14 +80,19 @@ export const updateProfile = async (req: any, res: Response): Promise<void> => {
       return;
     }
 
-    const { name, nativeLanguage, learningLanguage, age, dailyGoal, proficiency } = req.body;
+    const { name, nativeLanguage, learningLanguage, age, dailyGoal, proficiency, about, mobile, profession, knownLanguages, username } = req.body;
 
-    if (name) user.name = name;
-    if (nativeLanguage) user.nativeLanguage = nativeLanguage;
-    if (learningLanguage) user.learningLanguage = learningLanguage;
+    if (name !== undefined) user.name = name;
+    if (nativeLanguage !== undefined) user.nativeLanguage = nativeLanguage;
+    if (learningLanguage !== undefined) user.learningLanguage = learningLanguage;
     if (age !== undefined) user.age = Number(age);
     if (dailyGoal !== undefined) user.dailyGoal = Number(dailyGoal);
-    if (proficiency) user.proficiency = proficiency;
+    if (proficiency !== undefined) user.proficiency = proficiency;
+    if (about !== undefined) user.about = about;
+    if (mobile !== undefined) user.mobile = mobile;
+    if (profession !== undefined) user.profession = profession;
+    if (knownLanguages !== undefined) user.knownLanguages = knownLanguages;
+    if (username !== undefined) user.username = username;
 
     await user.save();
 
@@ -100,7 +105,12 @@ export const updateProfile = async (req: any, res: Response): Promise<void> => {
       age: user.age,
       dailyGoal: user.dailyGoal,
       proficiency: user.proficiency,
-      learningMode: user.learningMode
+      learningMode: user.learningMode,
+      about: user.about,
+      mobile: user.mobile,
+      profession: user.profession,
+      knownLanguages: user.knownLanguages,
+      username: user.username
     }});
   } catch (error: any) {
     res.status(500).json({ message: error.message });

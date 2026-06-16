@@ -19,6 +19,11 @@ export interface IUser extends Document {
   resetPasswordCode?: string;
   resetPasswordExpires?: Date;
   googleId?: string;
+  about?: string;
+  mobile?: string;
+  profession?: string;
+  knownLanguages?: string[];
+  username?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -100,7 +105,12 @@ const UserSchema: Schema<IUser> = new Schema(
       type: String,
       sparse: true,
       unique: true
-    }
+    },
+    about: { type: String, trim: true },
+    mobile: { type: String, trim: true },
+    profession: { type: String, trim: true },
+    knownLanguages: { type: [String], default: [] },
+    username: { type: String, trim: true }
   },
   {
     timestamps: true

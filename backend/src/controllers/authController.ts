@@ -189,10 +189,14 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       `,
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log(`[EMAIL SENT] Password reset code sent to ${email}`);
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`[EMAIL SENT] Password reset code sent to ${email}`);
+    } catch (mailError) {
+      console.warn(`[EMAIL WARNING] Could not send email via SMTP, simulating email. The code is: ${code}`);
+    }
 
-    res.json({ message: "Reset code sent to your email" });
+    res.json({ message: "Reset code sent to your email (or simulated in console)" });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

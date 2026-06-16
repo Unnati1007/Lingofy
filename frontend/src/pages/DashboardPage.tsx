@@ -70,7 +70,11 @@ const DashboardPage = () => {
     learningLanguage: '',
     age: '',
     dailyGoal: '15',
-    proficiency: 'beginner'
+    proficiency: 'beginner',
+    mobile: '',
+    profession: '',
+    about: '',
+    knownLanguages: ''
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
@@ -125,7 +129,11 @@ const DashboardPage = () => {
             learningLanguage: userData.learningLanguage || '',
             age: userData.age ? userData.age.toString() : '',
             dailyGoal: userData.dailyGoal ? userData.dailyGoal.toString() : '15',
-            proficiency: userData.proficiency || 'beginner'
+            proficiency: userData.proficiency || 'beginner',
+            mobile: userData.mobile || '',
+            profession: userData.profession || '',
+            about: userData.about || '',
+            knownLanguages: userData.knownLanguages ? userData.knownLanguages.join(', ') : ''
           });
           // If they are in traditional mode and currently on 'home' or 'library', redirect to statistics (as dashboard doesn't have lessons inside it)
           if (userData.learningMode === 'traditional') {
@@ -261,7 +269,11 @@ const DashboardPage = () => {
           learningLanguage: profileForm.learningLanguage,
           age: profileForm.age ? parseInt(profileForm.age) : undefined,
           dailyGoal: profileForm.dailyGoal ? parseInt(profileForm.dailyGoal) : undefined,
-          proficiency: profileForm.proficiency
+          proficiency: profileForm.proficiency,
+          mobile: profileForm.mobile,
+          profession: profileForm.profession,
+          about: profileForm.about,
+          knownLanguages: profileForm.knownLanguages.split(',').map((l: string) => l.trim()).filter((l: string) => l !== '')
         })
       });
       if (res.ok) {
@@ -1392,6 +1404,29 @@ const DashboardPage = () => {
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Age</label>
               <input type="number" min="1" max="120" value={profileForm.age} onChange={(e) => setProfileForm({...profileForm, age: e.target.value})} placeholder="e.g. 25" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
             </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Mobile</label>
+              <input type="text" value={profileForm.mobile} onChange={(e) => setProfileForm({...profileForm, mobile: e.target.value})} placeholder="e.g. +1 234 567 8900" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Profession (Optional)</label>
+              <input type="text" value={profileForm.profession} onChange={(e) => setProfileForm({...profileForm, profession: e.target.value})} placeholder="e.g. Software Engineer" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Known Languages (comma-separated)</label>
+              <input type="text" value={profileForm.knownLanguages} onChange={(e) => setProfileForm({...profileForm, knownLanguages: e.target.value})} placeholder="e.g. English, Hindi" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>About Me</label>
+            <textarea value={profileForm.about} onChange={(e) => setProfileForm({...profileForm, about: e.target.value})} placeholder="Tell us a little about yourself..." style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none', minHeight: '80px', resize: 'vertical' }} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Daily Goal (Minutes)</label>
               <select value={profileForm.dailyGoal} onChange={(e) => setProfileForm({...profileForm, dailyGoal: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', outline: 'none' }}>

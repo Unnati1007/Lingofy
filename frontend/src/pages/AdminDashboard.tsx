@@ -54,10 +54,17 @@ const AdminDashboard = () => {
     learningLanguage: '',
     age: '',
     dailyGoal: '15',
-    proficiency: 'advanced'
+    proficiency: 'advanced',
+    username: '',
+    mobile: ''
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSuccessMessage, setProfileSuccessMessage] = useState('');
+  const [passwordResetEmail, setPasswordResetEmail] = useState('');
+  const [resetCodeSent, setResetCodeSent] = useState(false);
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
 
   // Song suggestions state
   const [songSuggestions, setSongSuggestions] = useState<any[]>([]);
@@ -157,8 +164,11 @@ const AdminDashboard = () => {
           learningLanguage: res.data.learningLanguage || '',
           age: res.data.age ? res.data.age.toString() : '',
           dailyGoal: res.data.dailyGoal ? res.data.dailyGoal.toString() : '15',
-          proficiency: res.data.proficiency || 'advanced'
+          proficiency: res.data.proficiency || 'advanced',
+          username: res.data.username || '',
+          mobile: res.data.mobile || ''
         });
+        setPasswordResetEmail(res.data.email);
       }).catch(err => console.error(err));
     }
   }, [navigate]);
@@ -175,7 +185,9 @@ const AdminDashboard = () => {
         learningLanguage: profileForm.learningLanguage,
         age: profileForm.age ? parseInt(profileForm.age) : undefined,
         dailyGoal: profileForm.dailyGoal ? parseInt(profileForm.dailyGoal) : undefined,
-        proficiency: profileForm.proficiency
+        proficiency: profileForm.proficiency,
+        username: profileForm.username,
+        mobile: profileForm.mobile
       }, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -452,58 +464,6 @@ const AdminDashboard = () => {
     );
   };
 
-  const renderProfileView = () => {
-    return (
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>Profile</h1>
-          <p style={{ opacity: 0.5 }}>Manage your administrative account details and preferences.</p>
-        </div>
-
-        <form onSubmit={handleSaveProfile} style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
-          <div style={{ paddingBottom: '20px', borderBottom: '1px solid #1e1e21' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px' }}>Personal Information</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Full Name</label>
-                <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} required style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #27272a', background: '#18181b', color: '#fff', outline: 'none' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Email Address <span style={{opacity:0.5}}>(Read Only)</span></label>
-                <input type="email" value={currentUser?.email || ''} readOnly style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #27272a', background: '#09090b', color: 'rgba(255,255,255,0.5)', outline: 'none', cursor: 'not-allowed' }} />
-              </div>
-            </div>
-          </div>
-
-          <div style={{ paddingBottom: '20px', borderBottom: '1px solid #1e1e21' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px' }}>System Preferences</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Role Level</label>
-                <input type="text" value="Super Administrator" readOnly style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #27272a', background: '#09090b', color: '#a855f7', fontWeight: 'bold', outline: 'none', cursor: 'not-allowed' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Theme Settings</label>
-                <select disabled style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #27272a', background: '#09090b', color: 'rgba(255,255,255,0.5)', outline: 'none', cursor: 'not-allowed' }}>
-                  <option>Dark Mode (Default)</option>
-                  <option>Light Mode</option>
-                  <option>System Default</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
-            {profileSuccessMessage && <span style={{ color: '#12d15e', fontSize: '13px', fontWeight: 'bold' }}>{profileSuccessMessage}</span>}
-            <button type="submit" disabled={savingProfile} style={{ background: '#12d15e', color: '#000', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: '800', cursor: savingProfile ? 'not-allowed' : 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
-              {savingProfile ? 'Saving...' : 'Save Admin Profile'}
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  };
 
   const renderUsersView = () => {
     return (
@@ -735,6 +695,96 @@ const AdminDashboard = () => {
               </div>
             )}
           </section>
+        </div>
+      </div>
+    );
+  };
+
+  const handleRequestPasswordReset = async () => {
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/request-password-reset', { email: passwordResetEmail });
+      setResetCodeSent(true);
+      setResetMessage(res.data.message || 'Verification code sent (check console if simulated)');
+    } catch (err: any) {
+      setResetMessage(err.response?.data?.message || 'Error sending code');
+    }
+  };
+
+  const handleVerifyAndReset = async () => {
+    try {
+      // 1. Verify code
+      await axios.post('http://localhost:5000/api/auth/verify-reset-code', { email: passwordResetEmail, code: resetCode });
+      
+      // 2. Reset password
+      await axios.post('http://localhost:5000/api/auth/reset-password', { email: passwordResetEmail, code: resetCode, newPassword });
+      
+      setResetMessage('Password updated successfully!');
+      setResetCodeSent(false);
+      setResetCode('');
+      setNewPassword('');
+    } catch (err: any) {
+      setResetMessage(err.response?.data?.message || 'Error resetting password');
+    }
+  };
+
+  const renderProfileView = () => {
+    return (
+      <div style={{ padding: '32px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '8px' }}>Admin Profile</h2>
+        <p style={{ opacity: 0.6, fontSize: '15px', marginBottom: '32px' }}>Manage your administrative details and security settings.</p>
+
+        <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
+          <form onSubmit={handleSaveProfile} style={{ flex: 1, background: '#121214', border: '1px solid #1e1e21', borderRadius: '24px', padding: '32px', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Username</label>
+                <input type="text" value={profileForm.username} onChange={(e) => setProfileForm({...profileForm, username: e.target.value})} required style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Email <span style={{opacity:0.5}}>(Read Only)</span></label>
+                <input type="email" value={currentUser?.email || ''} readOnly style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)', color: 'rgba(255,255,255,0.5)', outline: 'none', cursor: 'not-allowed' }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Mobile Number</label>
+                <input type="text" value={profileForm.mobile} onChange={(e) => setProfileForm({...profileForm, mobile: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+              </div>
+            </div>
+
+            <button type="submit" disabled={savingProfile} style={{ padding: '16px', borderRadius: '12px', border: 'none', background: '#12d15e', color: '#000', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
+              {savingProfile ? 'Saving...' : 'Save Profile'}
+            </button>
+
+            {profileSuccessMessage && (
+              <p style={{ color: '#12d15e', fontSize: '14px', textAlign: 'center', marginTop: '10px' }}>{profileSuccessMessage}</p>
+            )}
+          </form>
+
+          {/* Password Reset Section */}
+          <div style={{ flex: 1, background: '#121214', border: '1px solid #1e1e21', borderRadius: '24px', padding: '32px', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold' }}>Security & Password</h3>
+            <p style={{ opacity: 0.6, fontSize: '14px' }}>Change your password by verifying your email via code.</p>
+
+            {!resetCodeSent ? (
+              <button onClick={handleRequestPasswordReset} style={{ padding: '12px 24px', borderRadius: '12px', border: '1px solid #12d15e', background: 'transparent', color: '#12d15e', fontWeight: 'bold', cursor: 'pointer' }}>
+                Request Password Reset
+              </button>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <input type="text" placeholder="Enter 6-digit Code" value={resetCode} onChange={(e) => setResetCode(e.target.value)} style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+                <input type="password" placeholder="Enter New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
+                <button onClick={handleVerifyAndReset} style={{ padding: '16px', borderRadius: '12px', border: 'none', background: '#12d15e', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>
+                  Verify & Reset Password
+                </button>
+              </div>
+            )}
+            {resetMessage && (
+              <p style={{ color: '#a855f7', fontSize: '14px', textAlign: 'center', marginTop: '10px' }}>{resetMessage}</p>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -984,8 +1034,8 @@ const AdminDashboard = () => {
                       padding: '14px', 
                       borderRadius: '12px', 
                       border: 'none', 
-                      background: !!savedSongId ? '#12793d' : '#fff', 
-                      color: !!savedSongId ? '#fff' : '#000', 
+                      background: savedSongId ? '#12793d' : '#fff', 
+                      color: savedSongId ? '#fff' : '#000', 
                       fontWeight: '700', 
                       cursor: (isSaving || !!savedSongId) ? 'not-allowed' : 'pointer',
                       display: 'flex',
@@ -994,8 +1044,8 @@ const AdminDashboard = () => {
                       gap: '10px'
                     }}
                   >
-                    {isSaving ? <Loader2 size={20} className="spin" /> : (!!savedSongId ? <CheckCircle2 size={18} /> : <Send size={18} />)}
-                    {isSaving ? 'Saving...' : (!!savedSongId ? 'Saved' : 'Save Song')}
+                    {isSaving ? <Loader2 size={20} className="spin" /> : (savedSongId ? <CheckCircle2 size={18} /> : <Send size={18} />)}
+                    {isSaving ? 'Saving...' : (savedSongId ? 'Saved' : 'Save Song')}
                   </button>
                 </div>
               </section>

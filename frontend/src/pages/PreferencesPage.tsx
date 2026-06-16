@@ -9,6 +9,7 @@ const PreferencesPage = () => {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
   const [languages, setLanguages] = useState('');
+  const [knownLanguages, setKnownLanguages] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
@@ -30,7 +31,9 @@ const PreferencesPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/preferences', {
+      
+      // Update Preferences
+      const prefsRes = await fetch('http://localhost:5000/api/preferences', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -45,11 +48,23 @@ const PreferencesPage = () => {
         })
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      // Update User Profile (Known Languages)
+      const profileRes = await fetch('http://localhost:5000/api/users/me/profile', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          knownLanguages: knownLanguages.split(',').map(l => l.trim()).filter(l => l !== '')
+        })
+      });
+
+      const prefsData = await prefsRes.json();
+      if (prefsRes.ok && profileRes.ok) {
         navigate('/dashboard');
       } else {
-        alert(data.message || 'Error saving preferences');
+        alert(prefsData.message || 'Error saving preferences');
       }
     } catch (err) {
       console.error(err);
@@ -108,6 +123,29 @@ const PreferencesPage = () => {
             placeholder="e.g. Spanish, Korean, French..." 
             value={languages}
             onChange={(e) => setLanguages(e.target.value)}
+            style={{ 
+              background: 'rgba(0,0,0,0.2)', 
+              border: '1px solid rgba(255,255,255,0.1)', 
+              width: '100%',
+              padding: '16px 20px',
+              borderRadius: '14px',
+              fontSize: '16px',
+              color: '#fff',
+              outline: 'none',
+              transition: 'border-color 0.3s ease',
+              marginBottom: '20px'
+            }}
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', marginTop: '16px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '500', opacity: 0.9 }}>And what languages do you already know?</h3>
+          </div>
+          <input 
+            type="text" 
+            className="input-field" 
+            placeholder="e.g. English, Hindi..." 
+            value={knownLanguages}
+            onChange={(e) => setKnownLanguages(e.target.value)}
             style={{ 
               background: 'rgba(0,0,0,0.2)', 
               border: '1px solid rgba(255,255,255,0.1)', 
