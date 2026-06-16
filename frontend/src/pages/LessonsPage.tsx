@@ -982,7 +982,7 @@ const LessonsPage = () => {
 
         {/* Answer area */}
         <div style={{ flex: 1 }}>
-          {question.type === 'translate_word' ? (
+          {question.type === 'translate_word' || !question.options || question.options.filter(o => o?.trim()).length === 0 ? (
             <div>
               <input
                 type="text" value={selectedAnswer}
@@ -1036,11 +1036,11 @@ const LessonsPage = () => {
         <div style={{ paddingTop: '24px' }}>
           <button
             onClick={handleCheck}
-            disabled={!isAnswerChecked && (question.type === 'translate_word' ? !selectedAnswer.trim() : !selectedAnswer)}
+            disabled={!isAnswerChecked && ((question.type === 'translate_word' || !question.options || question.options.filter(o => o?.trim()).length === 0) ? !selectedAnswer.trim() : !selectedAnswer)}
             style={{
               width: '100%', height: '54px', borderRadius: '14px', border: 'none',
-              background: (!isAnswerChecked && (question.type === 'translate_word' ? !selectedAnswer.trim() : !selectedAnswer)) ? 'rgba(255,255,255,0.05)' : isAnswerChecked ? '#22c55e' : '#1a73e8',
-              color: (!isAnswerChecked && (question.type === 'translate_word' ? !selectedAnswer.trim() : !selectedAnswer)) ? 'rgba(255,255,255,0.2)' : '#000',
+              background: (!isAnswerChecked && ((question.type === 'translate_word' || !question.options || question.options.filter(o => o?.trim()).length === 0) ? !selectedAnswer.trim() : !selectedAnswer)) ? 'rgba(255,255,255,0.05)' : isAnswerChecked ? '#22c55e' : '#1a73e8',
+              color: (!isAnswerChecked && ((question.type === 'translate_word' || !question.options || question.options.filter(o => o?.trim()).length === 0) ? !selectedAnswer.trim() : !selectedAnswer)) ? 'rgba(255,255,255,0.2)' : '#000',
               fontWeight: '800', fontSize: '16px', cursor: 'pointer', transition: 'all 0.2s', letterSpacing: '0.5px'
             }}
           >

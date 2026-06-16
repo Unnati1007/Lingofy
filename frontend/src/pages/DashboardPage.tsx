@@ -2016,69 +2016,73 @@ const DashboardPage = () => {
                     <div style={{ padding: '10px 0', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <div style={{ fontSize: '11px', opacity: 0.4, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.5px' }}>Roadmap Stages</div>
                       
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', padding: '0 10px' }}>
-                        {/* Connector Line behind steps */}
-                        <div style={{ position: 'absolute', top: '15px', left: '20px', right: '20px', height: '2px', background: 'rgba(255,255,255,0.08)', zIndex: 1 }}>
-                          <div style={{ width: `${(totalCompleted / 5) * 100}%`, height: '100%', background: '#12d15e', transition: 'width 0.5s ease' }}></div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', padding: '0 10px' }}>
+                        
+                        {/* Steps Container */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', flex: 1 }}>
+                          {/* Connector Line behind steps */}
+                          <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', height: '2px', background: 'rgba(255,255,255,0.08)', zIndex: 1 }}>
+                            <div style={{ width: `${(totalCompleted / 5) * 100}%`, height: '100%', background: '#12d15e', transition: 'width 0.5s ease' }}></div>
+                          </div>
+
+                          {/* Step 1: Easy */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
+                            <div style={{ 
+                              width: '30px', height: '30px', borderRadius: '50%', 
+                              background: isEasyPassed ? '#12d15e' : (progressObj.currentStage === 'easy' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
+                              border: `2px solid ${isEasyPassed || progressObj.currentStage === 'easy' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold',
+                              color: isEasyPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'easy' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
+                            }}>
+                              {isEasyPassed ? '✓' : 'E'}
+                            </div>
+                            <span style={{ fontSize: '10px', opacity: progressObj.currentStage === 'easy' ? 1 : 0.5, fontWeight: progressObj.currentStage === 'easy' ? 'bold' : 'normal' }}>Easy</span>
+                          </div>
+
+                          {/* Step 2: Intermediate */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
+                            <div style={{ 
+                              width: '30px', height: '30px', borderRadius: '50%', 
+                              background: isInterPassed ? '#12d15e' : (progressObj.currentStage === 'intermediate' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
+                              border: `2px solid ${isInterPassed || progressObj.currentStage === 'intermediate' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold',
+                              color: isInterPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'intermediate' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
+                            }}>
+                              {isInterPassed ? '✓' : 'I'}
+                            </div>
+                            <span style={{ fontSize: '10px', opacity: progressObj.currentStage === 'intermediate' ? 1 : 0.5, fontWeight: progressObj.currentStage === 'intermediate' ? 'bold' : 'normal' }}>Inter</span>
+                          </div>
+
+                          {/* Step 3: Hard */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
+                            <div style={{ 
+                              width: '30px', height: '30px', borderRadius: '50%', 
+                              background: isHardPassed ? '#12d15e' : (progressObj.currentStage === 'hard' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
+                              border: `2px solid ${isHardPassed || progressObj.currentStage === 'hard' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold',
+                              color: isHardPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'hard' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
+                            }}>
+                              {isHardPassed ? '✓' : `${progressObj.hardCompleted}/3`}
+                            </div>
+                            <span style={{ fontSize: '10px', opacity: progressObj.currentStage === 'hard' ? 1 : 0.5, fontWeight: progressObj.currentStage === 'hard' ? 'bold' : 'normal' }}>Hard</span>
+                          </div>
                         </div>
 
-                        {/* Step 1: Easy */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
-                          <div style={{ 
-                            width: '30px', height: '30px', borderRadius: '50%', 
-                            background: isEasyPassed ? '#12d15e' : (progressObj.currentStage === 'easy' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
-                            border: `2px solid ${isEasyPassed || progressObj.currentStage === 'easy' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold',
-                            color: isEasyPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'easy' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
-                          }}>
-                            {isEasyPassed ? '✓' : 'E'}
-                          </div>
-                          <span style={{ fontSize: '10px', opacity: progressObj.currentStage === 'easy' ? 1 : 0.5, fontWeight: progressObj.currentStage === 'easy' ? 'bold' : 'normal' }}>Easy</span>
-                        </div>
-
-                        {/* Step 2: Intermediate */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
-                          <div style={{ 
-                            width: '30px', height: '30px', borderRadius: '50%', 
-                            background: isInterPassed ? '#12d15e' : (progressObj.currentStage === 'intermediate' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
-                            border: `2px solid ${isInterPassed || progressObj.currentStage === 'intermediate' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold',
-                            color: isInterPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'intermediate' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
-                          }}>
-                            {isInterPassed ? '✓' : 'I'}
-                          </div>
-                          <span style={{ fontSize: '10px', opacity: progressObj.currentStage === 'intermediate' ? 1 : 0.5, fontWeight: progressObj.currentStage === 'intermediate' ? 'bold' : 'normal' }}>Inter</span>
-                        </div>
-
-                        {/* Step 3: Hard */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
-                          <div style={{ 
-                            width: '30px', height: '30px', borderRadius: '50%', 
-                            background: isHardPassed ? '#12d15e' : (progressObj.currentStage === 'hard' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
-                            border: `2px solid ${isHardPassed || progressObj.currentStage === 'hard' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold',
-                            color: isHardPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'hard' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
-                          }}>
-                            {isHardPassed ? '✓' : `${progressObj.hardCompleted}/3`}
-                          </div>
-                          <span style={{ fontSize: '10px', opacity: progressObj.currentStage === 'hard' ? 1 : 0.5, fontWeight: progressObj.currentStage === 'hard' ? 'bold' : 'normal' }}>Hard</span>
-                        </div>
-                                  {/* Achievements Link Section */}
-                    <div style={{ marginTop: '8px' }}>
-                      <button 
-                        onClick={() => setActiveTab('achievements')}
-                        style={{ 
-                          width: '100%',
-                          background: 'rgba(255,255,255,0.02)', 
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                          color: '#fff', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s'
-                        }}
-                        className="btn-hover"
-                      >
-                        <Award size={16} color="#a855f7" /> View All Achievements
-                      </button>
-                    </div>                      </div>
+                        {/* Achievements Link Section */}
+                        <div style={{ flexShrink: 0, paddingBottom: '16px' }}>
+                          <button 
+                            onClick={() => setActiveTab('achievements')}
+                            style={{ 
+                              background: 'rgba(255,255,255,0.02)', 
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              borderRadius: '12px', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                              color: '#fff', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s'
+                            }}
+                            className="btn-hover"
+                          >
+                            <Award size={16} color="#a855f7" /> View All Achievements
+                          </button>
+                        </div>                      </div>
                     </div>
 
                     {/* Progress Bar & CTA Button */}
