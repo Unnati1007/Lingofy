@@ -15,6 +15,7 @@ export interface ISong extends Document {
     english?: { order: number; text: string }[];
     hindi?: { order: number; text: string }[];
     spanish?: { order: number; text: string }[];
+    korean?: { order: number; text: string }[];
   };
   createdAt: Date;
   updatedAt: Date;
@@ -84,6 +85,10 @@ const SongSchema: Schema<ISong> = new Schema(
         text: { type: String }
       }],
       spanish: [{
+        order: { type: Number },
+        text: { type: String }
+      }],
+      korean: [{
         order: { type: Number },
         text: { type: String }
       }]

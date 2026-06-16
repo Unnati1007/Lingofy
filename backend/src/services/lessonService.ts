@@ -27,23 +27,37 @@ async function callGroq(prompt: string): Promise<string> {
 }
 
 async function generateWithRetry(prompt: string) {
+  const sanitizeData = (data: any) => {
+    if (data.questions && Array.isArray(data.questions)) {
+      data.questions.forEach((q: any) => {
+        if (!q.options || !Array.isArray(q.options) || q.options.length === 0) {
+          q.options = ["Option A", "Option B", "Option C", "Option D"];
+        }
+        if (!q.correctAnswer || typeof q.correctAnswer !== 'string' || q.correctAnswer.trim() === '') {
+          q.correctAnswer = q.options[0];
+        }
+      });
+    }
+    return data;
+  };
+
   try {
     const raw = await callGroq(prompt);
     const cleaned = raw.replace(/```json|```/g, "").trim();
-    return JSON.parse(cleaned);
+    return sanitizeData(JSON.parse(cleaned));
   } catch (err) {
     // retry once on failure
     try {
       const raw = await callGroq(prompt);
       const cleaned = raw.replace(/```json|```/g, "").trim();
-      return JSON.parse(cleaned);
+      return sanitizeData(JSON.parse(cleaned));
     } catch {
       throw new Error("Quiz generation failed. Please try again.");
     }
   }
 }
 
-function getRandomTopics(language: "hindi" | "spanish"): string {
+function getRandomTopics(language: "hindi" | "spanish" | "korean"): string {
   const categories = [
     "Greetings and basic conversation phrases",
     "Family members and relationships", 
@@ -75,7 +89,7 @@ function getRandomDifficulty(): string {
 }
 
 export const generateLesson = async (
-  language: 'hindi' | 'spanish',
+  language: 'hindi' | 'spanish' | 'korean',
   levelOrCount: 'easy' | 'intermediate' | 'hard' | number = 'easy',
   previousWords: string[] = [],
   quizAttemptCount: number = 0,
@@ -207,19 +221,23 @@ ${musicModeStructure}
    - Add romanized pronunciation in explanation
    - Example option: "भूखा (bhookha)"
 
-7. For Spanish questions:
+7. For Korean questions:
+   - Use Hangul script for Korean words in options/answers
+   - Add romanized pronunciation in explanation
+
+8. For Spanish questions:
    - Use proper Spanish with accents (á é í ó ú ñ ¿ ¡)
    - Keep vocabulary conversational and natural
 
-8. Make questions EDUCATIONAL and PROGRESSIVE:
+9. Make questions EDUCATIONAL and PROGRESSIVE:
    - Match the difficulty level description above exactly
    - Each question should genuinely teach something useful
    - Think: "Would a Duolingo lesson include this?" 
      If yes → include. If no → reject.
 
-9. Vary question types — minimum 2 of each type across 10 Qs
+10. Vary question types — minimum 2 of each type across 10 Qs
 
-10. correctAnswer must EXACTLY match one of the 4 options
+11. correctAnswer must EXACTLY match one of the 4 options
     (same spelling, same script, same capitalization)
 
 Generate exactly 10 questions following ALL rules above.
@@ -240,7 +258,7 @@ JSON Schema:
       "sentence": "full sentence with ___ for fill_blank type only",
       "options": ["option1", "option2", "option3", "option4"],
       "correctAnswer": "must exactly match one option",
-      "explanation": "1 sentence in English explaining the answer + pronunciation tip for Hindi"
+      "explanation": "1 sentence in English explaining the answer + pronunciation tip for Hindi/Korean"
     }
   ]
 }
@@ -251,7 +269,7 @@ JSON Schema:
 };
 
 export const generateSongLesson = async (
-  language: 'hindi' | 'spanish',
+  language: 'hindi' | 'spanish' | 'korean',
   songTitle: string,
   songArtist: string,
   lyricsWithTranslations: { english: string; translation: string }[]
@@ -260,7 +278,7 @@ export const generateSongLesson = async (
   
   // Format the lyrics context for the prompt
   const lyricsContext = lyricsWithTranslations
-    .map((l, i) => `Line ${i + 1}: English: "${l.english}" | ${language === 'hindi' ? 'Hindi' : 'Spanish'}: "${l.translation}"`)
+    .map((l, i) => `Line ${i + 1}: English: "${l.english}" | ${language === 'hindi' ? 'Hindi' : language === 'spanish' ? 'Spanish' : 'Korean'}: "${l.translation}"`)
     .join("\n");
 
   const prompt = `
@@ -330,13 +348,17 @@ ABSOLUTE RULES — READ CAREFULLY:
    - Add romanized pronunciation in explanation.
    - Example option: "भूखा (bhookha)"
 
-7. For Spanish questions:
+7. For Korean questions:
+   - Use Hangul script for Korean words in options/answers.
+   - Add romanized pronunciation in explanation.
+
+8. For Spanish questions:
    - Use proper Spanish with accents (á é í ó ú ñ ¿ ¡).
 
-8. Make questions educational:
+9. Make questions educational:
    - Focus on verbs, adjectives, common nouns, and phrases that appear in the song lyrics.
    
-9. correctAnswer must EXACTLY match one of the 4 options (same spelling, script, and capitalization).
+10. correctAnswer must EXACTLY match one of the 4 options (same spelling, script, and capitalization).
 
 Respond with ONLY raw JSON — zero markdown, zero backticks, zero text outside the JSON object.
 
@@ -353,7 +375,7 @@ JSON Schema:
       "sentence": "full sentence with ___ for fill_blank type only",
       "options": ["option1", "option2", "option3", "option4"],
       "correctAnswer": "must exactly match one option",
-      "explanation": "1 sentence in English explaining the answer + pronunciation tip for Hindi"
+      "explanation": "1 sentence in English explaining the answer + pronunciation tip for Hindi/Korean"
     }
   ]
 }

@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 type ViewState = 'setup' | 'loading' | 'quiz' | 'hci_form' | 'results';
-type Language = 'hindi' | 'spanish';
+type Language = 'hindi' | 'spanish' | 'korean';
 
 interface Question {
   id: number;
@@ -304,7 +304,7 @@ const LessonsPage = () => {
 
   const playAudio = (text: string, lang: Language) => {
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang === 'hindi' ? 'hi-IN' : 'es-ES';
+    utterance.lang = lang === 'hindi' ? 'hi-IN' : lang === 'spanish' ? 'es-ES' : 'ko-KR';
     utterance.rate = 0.85; // slightly slower for learners
     window.speechSynthesis.speak(utterance);
   };
@@ -504,6 +504,7 @@ const LessonsPage = () => {
             {[
               { lang: 'hindi' as Language, img: 'https://flagcdn.com/w160/in.png', name: 'Hindi', sub: 'हिन्दी', level: 'N3 Level', color: '#ff9933', glow: 'rgba(255,153,51,0.2)' },
               { lang: 'spanish' as Language, img: 'https://flagcdn.com/w160/es.png', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e', glow: 'rgba(198,11,30,0.2)' },
+              { lang: 'korean' as Language, img: 'https://flagcdn.com/w160/kr.png', name: 'Korean', sub: '한국어', level: 'TOPIK 2', color: '#3b82f6', glow: 'rgba(59,130,246,0.2)' },
             ].map(({ lang, img, name, sub, level, color, glow }) => {
               const prog = roadmapProgress?.[lang];
               const completedCount = prog ? Math.min(prog.easyCompleted, 1) + Math.min(prog.intermediateCompleted, 2) + Math.min(prog.hardCompleted, 3) + Math.min(prog.focusCompleted, 1) : 0;
@@ -622,7 +623,7 @@ const LessonsPage = () => {
               ← Languages
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '36px' }}>{language === 'hindi' ? '🇮🇳' : '🇪🇸'}</span>
+              <span style={{ fontSize: '36px' }}>{language === 'hindi' ? '🇮🇳' : language === 'spanish' ? '🇪🇸' : '🇰🇷'}</span>
               <div>
                 <h1 style={{ fontSize: '26px', fontWeight: '800', margin: 0, textTransform: 'capitalize' }}>{language} Journey</h1>
                 <p style={{ margin: 0, fontSize: '13px', opacity: 0.5 }}>

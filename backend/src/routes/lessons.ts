@@ -15,7 +15,7 @@ router.post("/generate", protect, async (req: AuthRequest, res: Response) => {
   try {
     const { language, level } = req.body;
 
-    if (!['hindi', 'spanish'].includes(language)) {
+    if (!['hindi', 'spanish', 'korean'].includes(language)) {
       return res.status(400).json({ message: "Invalid language" });
     }
 
@@ -90,7 +90,7 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
       return res.status(400).json({ message: "Song ID is required" });
     }
 
-    if (!['hindi', 'spanish'].includes(language)) {
+    if (!['hindi', 'spanish', 'korean'].includes(language)) {
       return res.status(400).json({ message: "Invalid or missing language" });
     }
 
@@ -102,7 +102,7 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
     const segments = await LyricSegment.find({ songId }).sort({ segmentOrder: 1 });
     
     // Map lyrics with translations
-    const targetTranslations = language === 'hindi' ? song.translations?.hindi : song.translations?.spanish;
+    const targetTranslations = language === 'hindi' ? song.translations?.hindi : language === 'spanish' ? song.translations?.spanish : song.translations?.korean;
     const lyricsWithTranslations = segments.map(seg => {
       const translationObj = targetTranslations?.find((t: any) => t.order === seg.segmentOrder);
       return {
@@ -135,7 +135,7 @@ router.post("/generate-focus", protect, async (req: AuthRequest, res: Response) 
   try {
     const { language, focusArea } = req.body;
 
-    if (!['hindi', 'spanish'].includes(language)) {
+    if (!['hindi', 'spanish', 'korean'].includes(language)) {
       return res.status(400).json({ message: "Invalid language" });
     }
     if (!focusArea) {
@@ -318,7 +318,8 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
 
     res.status(200).json({
       hindi: getProgressForLang('hindi'),
-      spanish: getProgressForLang('spanish')
+      spanish: getProgressForLang('spanish'),
+      korean: getProgressForLang('korean')
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -364,7 +365,8 @@ router.get("/admin/progress/:userId", protect, adminOnly, async (req: AuthReques
 
     res.status(200).json({
       hindi: getProgressForLang('hindi'),
-      spanish: getProgressForLang('spanish')
+      spanish: getProgressForLang('spanish'),
+      korean: getProgressForLang('korean')
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

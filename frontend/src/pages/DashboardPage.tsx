@@ -41,11 +41,11 @@ const DashboardPage = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [preferences, setPreferences] = useState<any>(null);
   const [syncOffset, setSyncOffset] = useState<number>(0);
-  const [translationLang, setTranslationLang] = useState<'none'|'en'|'hi'|'es'>('none');
+  const [translationLang, setTranslationLang] = useState<'none'|'en'|'hi'|'es'|'ko'>('none');
   const [playbackMode, setPlaybackMode] = useState<string>('100');
   const [loading, setLoading] = useState(true);
   const [roadmapProgress, setRoadmapProgress] = useState<any>(null);
-  const [activeCardLanguage, setActiveCardLanguage] = useState<'hindi' | 'spanish'>('spanish');
+  const [activeCardLanguage, setActiveCardLanguage] = useState<'hindi' | 'spanish' | 'korean'>('spanish');
   const [segments, setSegments] = useState<any[]>([]);
   const [ytReady, setYtReady] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
@@ -77,7 +77,7 @@ const DashboardPage = () => {
 
   const learningLanguageKey = useMemo(() => {
     const lang = preferences?.languagesToLearn?.[0]?.toLowerCase() || 'spanish';
-    return lang.includes('hindi') ? 'hindi' : 'spanish';
+    return lang.includes('hindi') ? 'hindi' : lang.includes('spanish') ? 'spanish' : 'korean';
   }, [preferences]);
 
   // Playlists & Queue States
@@ -1371,6 +1371,7 @@ const DashboardPage = () => {
                 <option value="English">English</option>
                 <option value="Hindi">Hindi</option>
                 <option value="Spanish">Spanish</option>
+                <option value="Korean">Korean</option>
                 <option value="French">French</option>
               </select>
             </div>
@@ -1380,6 +1381,7 @@ const DashboardPage = () => {
                 <option value="">Select Target Language</option>
                 <option value="Hindi">Hindi</option>
                 <option value="Spanish">Spanish</option>
+                <option value="Korean">Korean</option>
                 <option value="French">French</option>
               </select>
             </div>
@@ -1610,28 +1612,6 @@ const DashboardPage = () => {
       {/* Main Content */}
       <main className="main-content custom-scrollbar" style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative' }}>
         
-        {/* Toggle Mode Button (Top Right) */}
-        <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 50 }}>
-          <button 
-            onClick={toggleLearningMode}
-            className="btn-hover"
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#fff',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            {currentUser?.learningMode === 'traditional' ? 'Switch to Music Mode' : 'Switch to Traditional Mode'}
-          </button>
-        </div>
 
         <AnimatePresence mode="wait">
           <motion.div
@@ -1677,7 +1657,7 @@ const DashboardPage = () => {
                       <div style={{ position: 'relative' }}>
                         <select 
                           value={activeCardLanguage}
-                          onChange={(e: any) => setActiveCardLanguage(e.target.value as 'hindi' | 'spanish')}
+                          onChange={(e: any) => setActiveCardLanguage(e.target.value as 'hindi' | 'spanish' | 'korean')}
                           style={{
                             width: '100%',
                             padding: '12px 16px',
@@ -1696,6 +1676,7 @@ const DashboardPage = () => {
                         >
                           <option value="spanish" style={{ background: '#1a1a1a', color: '#fff' }}>🇪🇸 Spanish</option>
                           <option value="hindi" style={{ background: '#1a1a1a', color: '#fff' }}>🇮🇳 Hindi</option>
+                          <option value="korean" style={{ background: '#1a1a1a', color: '#fff' }}>🇰🇷 Korean</option>
                         </select>
                         <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.6, fontSize: '10px' }}>
                           ▼
@@ -1707,7 +1688,7 @@ const DashboardPage = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                         <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '2px solid #fff', overflow: 'hidden', boxShadow: '0 0 10px rgba(255,255,255,0.1)' }}>
-                          <img src={`https://flagcdn.com/w160/${activeCardLanguage === 'hindi' ? 'in' : 'es'}.png`} alt="Lang Flag" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={`https://flagcdn.com/w160/${activeCardLanguage === 'hindi' ? 'in' : activeCardLanguage === 'spanish' ? 'es' : 'kr'}.png`} alt="Lang Flag" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                         <div>
                           <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0, textTransform: 'capitalize' }}>{activeCardLanguage}</h2>
@@ -1717,7 +1698,7 @@ const DashboardPage = () => {
                         </div>
                       </div>
                       <div style={{ background: '#12d15e', color: '#000', padding: '4px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: 'bold' }}>
-                        {activeCardLanguage === 'hindi' ? 'N3' : 'A2'}
+                        {activeCardLanguage === 'hindi' ? 'N3' : activeCardLanguage === 'spanish' ? 'A2' : 'TOPIK 2'}
                       </div>
                     </div>
 
@@ -2010,6 +1991,10 @@ const DashboardPage = () => {
                       onClick={() => setTranslationLang('es')}
                       style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: translationLang === 'es' ? '#fff' : 'transparent', color: translationLang === 'es' ? '#000' : '#fff', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', transition: '0.2s' }}
                     >Spanish 🇪🇸</button>
+                    <button 
+                      onClick={() => setTranslationLang('ko')}
+                      style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: translationLang === 'ko' ? '#fff' : 'transparent', color: translationLang === 'ko' ? '#000' : '#fff', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', transition: '0.2s' }}
+                    >Korean 🇰🇷</button>
                   </div>
                 </div>
               </div>
@@ -2034,7 +2019,7 @@ const DashboardPage = () => {
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Interactive Lyrics</h3>
                 </div>
                 <span style={{ fontSize: '12px', opacity: 0.5 }}>
-                  {translationLang === 'none' ? 'Original Only' : `Parallel: ${translationLang === 'en' ? 'English' : translationLang === 'hi' ? 'Hindi' : 'Spanish'}`}
+                  {translationLang === 'none' ? 'Original Only' : `Parallel: ${translationLang === 'en' ? 'English' : translationLang === 'hi' ? 'Hindi' : translationLang === 'ko' ? 'Korean' : 'Spanish'}`}
                 </span>
               </div>
               
@@ -2054,7 +2039,7 @@ const DashboardPage = () => {
                   letterSpacing: '1px'
                 }}>
                   <div>Original Lyrics</div>
-                  <div>Translation ({translationLang === 'en' ? 'English' : translationLang === 'hi' ? 'Hindi' : 'Spanish'})</div>
+                  <div>Translation ({translationLang === 'en' ? 'English' : translationLang === 'hi' ? 'Hindi' : translationLang === 'ko' ? 'Korean' : 'Spanish'})</div>
                 </div>
               )}
 
@@ -2075,6 +2060,8 @@ const DashboardPage = () => {
                       translationText = currentSong?.translations?.hindi?.[idx]?.text;
                     } else if (translationLang === 'es') {
                       translationText = currentSong?.translations?.spanish?.[idx]?.text;
+                    } else if (translationLang === 'ko') {
+                      translationText = currentSong?.translations?.korean?.[idx]?.text;
                     }
                     const isActive = idx === activeIndex;
 
@@ -2241,7 +2228,7 @@ const DashboardPage = () => {
             </p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <button 
                   onClick={() => {
                     setShowQuizModal(false);
@@ -2296,6 +2283,34 @@ const DashboardPage = () => {
                 >
                   <span style={{ fontSize: '28px' }}>🇪🇸</span>
                   <span>Spanish</span>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    setShowQuizModal(false);
+                    navigate(`/lessons?songId=${currentSong._id}&language=korean`);
+                  }}
+                  className="btn-hover"
+                  style={{
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '16px',
+                    borderRadius: '16px',
+                    fontWeight: '800',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 10px 20px rgba(59, 130, 246, 0.2)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <span style={{ fontSize: '28px' }}>🇰🇷</span>
+                  <span>Korean</span>
                 </button>
               </div>
               

@@ -30,7 +30,7 @@ const AdminDashboard = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [savedSongId, setSavedSongId] = useState<string | null>(null);
-  const [translations, setTranslations] = useState<{ hindi: any[], spanish: any[] } | null>(null);
+  const [translations, setTranslations] = useState<{ hindi: any[], spanish: any[], korean: any[] } | null>(null);
   const [showToast, setShowToast] = useState(false);
   
   const [activeView, setActiveView] = useState<'add-song' | 'users' | 'analytics' | 'profile'>('analytics');
@@ -608,7 +608,7 @@ const AdminDashboard = () => {
                   <div style={{ marginBottom: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '16px', padding: '16px' }}>
                     <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#a855f7', fontWeight: 'bold', marginBottom: '12px', letterSpacing: '0.5px' }}>Learning Milestones</div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                       {/* Hindi Milestones */}
                       <div style={{ borderRight: '1px solid rgba(255,255,255,0.05)', paddingRight: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -642,6 +642,24 @@ const AdminDashboard = () => {
                         </div>
                         <div style={{ fontSize: '10px', opacity: 0.5 }}>
                           E: {selectedUserProgress.spanish.easyCompleted}/1 | I: {selectedUserProgress.spanish.intermediateCompleted}/2 | H: {selectedUserProgress.spanish.hardCompleted}/3
+                        </div>
+                      </div>
+
+                      {/* Korean Milestones */}
+                      <div style={{ paddingLeft: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Korean 🇰🇷</span>
+                          <span style={{ fontSize: '11px', color: '#a855f7', fontWeight: 'bold', textTransform: 'capitalize' }}>
+                            {selectedUserProgress.korean?.currentStage}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '18px', opacity: selectedUserProgress.korean?.badges.includes('easy_explorer') ? 1 : 0.2 }} title="Easy Explorer">🎖️</span>
+                          <span style={{ fontSize: '18px', opacity: selectedUserProgress.korean?.badges.includes('intermediate_scholar') ? 1 : 0.2 }} title="Intermediate Scholar">🏆</span>
+                          <span style={{ fontSize: '18px', opacity: selectedUserProgress.korean?.badges.includes('language_star') ? 1 : 0.2 }} title="Language Star">⭐</span>
+                        </div>
+                        <div style={{ fontSize: '10px', opacity: 0.5 }}>
+                          E: {selectedUserProgress.korean?.easyCompleted}/1 | I: {selectedUserProgress.korean?.intermediateCompleted}/2 | H: {selectedUserProgress.korean?.hardCompleted}/3
                         </div>
                       </div>
                     </div>
@@ -1016,6 +1034,10 @@ const AdminDashboard = () => {
                             <div style={{ fontSize: '12px' }}>
                               <span style={{ opacity: 0.5, fontSize: '10px', marginRight: '6px' }}>ES:</span> 
                               {translations.spanish[idx]?.text}
+                            </div>
+                            <div style={{ fontSize: '12px' }}>
+                              <span style={{ opacity: 0.5, fontSize: '10px', marginRight: '6px' }}>KO:</span> 
+                              {translations.korean?.[idx]?.text}
                             </div>
                           </div>
                         )}

@@ -24,15 +24,29 @@ async function callGroq(prompt: string): Promise<string> {
 }
 
 async function generateWithRetry(prompt: string) {
+  const sanitizeData = (data: any) => {
+    if (data.questions && Array.isArray(data.questions)) {
+      data.questions.forEach((q: any) => {
+        if (!q.options || !Array.isArray(q.options) || q.options.length === 0) {
+          q.options = ["Option A", "Option B", "Option C", "Option D"];
+        }
+        if (!q.correctAnswer || typeof q.correctAnswer !== 'string' || q.correctAnswer.trim() === '') {
+          q.correctAnswer = q.options[0];
+        }
+      });
+    }
+    return data;
+  };
+
   try {
     const raw = await callGroq(prompt);
     const cleaned = raw.replace(/```json|```/g, "").trim();
-    return JSON.parse(cleaned);
+    return sanitizeData(JSON.parse(cleaned));
   } catch (err) {
     try {
       const raw = await callGroq(prompt);
       const cleaned = raw.replace(/```json|```/g, "").trim();
-      return JSON.parse(cleaned);
+      return sanitizeData(JSON.parse(cleaned));
     } catch {
       throw new Error("Focus practice generation failed. Please try again.");
     }
@@ -40,7 +54,7 @@ async function generateWithRetry(prompt: string) {
 }
 
 export const generateFocusLesson = async (
-  language: 'hindi' | 'spanish',
+  language: 'hindi' | 'spanish' | 'korean',
   focusArea: string
 ) => {
   const randomSeed = Math.floor(Math.random() * 100000);
@@ -98,11 +112,14 @@ ABSOLUTE RULES — READ CAREFULLY:
 3. For Hindi questions:
    - Use Devanagari script for Hindi words in options/answers
    - Add romanized pronunciation in explanation. Example option: "भूखा (bhookha)"
-4. For Spanish questions:
+4. For Korean questions:
+   - Use Hangul script for Korean words in options/answers
+   - Add romanized pronunciation in explanation.
+5. For Spanish questions:
    - Use proper Spanish with accents (á é í ó ú ñ ¿ ¡)
-5. correctAnswer must EXACTLY match one of the 4 options.
-6. SHUFFLE the options. Do NOT always place the correct answer as the first option.
-7. Make the incorrect options (distractors) highly confusing, plausible, and challenging. Do NOT make the correct answer obvious.
+6. correctAnswer must EXACTLY match one of the 4 options.
+7. SHUFFLE the options. Do NOT always place the correct answer as the first option.
+8. Make the incorrect options (distractors) highly confusing, plausible, and challenging. Do NOT make the correct answer obvious.
 
 ${focusInstructions}
 
