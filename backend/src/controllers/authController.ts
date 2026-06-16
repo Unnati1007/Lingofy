@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import nodemailer from "nodemailer";
 import User from "../models/user/User";
 import UserPreferences from "../models/user/UserPreference";
@@ -8,6 +9,65 @@ const generateToken = (id: string, email: string) => {
   return jwt.sign({ id, email }, process.env.JWT_SECRET || "fallback_secret", {
     expiresIn: "30d",
   });
+};
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const googleLogin = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { credential } = req.body;
+    
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload) {
+      res.status(400).json({ message: "Invalid Google token" });
+      return;
+    }
+
+    const { email, name, sub: googleId } = payload;
+    
+    if (!email) {
+      res.status(400).json({ message: "Email not provided by Google" });
+      return;
+    }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create user with random secure password
+      const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10) + "Aa1!";
+      
+      user = await User.create({
+        name: name || email.split("@")[0],
+        email,
+        password: randomPassword,
+        googleId,
+        role: "user"
+      });
+    } else if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    const token = generateToken(user._id.toString(), user.email);
+    const preferences = await UserPreferences.findOne({ userId: user._id });
+
+    res.json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      learningMode: user.learningMode,
+      hasPreferences: !!preferences,
+      token,
+    });
+  } catch (error: any) {
+    console.error("Google Auth Error:", error);
+    res.status(500).json({ message: "Google authentication failed" });
+  }
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {

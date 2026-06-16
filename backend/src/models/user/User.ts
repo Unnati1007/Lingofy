@@ -18,6 +18,7 @@ export interface IUser extends Document {
   updatedAt: Date;
   resetPasswordCode?: string;
   resetPasswordExpires?: Date;
+  googleId?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -93,6 +94,12 @@ const UserSchema: Schema<IUser> = new Schema(
 
     resetPasswordExpires: {
       type: Date
+    },
+
+    googleId: {
+      type: String,
+      sparse: true,
+      unique: true
     }
   },
   {

@@ -110,11 +110,23 @@ npm run dev
 
 Frontend runs on: http://localhost:5173
 
-.env
+### Environment Variables
+
+**Backend (`backend/.env`):**
+```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/lingofy
 ADMIN_EMAIL=admin123@gmail.com
 ADMIN_PASSWORD=admin@123
-GROQ_API_KEY=
----
+JWT_SECRET=your_jwt_secret
+GROQ_API_KEY=your_groq_api_key
+EMAIL_USER=your_gmail_address
+EMAIL_PASS=your_gmail_app_password
+GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+**Frontend (`frontend/.env`):**
+```env
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+```
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const LoginPage = () => {
   const [identifier, setIdentifier] = useState('');
@@ -15,6 +16,31 @@ const LoginPage = () => {
   const [forgotMessage, setForgotMessage] = useState('');
 
   const navigate = useNavigate();
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: tokenResponse.access_token })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.role);
+          if (data.role === 'admin') navigate('/admin');
+          else if (data.hasPreferences) navigate('/dashboard');
+          else navigate('/preferences');
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    onError: () => console.error('Google Login Failed')
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +139,7 @@ const LoginPage = () => {
 
       <div className="auth-card" style={{ marginTop: '20px' }}>
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-          <button className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+          <button type="button" onClick={() => loginWithGoogle()} className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -123,11 +149,11 @@ const LoginPage = () => {
             </svg>
             <span>Login with Google</span>
           </button>
-          <button className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+          <button type="button" className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook" width="20" height="20" />
             <span>Login with Facebook</span>
           </button>
-          <button className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+          <button type="button" className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg" alt="Apple" width="20" height="20" />
             <span>Login with Apple</span>
           </button>
