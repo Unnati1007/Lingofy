@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { 
   Home, BookOpen, Music, BarChart2, Settings, LogOut, ChevronRight, X, Check, XCircle, Menu, ChevronLeft,
   Zap, Lock, Flame, Target, Award
@@ -509,7 +510,10 @@ const LessonsPage = () => {
               const totalNodes = 7; // 1 easy + 2 int + 3 hard + 1 focus
 
               return (
-                <div
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: lang === 'hindi' ? 0.1 : 0.2, ease: "easeOut" }}
                   key={lang}
                   onClick={() => setLanguage(lang)}
                   className="premium-lang-card"
@@ -580,7 +584,7 @@ const LessonsPage = () => {
                   }}>
                     {prog ? 'Continue Journey →' : 'Start Journey →'}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>

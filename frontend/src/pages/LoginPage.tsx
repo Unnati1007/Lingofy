@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
+import { motion } from 'framer-motion';
 
 const LoginPage = () => {
   const [identifier, setIdentifier] = useState('');
@@ -131,13 +132,30 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="logo-container" style={{ position: 'absolute', top: '20px' }}>
+    <motion.div 
+      className="auth-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="logo-container" 
+        style={{ position: 'absolute', top: '20px' }}
+      >
         <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '40px', height: '40px' }} />
         <div className="logo-text" style={{ fontSize: '20px' }}>Lingofy</div>
-      </div>
+      </motion.div>
 
-      <div className="auth-card" style={{ marginTop: '20px' }}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
+        className="auth-card" 
+        style={{ marginTop: '20px' }}
+      >
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
           <button type="button" onClick={() => loginWithGoogle()} className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -194,7 +212,7 @@ const LoginPage = () => {
             Don't have an account? <span onClick={() => navigate('/signup')} style={{ color: '#12d15e', cursor: 'pointer', fontWeight: 'bold' }}>Register</span>
           </div>
         </div>
-      </div>
+      </motion.div>
       {showForgotModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: '#1a1a1a', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '400px', border: '1px solid #333' }}>
@@ -243,7 +261,7 @@ const LoginPage = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

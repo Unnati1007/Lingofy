@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
+import { motion } from 'framer-motion';
 
 const SignupPage = () => {
   const [email, setEmail] = useState('');
@@ -65,13 +66,30 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="logo-container" style={{ position: 'absolute', top: '20px' }}>
+    <motion.div 
+      className="auth-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="logo-container" 
+        style={{ position: 'absolute', top: '20px' }}
+      >
         <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '40px', height: '40px' }} />
         <div className="logo-text" style={{ fontSize: '20px' }}>Lingofy</div>
-      </div>
+      </motion.div>
 
-      <div className="auth-card" style={{ marginTop: '20px' }}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
+        className="auth-card" 
+        style={{ marginTop: '20px' }}
+      >
         <h2 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: 'bold' }}>Sign Up</h2>
 
         <button type="button" onClick={() => loginWithGoogle()} className="btn btn-outline" style={{ display: 'flex', justifyContent: 'center', gap: '10px', width: '100%', marginBottom: '20px' }}>
@@ -126,7 +144,7 @@ const SignupPage = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ background: 'linear-gradient(to right, #0b1c11, #12793d, #0b1c11)', border: '1px solid #1a3c26' }}>
+          <button type="submit" className="btn btn-primary">
             Sign Up
           </button>
         </form>
@@ -136,8 +154,8 @@ const SignupPage = () => {
             Already have an account? <span onClick={() => navigate('/login')} style={{ color: '#12d15e', cursor: 'pointer', fontWeight: 'bold' }}>Log In</span>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -65,18 +65,18 @@ a {
 }
 
 .auth-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(20, 20, 28, 0.8) 0%, rgba(10, 10, 14, 0.95) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
   padding: 40px 32px;
   width: 100%;
   max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02) inset;
 }
 
 .logo-container {
@@ -101,38 +101,51 @@ a {
 
 .btn {
   width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  white-space: nowrap;
+  outline: none;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn-primary {
-  background-color: var(--primary);
-  color: white;
-  box-shadow: 0 4px 12px rgba(18, 121, 61, 0.4);
+  background: linear-gradient(135deg, #12d15e 0%, #0ea5e9 100%);
+  color: #000;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(18, 209, 94, 0.2);
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(18, 209, 94, 0.3);
 }
 
 .btn-outline {
-  background-color: transparent;
-  border: 1px solid var(--border-color);
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
 }
 
 .btn-outline:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .input-group {
@@ -143,29 +156,50 @@ a {
 
 .input-group label {
   display: block;
-  font-size: 13px;
+  font-size: 14px;
   margin-bottom: 8px;
-  color: #eeeeee;
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
 }
 
 .input-field {
   width: 100%;
-  padding: 14px 16px;
+  height: 40px;
+  padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background-color: var(--input-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.03);
   color: white;
-  font-size: 15px;
+  font-size: 14px;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .input-field:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(18, 209, 94, 0.2);
 }
 
 .input-field::placeholder {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Custom Scrollbar for Song Library */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
 }

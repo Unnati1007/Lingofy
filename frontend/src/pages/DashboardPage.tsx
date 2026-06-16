@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Play, 
   Pause, 
@@ -1439,7 +1440,8 @@ const DashboardPage = () => {
   return (
     <div style={{ 
       background: '#0f0f0f', 
-      minHeight: '100vh', 
+      height: '100vh', 
+      overflow: 'hidden',
       color: '#fff', 
       fontFamily: 'Inter, sans-serif',
       display: 'flex'
@@ -1606,7 +1608,7 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="main-content" style={{ flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative' }}>
+      <main className="main-content custom-scrollbar" style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative' }}>
         
         {/* Toggle Mode Button (Top Right) */}
         <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 50 }}>
@@ -1631,8 +1633,17 @@ const DashboardPage = () => {
           </button>
         </div>
 
-        {activeTab === 'docs' ? renderDocs() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
-          <div style={{ width: '100%', maxWidth: '1200px' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          >
+            {activeTab === 'docs' ? renderDocs() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
+              <div style={{ width: '100%', maxWidth: '1200px' }}>
           
           <div className="dashboard-layout-custom" style={{ 
             display: 'flex',
@@ -2154,7 +2165,7 @@ const DashboardPage = () => {
                 <h3 style={{ fontSize: '22px', fontWeight: 'bold' }}>Suggested for You</h3>
                 <span style={{ fontSize: '14px', color: '#12d15e', cursor: 'pointer' }}>View All</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px', maxHeight: '320px', overflowY: 'auto', paddingRight: '12px' }} className="custom-scrollbar">
                 {preferences?.favoriteGenres?.map((genre: string, i: number) => (
                   <PlaylistCard key={genre} title={`${genre} Mix`} color={i % 2 === 0 ? '#ff4b82' : '#8a2be2'} />
                 ))}
@@ -2166,7 +2177,7 @@ const DashboardPage = () => {
 
             <section>
               <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '24px' }}>Song Library</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '320px', overflowY: 'auto', paddingRight: '12px' }} className="custom-scrollbar">
                 {songs.map((song, idx) => (
                   <SongItem 
                     key={song._id} 
@@ -2179,8 +2190,10 @@ const DashboardPage = () => {
               </div>
             </section>
           </div>
-          </div>
-        ) : null}
+              </div>
+            ) : null}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {showQuizModal && (
