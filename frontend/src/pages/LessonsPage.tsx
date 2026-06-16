@@ -58,6 +58,7 @@ const LessonsPage = () => {
   // HCI Research state
   const [cognitiveLoad, setCognitiveLoad] = useState<number>(3);
   const [reflectionText, setReflectionText] = useState<string>('');
+  const [isFlashing, setIsFlashing] = useState<boolean>(false);
   // Ref to always hold latest answers (avoids stale closure in submit)
   const latestAnswersRef = useRef<any[]>([]);
 
@@ -221,6 +222,8 @@ const LessonsPage = () => {
       });
       if (res.ok) {
         const data = await res.json();
+        setIsFlashing(true);
+        setTimeout(() => setIsFlashing(false), 300);
         setCurrentUser({ ...currentUser, learningMode: data.mode });
       }
     } catch (err) {
@@ -479,23 +482,24 @@ const LessonsPage = () => {
           justifyContent: 'center', 
           alignItems: 'center',
           position: 'relative',
+          padding: '20px 10px',
           overflow: 'hidden'
         }}>
           {/* Add some ambient background glows */}
           <div style={{ position: 'absolute', top: '20%', left: '20%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(255,153,51,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', bottom: '20%', right: '20%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(198,11,30,0.05) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
 
-          <div style={{ textAlign: 'center', marginBottom: '48px', zIndex: 1 }}>
-            <div style={{ fontSize: '56px', marginBottom: '16px', animation: 'float 3s ease-in-out infinite' }}>🌎</div>
-            <h1 style={{ fontSize: '48px', fontWeight: '900', margin: '0 0 16px 0', background: 'linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-1px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px', zIndex: 1 }}>
+            <div style={{ fontSize: '40px', marginBottom: '8px', animation: 'float 3s ease-in-out infinite' }}>🌎</div>
+            <h1 style={{ fontSize: '32px', fontWeight: '900', margin: '0 0 8px 0', background: 'linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-1px' }}>
               Choose Your Journey
             </h1>
-            <p style={{ opacity: 0.6, fontSize: '18px', maxWidth: '500px', margin: '0 auto', lineHeight: '1.6' }}>
+            <p style={{ opacity: 0.6, fontSize: '14px', maxWidth: '500px', margin: '0 auto', lineHeight: '1.4' }}>
               Select a language to unlock your interactive roadmap, practice specific focus areas, and earn exclusive badges.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '40px', justifyContent: 'center', zIndex: 1, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', zIndex: 1, flexWrap: 'wrap' }}>
             {[
               { lang: 'hindi' as Language, img: 'https://flagcdn.com/w160/in.png', name: 'Hindi', sub: 'हिन्दी', level: 'N3 Level', color: '#ff9933', glow: 'rgba(255,153,51,0.2)' },
               { lang: 'spanish' as Language, img: 'https://flagcdn.com/w160/es.png', name: 'Spanish', sub: 'Español', level: 'A2 Level', color: '#c60b1e', glow: 'rgba(198,11,30,0.2)' },
@@ -510,27 +514,27 @@ const LessonsPage = () => {
                   onClick={() => setLanguage(lang)}
                   className="premium-lang-card"
                   style={{
-                    width: '320px', 
-                    padding: '40px 32px', 
+                    width: '280px', 
+                    padding: '24px 20px', 
                     background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
                     border: '1px solid rgba(255,255,255,0.08)', 
-                    borderRadius: '32px',
+                    borderRadius: '24px',
                     cursor: 'pointer', 
                     transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
                     position: 'relative',
                     overflow: 'hidden'
                   }}
                 >
                   <div className="card-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100%', background: `radial-gradient(circle at 50% 0%, ${glow} 0%, transparent 70%)`, opacity: 0, transition: 'opacity 0.4s ease' }} />
                   
-                  <div style={{ width: '90px', height: '90px', borderRadius: '50%', overflow: 'hidden', border: `4px solid rgba(255,255,255,0.1)`, boxShadow: `0 12px 32px ${glow}`, flexShrink: 0, zIndex: 1 }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: `3px solid rgba(255,255,255,0.1)`, boxShadow: `0 8px 24px ${glow}`, flexShrink: 0, zIndex: 1 }}>
                     <img src={img} alt={`${name} flag`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   
                   <div style={{ textAlign: 'center', zIndex: 1 }}>
-                    <div style={{ fontWeight: '900', fontSize: '28px', color: '#fff', letterSpacing: '0.5px' }}>{name}</div>
-                    <div style={{ fontSize: '15px', color, fontWeight: '700', marginTop: '4px', letterSpacing: '1px', textTransform: 'uppercase' }}>{sub}</div>
+                    <div style={{ fontWeight: '900', fontSize: '20px', color: '#fff', letterSpacing: '0.5px' }}>{name}</div>
+                    <div style={{ fontSize: '12px', color, fontWeight: '700', marginTop: '2px', letterSpacing: '1px', textTransform: 'uppercase' }}>{sub}</div>
                   </div>
 
                   {prog ? (
@@ -549,7 +553,7 @@ const LessonsPage = () => {
                                      : prog.focusCompleted >= 1;
                           return (
                             <span key={b.id} title={b.name} style={{ 
-                              fontSize: '18px', 
+                              fontSize: '14px', 
                               opacity: earned ? 1 : 0.2, 
                               filter: earned ? `drop-shadow(0 2px 4px ${b.color}80)` : 'grayscale(1)', 
                               transition: 'all 0.3s' 
@@ -561,7 +565,7 @@ const LessonsPage = () => {
                       </div>
                     </div>
                   ) : (
-                    <div style={{ zIndex: 1, padding: '20px', opacity: 0.5, fontSize: '14px', textAlign: 'center' }}>
+                    <div style={{ zIndex: 1, padding: '12px', opacity: 0.5, fontSize: '12px', textAlign: 'center' }}>
                       Ready to begin your {name} learning journey?
                     </div>
                   )}
@@ -569,8 +573,8 @@ const LessonsPage = () => {
                   <div className="start-btn" style={{ 
                     marginTop: 'auto', zIndex: 1, width: '100%',
                     background: prog ? 'rgba(255,255,255,0.1)' : color, 
-                    color: '#fff', padding: '14px 24px', borderRadius: '16px', 
-                    fontWeight: '800', fontSize: '15px', textAlign: 'center',
+                    color: '#fff', padding: '10px 16px', borderRadius: '12px', 
+                    fontWeight: '800', fontSize: '13px', textAlign: 'center',
                     border: prog ? '1px solid rgba(255,255,255,0.2)' : 'none',
                     transition: 'all 0.3s ease'
                   }}>
@@ -834,38 +838,7 @@ const LessonsPage = () => {
               </div>
             )}
 
-            {/* Badges Shelf */}
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '20px', flex: 1, overflowY: 'auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <Award size={14} color="#facc15" />
-                <h3 style={{ margin: 0, fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5 }}>My Badges</h3>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {BADGES.map((badge, i) => {
-                  const earned = i === 0 ? (progress?.easyCompleted >= 1) 
-                    : i === 1 ? (progress?.intermediateCompleted >= 2) 
-                    : i === 2 ? (progress?.hardCompleted >= 3)
-                    : (progress?.focusCompleted >= 1);
-                  return (
-                    <div key={badge.id} style={{
-                      display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px',
-                      background: earned ? badge.bg : 'rgba(255,255,255,0.01)',
-                      border: `1px solid ${earned ? badge.color + '30' : 'rgba(255,255,255,0.04)'}`,
-                      borderRadius: '12px', transition: 'all 0.3s'
-                    }}>
-                      <span style={{ fontSize: '24px', filter: earned ? 'none' : 'grayscale(1)', opacity: earned ? 1 : 0.15, transition: 'all 0.4s', transform: earned ? 'scale(1)' : 'scale(0.8)' }}>{badge.icon}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: '700', fontSize: '12px', color: earned ? badge.color : 'rgba(255,255,255,0.3)' }}>{badge.name}</div>
-                        <div style={{ fontSize: '10px', opacity: 0.4, marginTop: '2px' }}>{badge.desc}</div>
-                      </div>
-                      {earned && (
-                        <div style={{ background: badge.color, borderRadius: '100px', padding: '2px 6px', fontSize: '9px', fontWeight: '800', color: '#000' }}>EARNED</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -1220,27 +1193,29 @@ const LessonsPage = () => {
       <main className="main-content" style={{ flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center', transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)', position: 'relative' }}>
         
         {/* Toggle Mode Button (Top Right) */}
-        <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 50 }}>
-          <button 
-            onClick={toggleLearningMode}
-            className="btn-hover"
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#fff',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            {currentUser?.learningMode === 'traditional' ? 'Switch to Music Mode' : 'Switch to Traditional Mode'}
-          </button>
-        </div>
+        {view === 'setup' && !language && (
+          <div style={{ position: 'absolute', top: '40px', right: '40px', zIndex: 50 }}>
+            <button 
+              onClick={toggleLearningMode}
+              className="btn-hover"
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#fff',
+                padding: '8px 16px',
+                borderRadius: '20px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              {currentUser?.learningMode === 'traditional' ? 'Switch to Music Mode' : 'Switch to Traditional Mode'}
+            </button>
+          </div>
+        )}
 
         {view === 'hci_form' && (
           <div style={{ maxWidth: '600px', width: '100%', margin: '0 auto', background: '#222', borderRadius: '24px', padding: '40px', marginTop: '40px', border: '1px solid #333' }}>
@@ -1293,8 +1268,22 @@ const LessonsPage = () => {
       {/* Celebration overlay — renders above everything on pass */}
       {renderCelebration()}
 
+      {/* Mode Switch Flash Overlay */}
+      {isFlashing && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(255,255,255,0.15)', zIndex: 9999,
+          pointerEvents: 'none', animation: 'flash-anim 0.3s ease-out'
+        }} />
+      )}
 
       <style>{`
+        @keyframes flash-anim {
+          0% { opacity: 0; }
+          50% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+
         :root { --sidebar-width: ${isSidebarCollapsed ? '88px' : '280px'}; }
         .desktop-sidebar { transition: width 0.3s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease; }
         .main-content { transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1); }
