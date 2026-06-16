@@ -33,7 +33,7 @@ const AdminDashboard = () => {
   const [translations, setTranslations] = useState<{ hindi: any[], spanish: any[], korean: any[] } | null>(null);
   const [showToast, setShowToast] = useState(false);
   
-  const [activeView, setActiveView] = useState<'add-song' | 'users' | 'analytics' | 'profile'>('analytics');
+  const [activeView, setActiveView] = useState<'add-song' | 'users' | 'dashboard' | 'profile'>('dashboard');
   const [analyticsData, setAnalyticsData] = useState<{ traditional: any, music: any } | null>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
@@ -207,8 +207,9 @@ const AdminDashboard = () => {
       setSelectedUser(null);
       setSelectedUserAttempts([]);
       setSelectedUserProgress(null);
-    } else if (activeView === 'analytics') {
+    } else if (activeView === 'dashboard') {
       fetchAnalytics();
+      fetchUsers(); // Fetch users to get counts for summary cards
     } else if (activeView === 'add-song') {
       fetchSongSuggestions();
     }
@@ -328,8 +329,8 @@ const AdminDashboard = () => {
     setTranslations(null);
   };
 
-  const renderAnalyticsView = () => {
-    if (!analyticsData) return <div style={{ padding: '40px', textAlign: 'center', opacity: 0.5 }}>Loading Analytics...</div>;
+  const renderDashboardView = () => {
+    if (!analyticsData) return <div style={{ padding: '40px', textAlign: 'center', opacity: 0.5 }}>Loading Dashboard Data...</div>;
     
     const accuracyData = [
       { name: 'Traditional Mode', accuracy: Math.round(analyticsData.traditional.averageAccuracy) || 0, fill: '#ef4444' },
@@ -354,36 +355,41 @@ const AdminDashboard = () => {
     const COLORS = ['#ef4444', '#12d15e'];
 
     return (
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>Research Analytics</h1>
-          <p style={{ opacity: 0.5 }}>Compare performance metrics between the Traditional (Control) and Music (Experimental) groups.</p>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '4px', background: 'linear-gradient(90deg, #12d15e, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Dashboard Overview</h1>
+            <p style={{ opacity: 0.6, fontSize: '13px' }}>Welcome back, Admin. Here's a summary of the platform's performance and research metrics.</p>
+          </div>
+          <div style={{ padding: '8px 16px', background: 'rgba(18, 209, 94, 0.1)', border: '1px solid rgba(18, 209, 94, 0.2)', borderRadius: '10px', color: '#12d15e', fontWeight: 'bold', fontSize: '13px' }}>
+            Total Users: {users.length}
+          </div>
         </div>
 
         {/* Top Summary Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Traditional Mode Users</h3>
-            <div style={{ fontSize: '48px', fontWeight: '900', color: '#ef4444' }}>{analyticsData.traditional.uniqueUsersCount || 0}</div>
-            <p style={{ opacity: 0.7, fontSize: '13px', marginTop: '4px' }}>Unique Participants</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 20px rgba(239, 68, 68, 0.05)' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: '700', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Traditional Mode Learners</h3>
+            <div style={{ fontSize: '36px', fontWeight: '900', color: '#ef4444', filter: 'drop-shadow(0 0 10px rgba(239,68,68,0.3))' }}>{analyticsData.traditional.uniqueUsersCount || 0}</div>
+            <p style={{ opacity: 0.7, fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>Active Participants</p>
           </div>
-          <div style={{ background: 'rgba(18, 209, 94, 0.1)', border: '1px solid rgba(18, 209, 94, 0.2)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#12d15e', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Music Mode Users</h3>
-            <div style={{ fontSize: '48px', fontWeight: '900', color: '#12d15e' }}>{analyticsData.music.uniqueUsersCount || 0}</div>
-            <p style={{ opacity: 0.7, fontSize: '13px', marginTop: '4px' }}>Unique Participants</p>
+          <div style={{ background: 'linear-gradient(135deg, rgba(18, 209, 94, 0.15) 0%, rgba(18, 209, 94, 0.05) 100%)', border: '1px solid rgba(18, 209, 94, 0.3)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 20px rgba(18, 209, 94, 0.05)' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: '700', color: '#12d15e', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Music Mode Learners</h3>
+            <div style={{ fontSize: '36px', fontWeight: '900', color: '#12d15e', filter: 'drop-shadow(0 0 10px rgba(18,209,94,0.3))' }}>{analyticsData.music.uniqueUsersCount || 0}</div>
+            <p style={{ opacity: 0.7, fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>Active Participants</p>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           {/* Accuracy Chart */}
-          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px', textAlign: 'center' }}>Average Accuracy (%)</h3>
-            <div style={{ height: '300px' }}>
+          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '12px', padding: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', textAlign: 'center' }}>Average Accuracy (%)</h3>
+            <div style={{ height: '200px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={accuracyData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
                   <RechartsTooltip cursor={{ fill: '#27272a' }} contentStyle={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
                   <Bar dataKey="accuracy" radius={[6, 6, 0, 0]}>
                     {accuracyData.map((entry, index) => (
@@ -393,40 +399,40 @@ const AdminDashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Measures the percentage of correctly answered questions per session.</p>
+            <p style={{ fontSize: '11px', opacity: 0.5, textAlign: 'center', marginTop: '12px' }}>Measures the percentage of correctly answered questions per session.</p>
           </div>
 
           {/* Engagement Chart */}
-          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px', textAlign: 'center' }}>Total Engagement (Attempts)</h3>
-            <div style={{ height: '300px' }}>
+          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '12px', padding: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', textAlign: 'center' }}>Total Engagement (Attempts)</h3>
+            <div style={{ height: '200px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={engagementData} cx="50%" cy="50%" innerRadius={70} outerRadius={110} paddingAngle={5} dataKey="value" stroke="none">
+                  <Pie data={engagementData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
                     {engagementData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <RechartsTooltip contentStyle={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                  <Legend verticalAlign="bottom" height={24} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Compares the total number of quizzes initiated by each group.</p>
+            <p style={{ fontSize: '11px', opacity: 0.5, textAlign: 'center', marginTop: '12px' }}>Compares the total number of quizzes initiated by each group.</p>
           </div>
         </div>
 
         {/* Telemetry Charts Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           {/* Dropout Rate Chart */}
-          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px', textAlign: 'center' }}>Task Dropout Rate (%)</h3>
-            <div style={{ height: '300px' }}>
+          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '12px', padding: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', textAlign: 'center' }}>Task Dropout Rate (%)</h3>
+            <div style={{ height: '200px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dropoutData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
                   <RechartsTooltip cursor={{ fill: '#27272a' }} contentStyle={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
                   <Bar dataKey="rate" radius={[6, 6, 0, 0]}>
                     {dropoutData.map((entry, index) => (
@@ -436,18 +442,18 @@ const AdminDashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Percentage of users who abandoned the quiz before finishing.</p>
+            <p style={{ fontSize: '11px', opacity: 0.5, textAlign: 'center', marginTop: '12px' }}>Percentage of users who abandoned the quiz before finishing.</p>
           </div>
 
           {/* Average Time Spent Chart */}
-          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '20px', padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px', textAlign: 'center' }}>Avg Cognitive Load (Time per Text Question)</h3>
-            <div style={{ height: '300px' }}>
+          <div style={{ background: '#121214', border: '1px solid #1e1e21', borderRadius: '12px', padding: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', textAlign: 'center' }}>Avg Cognitive Load (Time per Text Question)</h3>
+            <div style={{ height: '200px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={timeData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#a1a1aa" fontSize={11} tickLine={false} axisLine={false} />
                   <RechartsTooltip cursor={{ fill: '#27272a' }} contentStyle={{ background: '#09090b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
                   <Bar dataKey="time" radius={[6, 6, 0, 0]}>
                     {timeData.map((entry, index) => (
@@ -457,7 +463,7 @@ const AdminDashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p style={{ fontSize: '12px', opacity: 0.5, textAlign: 'center', marginTop: '16px' }}>Average seconds taken to answer purely text-based questions (excluding audio playback time) to accurately compare cognitive hesitation.</p>
+            <p style={{ fontSize: '11px', opacity: 0.5, textAlign: 'center', marginTop: '12px' }}>Average seconds taken to answer purely text-based questions (excluding audio playback time) to accurately compare cognitive hesitation.</p>
           </div>
         </div>
       </div>
@@ -806,7 +812,8 @@ const AdminDashboard = () => {
           <SidebarItem 
             icon={<LayoutDashboard size={18} />} 
             label="Dashboard" 
-            active={false} 
+            active={activeView === 'dashboard'} 
+            onClick={() => setActiveView('dashboard')}
           />
           <SidebarItem 
             icon={<PlusCircle size={18} />} 
@@ -818,12 +825,6 @@ const AdminDashboard = () => {
             icon={<ListMusic size={18} />} 
             label="Manage Songs" 
             active={false} 
-          />
-          <SidebarItem 
-            icon={<BarChart3 size={18} />} 
-            label="Analytics" 
-            active={activeView === 'analytics'} 
-            onClick={() => setActiveView('analytics')}
           />
           <SidebarItem 
             icon={<Users size={18} />} 
@@ -866,7 +867,7 @@ const AdminDashboard = () => {
 
         {/* Content Area */}
         <div style={{ padding: '40px', overflowY: 'auto', flex: 1 }}>
-          {activeView === 'analytics' ? renderAnalyticsView() : activeView === 'users' ? renderUsersView() : activeView === 'profile' ? renderProfileView() : (
+          {activeView === 'dashboard' ? renderDashboardView() : activeView === 'users' ? renderUsersView() : activeView === 'profile' ? renderProfileView() : (
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             
             <div style={{ marginBottom: '32px' }}>
