@@ -7,6 +7,7 @@ import { generateFocusLesson } from "../services/focusAreaService";
 import Song from "../models/music/Song";
 import LyricSegment from "../models/music/LyricSegment";
 import { adminOnly } from "../middleware/roleMiddleware";
+import Notification from "../models/user/Notification";
 
 const router = express.Router();
 
@@ -250,6 +251,42 @@ router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
     if (reflectionText !== undefined) attempt.reflectionText = reflectionText;
 
     await attempt.save();
+
+    // Check if a badge was unlocked
+    if (score >= 5) {
+      const prevAttempts = await LessonAttempt.find({ 
+        userId: req.user._id, 
+        language: attempt.language,
+        score: { $gte: 5 },
+        status: 'completed',
+        _id: { $ne: attempt._id }
+      });
+      
+      const prevEasyCount = prevAttempts.filter(a => a.level === 'easy' || a.level === 'beginner').length;
+      const prevInterCount = prevAttempts.filter(a => a.level === 'intermediate').length;
+      const prevHardCount = prevAttempts.filter(a => a.level === 'hard').length;
+      const prevFocusCount = prevAttempts.filter(a => a.level === 'focus').length;
+
+      let newBadgeName = null;
+
+      if ((attempt.level === 'easy' || attempt.level === 'beginner') && prevEasyCount === 0) {
+        newBadgeName = 'Easy Explorer';
+      } else if (attempt.level === 'intermediate' && prevInterCount === 1) {
+        newBadgeName = 'Intermediate Scholar';
+      } else if (attempt.level === 'hard' && prevHardCount === 2) {
+        newBadgeName = 'Language Star';
+      } else if (attempt.level === 'focus' && prevFocusCount === 0) {
+        newBadgeName = 'Focus Scholar';
+      }
+
+      if (newBadgeName) {
+        await Notification.create({
+          userId: req.user._id,
+          title: 'Badge Unlocked! 🎉',
+          message: `Congratulations! You've unlocked the ${newBadgeName} badge in ${attempt.language}. Keep up the great work!`,
+        });
+      }
+    }
 
     res.status(200).json({
       score,
