@@ -45,6 +45,14 @@ const AdminDashboard = () => {
   const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
+
+  // Notification States
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [notifyUser, setNotifyUser] = useState<any>(null);
+  const [notifyTitle, setNotifyTitle] = useState('');
+  const [notifyMessage, setNotifyMessage] = useState('');
+  const [notifySendEmail, setNotifySendEmail] = useState(false);
+  const [isSendingNotify, setIsSendingNotify] = useState(false);
   
   // Admin Profile Edit States
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -246,6 +254,34 @@ const AdminDashboard = () => {
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.message || 'Failed to delete user');
+    }
+  };
+
+  const handleSendNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notifyUser || !notifyTitle || !notifyMessage) return;
+    
+    setIsSendingNotify(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5000/api/notifications/admin/send', {
+        userId: notifyUser._id,
+        title: notifyTitle,
+        message: notifyMessage,
+        sendEmail: notifySendEmail
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      alert('Notification sent successfully!');
+      setShowNotifyModal(false);
+      setNotifyTitle('');
+      setNotifyMessage('');
+      setNotifySendEmail(false);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to send notification');
+    } finally {
+      setIsSendingNotify(false);
     }
   };
 
@@ -565,6 +601,25 @@ const AdminDashboard = () => {
                             }}
                           >
                             Switch Mode
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNotifyUser(user);
+                              setShowNotifyModal(true);
+                            }}
+                            style={{
+                              background: 'rgba(59, 130, 246, 0.1)',
+                              border: '1px solid rgba(59, 130, 246, 0.3)',
+                              color: '#3b82f6',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              fontSize: '10px',
+                              fontWeight: 'bold',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Notify
                           </button>
                           <button
                             onClick={(e) => handleDeleteUser(e, user._id)}
@@ -1333,6 +1388,81 @@ const AdminDashboard = () => {
             ) : (
               <div style={{ padding: '40px 0', textAlign: 'center', opacity: 0.6 }}>No details found.</div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Notify Modal */}
+      {showNotifyModal && notifyUser && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: '#121214', border: '1px solid #27272a', borderRadius: '24px', padding: '40px', width: '100%', maxWidth: '500px', position: 'relative' }}>
+            <button 
+              onClick={() => setShowNotifyModal(false)}
+              style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <X size={18} />
+            </button>
+            <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Send Notification</h2>
+            <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '24px' }}>Sending an alert to <strong>{notifyUser.name}</strong> ({notifyUser.email})</p>
+
+            <form onSubmit={handleSendNotification} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>Title</label>
+                <input 
+                  type="text" 
+                  value={notifyTitle}
+                  onChange={e => setNotifyTitle(e.target.value)}
+                  placeholder="e.g. You've earned a new badge!"
+                  className="admin-input"
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 'bold' }}>Message</label>
+                <textarea 
+                  value={notifyMessage}
+                  onChange={e => setNotifyMessage(e.target.value)}
+                  placeholder="Type your message here..."
+                  className="admin-input"
+                  style={{ minHeight: '120px', resize: 'vertical' }}
+                  required
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                <input 
+                  type="checkbox" 
+                  id="sendEmail" 
+                  checked={notifySendEmail} 
+                  onChange={e => setNotifySendEmail(e.target.checked)} 
+                  style={{ width: '16px', height: '16px', accentColor: '#a855f7' }}
+                />
+                <label htmlFor="sendEmail" style={{ fontSize: '14px', cursor: 'pointer' }}>Also send as an email</label>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={isSendingNotify}
+                style={{
+                  background: isSendingNotify ? 'rgba(168, 85, 247, 0.5)' : '#a855f7',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '14px 24px',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: 'bold',
+                  cursor: isSendingNotify ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginTop: '16px',
+                  transition: 'background 0.2s'
+                }}
+              >
+                {isSendingNotify ? <Loader2 size={18} className="spin" /> : <Send size={18} />}
+                {isSendingNotify ? 'Sending...' : 'Send Alert'}
+              </button>
+            </form>
           </div>
         </div>
       )}

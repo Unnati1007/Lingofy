@@ -26,7 +26,8 @@ import {
   Award,
   Share2,
   Copy,
-  Check
+  Check,
+  Bell
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -58,6 +59,10 @@ const DashboardPage = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements'>('home');
   const [history, setHistory] = useState<any[]>([]);
+
+  // Notification States
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<any>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -185,6 +190,14 @@ const DashboardPage = () => {
           const data = await progRes.json();
           setRoadmapProgress(data);
         }
+        // Fetch Notifications
+        const notifRes = await fetch('http://localhost:5000/api/notifications', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (notifRes.ok) {
+          const data = await notifRes.json();
+          setNotifications(data);
+        }
       } catch (err) { console.error(err); } finally { setLoading(false); }
     };
     fetchData();
@@ -242,6 +255,32 @@ const DashboardPage = () => {
       console.error("Error fetching history:", err);
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+  const handleMarkNotificationAsRead = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`http://localhost:5000/api/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setNotifications(notifications.map(n => n._id === id ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleMarkAllNotificationsAsRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('http://localhost:5000/api/notifications/read-all', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -1784,6 +1823,105 @@ const DashboardPage = () => {
       {/* Main Content */}
       <main className="main-content custom-scrollbar" style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative' }}>
         
+        {/* Top Header Bar */}
+        <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'flex-end', marginBottom: '32px', alignItems: 'center', position: 'relative', zIndex: 10 }}>
+          
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '50%',
+                width: '44px',
+                height: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                cursor: 'pointer',
+                position: 'relative'
+              }}
+              className="btn-hover"
+            >
+              <Bell size={20} />
+              {notifications.filter((n: any) => !n.isRead).length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '10px',
+                  width: '8px',
+                  height: '8px',
+                  background: '#ef4444',
+                  borderRadius: '50%',
+                  border: '2px solid #000'
+                }}></div>
+              )}
+            </button>
+
+            {/* Notifications Dropdown */}
+            {showNotificationsDropdown && (
+              <div style={{
+                position: 'absolute',
+                top: '54px',
+                right: '0',
+                width: '320px',
+                background: '#121214',
+                border: '1px solid #27272a',
+                borderRadius: '16px',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.8)',
+                overflow: 'hidden',
+                zIndex: 100
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid #27272a' }}>
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>Notifications</h4>
+                  {notifications.filter((n: any) => !n.isRead).length > 0 && (
+                    <button 
+                      onClick={handleMarkAllNotificationsAsRead}
+                      style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: '32px', textAlign: 'center', opacity: 0.5, fontSize: '13px' }}>
+                      No new notifications
+                    </div>
+                  ) : (
+                    notifications.map((notif: any) => (
+                      <div 
+                        key={notif._id}
+                        onClick={() => {
+                          if (!notif.isRead) handleMarkNotificationAsRead(notif._id);
+                        }}
+                        style={{
+                          padding: '16px',
+                          borderBottom: '1px solid rgba(255,255,255,0.02)',
+                          background: notif.isRead ? 'transparent' : 'rgba(168, 85, 247, 0.05)',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s',
+                          position: 'relative'
+                        }}
+                      >
+                        {!notif.isRead && <div style={{ position: 'absolute', left: '8px', top: '24px', width: '6px', height: '6px', borderRadius: '50%', background: '#a855f7' }}></div>}
+                        <div style={{ paddingLeft: notif.isRead ? '0' : '12px' }}>
+                          <h5 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: notif.isRead ? 'normal' : 'bold' }}>{notif.title}</h5>
+                          <p style={{ margin: 0, fontSize: '12px', opacity: 0.6, lineHeight: '1.4' }}>{notif.message}</p>
+                          <span style={{ display: 'block', marginTop: '8px', fontSize: '10px', opacity: 0.4 }}>
+                            {new Date(notif.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
         <AnimatePresence mode="wait">
           <motion.div
