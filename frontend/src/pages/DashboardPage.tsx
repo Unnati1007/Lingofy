@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PronunciationSettingsModal from '../components/learning/PronunciationSettingsModal';
 import { 
   Play, 
   Pause, 
@@ -56,7 +55,6 @@ const DashboardPage = () => {
   const [ytReady, setYtReady] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [modalMode, setModalMode] = useState<'completed' | 'practice'>('practice');
-  const [showPronunciationModal, setShowPronunciationModal] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements'>('home');
@@ -289,6 +287,9 @@ const DashboardPage = () => {
   useEffect(() => {
     if (activeTab === 'statistics') {
       fetchHistory();
+    }
+    if (activeTab === 'library' || activeTab === 'home') {
+      fetchPlaylists();
     }
   }, [activeTab]);
 
@@ -1926,16 +1927,6 @@ const DashboardPage = () => {
         </div>
 
         <AnimatePresence mode="wait">
-          {showPronunciationModal && (
-            <PronunciationSettingsModal
-              onClose={() => setShowPronunciationModal(false)}
-              onSave={(settings) => {
-                setShowPronunciationModal(false);
-                navigate(`/lessons?language=${activeCardLanguage}&level=pronunciation&micBoost=${settings.micBoost}&sensitivity=${settings.sensitivity}`);
-              }}
-            />
-          )}
-
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 10 }}
@@ -1970,7 +1961,6 @@ const DashboardPage = () => {
                 const isEasyPassed = progressObj.easyCompleted >= 1;
                 const isInterPassed = progressObj.intermediateCompleted >= 2;
                 const isHardPassed = progressObj.hardCompleted >= 3;
-                const isPronunciationPassed = progressObj.focusCompleted >= 1 || progressObj.badges?.includes('Pronunciation Master');
 
                 return (
                   <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '28px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -2078,23 +2068,6 @@ const DashboardPage = () => {
                               {isHardPassed ? '✓' : `${progressObj.hardCompleted}/3`}
                             </div>
                             <span style={{ fontSize: '10px', opacity: progressObj.currentStage === 'hard' ? 1 : 0.5, fontWeight: progressObj.currentStage === 'hard' ? 'bold' : 'normal' }}>Hard</span>
-                          </div>
-
-                          {/* Step 4: Pronunciation */}
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
-                            <button 
-                              onClick={() => setShowPronunciationModal(true)}
-                              className="btn-hover"
-                              style={{ 
-                                width: '30px', height: '30px', borderRadius: '50%', padding: 0, cursor: 'pointer',
-                                background: isPronunciationPassed ? '#a855f7' : '#1e1e1e', 
-                                border: `2px solid ${isPronunciationPassed ? '#a855f7' : 'rgba(255,255,255,0.1)'}`,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold',
-                                color: isPronunciationPassed ? '#000' : '#fff', boxShadow: isPronunciationPassed ? '0 0 10px rgba(168,85,247,0.4)' : 'none'
-                              }}>
-                              {isPronunciationPassed ? '✓' : 'P'}
-                            </button>
-                            <span style={{ fontSize: '10px', opacity: isPronunciationPassed ? 1 : 0.5, fontWeight: isPronunciationPassed ? 'bold' : 'normal' }}>Pronounce</span>
                           </div>
                         </div>
 
@@ -2462,6 +2435,20 @@ const DashboardPage = () => {
             {/* Bottom Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '48px' }} className="content-grid-desktop">
             <section>
+              {playlists.length > 0 && (
+                <div style={{ marginBottom: '40px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '22px', fontWeight: 'bold' }}>Your Playlists</h3>
+                    <span style={{ fontSize: '14px', color: '#12d15e', cursor: 'pointer' }} onClick={() => setActiveTab('library')}>View Library</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px', maxHeight: '320px', overflowY: 'auto', paddingRight: '12px' }} className="custom-scrollbar">
+                    {playlists.map((playlist: any, i: number) => (
+                      <PlaylistCard key={playlist._id} title={playlist.name} color={i % 2 === 0 ? '#3b82f6' : '#10b981'} onClick={() => { setActiveTab('library'); setSelectedPlaylist({ playlist, songs: [] }); fetchPlaylistDetails(playlist._id); }} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '22px', fontWeight: 'bold' }}>Suggested for You</h3>
                 <span style={{ fontSize: '14px', color: '#12d15e', cursor: 'pointer' }}>View All</span>

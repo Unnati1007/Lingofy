@@ -27,12 +27,13 @@ The primary goal of Lingofy is to explore:
 
 ## ✨ Key Features (Recently Added)
 
+- **Interactive Pronunciation Mode:** Users can practice speaking directly into their browser! Integrates Web Speech API for real-time transcription and uses a Levenshtein distance algorithm for calculating pronunciation accuracy (0-100%).
 - **Comprehensive User Profiles:** Users can set daily learning goals (e.g., 15 mins/day), native/target languages, age, profession, and monitor their proficiency levels.
 - **Admin Dashboard & Management:** Admins can manage their profiles, monitor user statistics, and perform password resets securely (via simulated email verification).
 - **Achievements & Goal Tracking:** A dedicated **Achievements Hub** tracking user milestones. Badges unlock dynamically as users complete lesson tiers (Easy/Intermediate/Hard). 
 - **Session Timers & Popups:** A background session timer tracks daily engagement. If users hit their goal, they receive celebratory toasts and unlock the 'Goal Crusher' badge.
 - **Social Sharing:** Users can proudly share their unlocked badges directly to WhatsApp, Instagram (via Web Share API), or via direct link copying.
-- **Onboarding Popups:** Automated "Complete Your Profile" prompts ensuring new users provide enough data for accurate personalization.
+- **Custom Playlists:** Users can create and manage their own song libraries, now visible directly from the home dashboard!
 
 ---
 

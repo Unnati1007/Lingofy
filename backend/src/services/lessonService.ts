@@ -147,7 +147,10 @@ export const generateLesson = async (
    - EXACTLY 2 of these questions MUST be of type 'translate_word', where the 'targetWord' is a FULL LINE or PHRASE (5-8 words long) directly from the song lyrics, and the user must choose the correct translation.
    - The remaining 4 should be randomly distributed among 'translate_word' (single word), 'multiple_choice', 'fill_blank', and 'match_meaning'.` : isPronunciationMode ? `
 3. Generate exactly 10 questions.
-   - All questions should focus on spoken language, conversational phrases, and audio translation. You may use 'listen_translate' heavily if supported, or standard 'translate_word' and 'multiple_choice'.` : `
+   - ALL 10 questions MUST be of type 'translate_word'.
+   - The 'targetWord' MUST be the foreign language phrase or sentence the user needs to pronounce (e.g. "Hola, ¿cómo estás?").
+   - The 'explanation' MUST contain the exact English meaning of the phrase, and any tips on pronunciation.
+   - Leave 'options' empty as this is a speaking exercise.` : `
 3. Generate exactly 10 questions randomly distributed among the 4 question types: translate_word, multiple_choice, fill_blank, match_meaning.`;
 
   const musicModeStructure = isMusicMode ? `
@@ -182,10 +185,13 @@ ABSOLUTE RULES — READ CAREFULLY:
 2. Question structure depends on type:
 ${musicModeStructure}
    translate_word:
-   - questionText: "What is the ${language} word/phrase for '[English word]'?"
+${isPronunciationMode ? `   - questionText: "Pronounce this phrase:"
+   - targetWord: ONLY the ${language} phrase/word in its NATIVE SCRIPT (e.g. Hindi script if language is Hindi). Do NOT use English characters here.
+   - options: []
+   - correctAnswer: same as targetWord` : `   - questionText: "What is the ${language} word/phrase for '[English word]'?"
    - targetWord: the English word (shown large on screen)
    - options: 4 ${language} words/phrases
-   - correctAnswer: the correct ${language} translation
+   - correctAnswer: the correct ${language} translation`}
    
    multiple_choice:
    - questionText: "What does '[${language} word]' mean in English?"

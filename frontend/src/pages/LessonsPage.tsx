@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, BookOpen, Music, BarChart2, Settings, LogOut, ChevronRight, X, Check, XCircle, Menu, ChevronLeft,
-  Zap, Lock, Flame, Target, Award
+  Zap, Lock, Flame, Target, Award, Mic, HelpCircle
 } from 'lucide-react';
+import PronunciationSettingsModal from '../components/learning/PronunciationSettingsModal';
 
 type ViewState = 'setup' | 'loading' | 'quiz' | 'hci_form' | 'results';
 type Language = 'hindi' | 'spanish' | 'korean';
@@ -53,8 +54,15 @@ const LessonsPage = () => {
   const [totalStartTime, setTotalStartTime] = useState<number>(0);
   
   // Focus Area State
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'focus'>('roadmap');
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'focus' | 'pronunciation'>('roadmap');
   const [focusArea, setFocusArea] = useState<string>('Vocabulary');
+  const [showPronunciationModal, setShowPronunciationModal] = useState(false);
+  
+  // Pronunciation Speech State
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [pronunciationScore, setPronunciationScore] = useState<number | null>(null);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(true);
   
   // HCI Research state
   const [cognitiveLoad, setCognitiveLoad] = useState<number>(3);
@@ -132,6 +140,80 @@ const LessonsPage = () => {
         setCurrentUser(user);
       }
     } catch (err) { console.error(err); }
+  };
+
+  const calculateLevenshteinDistance = (a: string, b: string) => {
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) == a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  };
+
+  const checkPronunciationScore = (spokenText: string, targetText: string) => {
+    const normalize = (t: string) => {
+      // Remove text inside parentheses (e.g., "(peena)")
+      let cleaned = t.replace(/\([^)]*\)/g, '');
+      // Remove punctuation and lowercase
+      return cleaned.toLowerCase().replace(/[.,!?¿¡"']/g, '').trim();
+    };
+    const spoken = normalize(spokenText);
+    const target = normalize(targetText);
+    
+    const maxLen = Math.max(spoken.length, target.length);
+    if (maxLen === 0) return 0;
+    const distance = calculateLevenshteinDistance(spoken, target);
+    const score = Math.max(0, 100 - (distance / maxLen) * 100);
+    return Math.round(score);
+  };
+
+  const startListening = (targetWord: string) => {
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setIsSpeechSupported(false);
+      alert('Speech Recognition is not supported in your browser.');
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = language === 'spanish' ? 'es-ES' : language === 'korean' ? 'ko-KR' : 'hi-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+      setTranscript('');
+      setPronunciationScore(null);
+    };
+    
+    recognition.onresult = (event: any) => {
+      const text = event.results[0][0].transcript;
+      setTranscript(text);
+      const score = checkPronunciationScore(text, targetWord);
+      setPronunciationScore(score);
+      setSelectedAnswer(text); // Auto-fills the 'answer' for the generic Check handler
+    };
+    
+    recognition.onerror = (event: any) => {
+      console.error(event.error);
+      setIsListening(false);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    
+    recognition.start();
   };
 
   useEffect(() => {
@@ -664,7 +746,25 @@ const LessonsPage = () => {
           >
             Focus Area
           </button>
+          <button
+            onClick={() => setActiveTab('pronunciation')}
+            style={{ background: 'transparent', border: 'none', color: activeTab === 'pronunciation' ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === 'pronunciation' ? '2px solid #eab308' : '2px solid transparent', transition: 'all 0.2s' }}
+          >
+            Pronunciation
+          </button>
         </div>
+
+        {/* Pronunciation Settings Modal */}
+        {showPronunciationModal && (
+          <PronunciationSettingsModal
+            onClose={() => setShowPronunciationModal(false)}
+            onSave={(settings: any) => {
+              setShowPronunciationModal(false);
+              setQuizLevel('pronunciation');
+              startLesson(language, undefined, 'pronunciation');
+            }}
+          />
+        )}
 
         {/* ── Main content (Flex to take remaining height) ── */}
         <div style={{ display: 'grid', gridTemplateColumns: activeTab === 'roadmap' ? '1fr 380px' : '1fr', gap: '24px', flex: 1, minHeight: 0 }} className="lessons-main-grid">
@@ -748,8 +848,8 @@ const LessonsPage = () => {
                   ))}
                 </div>
               </>
-            ) : (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            ) : activeTab === 'focus' ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <h2 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 8px 0' }}>Targeted Practice</h2>
                 <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '32px' }}>Hone specific skills with specialized exercises using our advanced AI tutor.</p>
                 
@@ -795,6 +895,30 @@ const LessonsPage = () => {
                 >
                   <Target size={20} /> Start {focusArea} Practice
                 </button>
+              </div>
+            ) : (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Pronunciation Mode 🎙️</h2>
+                <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '32px' }}>Perfect your accent and spoken language skills.</p>
+                
+                <div style={{ display: 'flex', gap: '24px', flexDirection: 'column', maxWidth: '600px' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '24px', display: 'flex', alignItems: 'center', gap: '24px' }}>
+                    <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(234, 179, 8, 0.2)', border: '2px solid #eab308', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>
+                      🗣️
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '8px' }}>Start Pronunciation Practice</h3>
+                      <p style={{ fontSize: '14px', opacity: 0.6, margin: 0 }}>Engage in audio-first lessons that focus purely on speaking and listening.</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowPronunciationModal(true)}
+                      className="btn-hover"
+                      style={{ background: '#eab308', color: '#000', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      Practice Now
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -882,6 +1006,134 @@ const LessonsPage = () => {
     const progressPct = (currentQuestionIdx / (questions.length || 10)) * 100;
     const typeColor = question.type === 'fill_blank' ? '#22c55e' : question.type === 'listen_translate' ? '#a855f7' : '#1a73e8';
     const typeLabel = question.type === 'multiple_choice' ? 'Choose the correct answer' : question.type === 'fill_blank' ? 'Complete the sentence' : question.type === 'translate_word' ? 'Translate this word' : question.type === 'listen_translate' ? 'Listen and Translate' : 'Match the meaning';
+
+    const renderPronunciationQuiz = () => {
+      // The target word for pronunciation practice
+      const targetPhrase = question.targetWord || question.questionText || '';
+      
+      // Determine if they passed based on pronunciationScore
+      // Since it's automated, we assume the user checks the answer by clicking a button after speaking
+      const handleVoiceCheck = () => {
+        if (!transcript) return;
+        // In checkPronunciationScore, we get 0-100.
+        // We'll consider > 70 as correct.
+        const isCorrect = (pronunciationScore || 0) > 60;
+        
+        const answerData = {
+          questionId: question.id,
+          answer: transcript,
+          isCorrect,
+          timeTaken: Math.round((Date.now() - questionStartTime) / 1000)
+        };
+        const newAnswers = [...userAnswers, answerData];
+        setUserAnswers(newAnswers);
+        latestAnswersRef.current = newAnswers;
+        setIsAnswerChecked(true);
+      };
+
+      const handleNextVoice = () => {
+        if (currentQuestionIdx < questions.length - 1) {
+          setCurrentQuestionIdx(prev => prev + 1);
+          setIsAnswerChecked(false);
+          setTranscript('');
+          setPronunciationScore(null);
+          setSelectedAnswer('');
+          setQuestionStartTime(Date.now());
+        } else {
+          submitLesson(latestAnswersRef.current);
+        }
+      };
+
+      return (
+        <div style={{ maxWidth: '620px', width: '100%', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* Progress bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+            <X size={22} color="#6b7280" cursor="pointer" onClick={exitLesson} />
+            <div style={{ flex: 1, height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '100px', overflow: 'hidden' }}>
+              <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #eab308, #ca8a04)', borderRadius: '100px', transition: 'width 0.4s ease', boxShadow: '0 0 8px rgba(234,179,8,0.4)' }} />
+            </div>
+            <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: '700', minWidth: '45px', textAlign: 'right' }}>{currentQuestionIdx + 1}/{questions.length}</span>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '40px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '20px', color: '#eab308', fontWeight: '800', marginBottom: '8px' }}>🗣️ Pronounce this phrase</h2>
+            <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '40px' }}>Read the phrase aloud clearly.</p>
+            
+            {/* Target Phrase */}
+            <div style={{ fontSize: '42px', fontWeight: '900', color: '#fff', marginBottom: '16px', lineHeight: '1.3' }}>
+              {targetPhrase}
+            </div>
+            
+            {question.explanation && (
+              <div style={{ fontSize: '16px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '40px' }}>
+                Meaning: {question.explanation}
+              </div>
+            )}
+
+            {/* Voice UI Component */}
+            <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', marginBottom: '40px' }}>
+              {/* Mic Button */}
+              <button 
+                onPointerDown={() => !isAnswerChecked && startListening(targetPhrase)}
+                onPointerUp={() => {}} // Could stop listening, but continuous=false handles it
+                disabled={isAnswerChecked || !isSpeechSupported}
+                style={{
+                  width: '120px', height: '120px', borderRadius: '50%', border: 'none',
+                  background: isListening ? '#ef4444' : 'rgba(234,179,8,0.15)',
+                  boxShadow: isListening ? '0 0 40px rgba(239,68,68,0.6)' : '0 0 0 transparent',
+                  cursor: isAnswerChecked ? 'default' : 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transform: isListening ? 'scale(1.1)' : 'scale(1)'
+                }}
+              >
+                <Mic size={48} color={isListening ? '#fff' : '#eab308'} />
+              </button>
+              <div style={{ marginTop: '24px', fontSize: '14px', fontWeight: '600', color: isListening ? '#ef4444' : '#9ca3af' }}>
+                {isListening ? 'Listening...' : 'Tap to speak'}
+              </div>
+
+              {/* Transcript & Feedback */}
+              <AnimatePresence>
+                {transcript && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    style={{ marginTop: '24px', background: 'rgba(255,255,255,0.05)', padding: '16px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
+                    <div style={{ fontSize: '12px', opacity: 0.5, marginBottom: '8px', textTransform: 'uppercase' }}>You said:</div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>"{transcript}"</div>
+                    {pronunciationScore !== null && (
+                      <div style={{ marginTop: '12px', fontSize: '14px', fontWeight: '800', color: pronunciationScore > 60 ? '#22c55e' : '#ef4444' }}>
+                        Accuracy: {pronunciationScore}%
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div style={{ paddingTop: '24px' }}>
+            <button
+              onClick={isAnswerChecked ? handleNextVoice : handleVoiceCheck}
+              disabled={!isAnswerChecked && !transcript}
+              style={{
+                width: '100%', height: '54px', borderRadius: '14px', border: 'none',
+                background: (!isAnswerChecked && !transcript) ? 'rgba(255,255,255,0.05)' : isAnswerChecked ? '#22c55e' : '#eab308',
+                color: (!isAnswerChecked && !transcript) ? 'rgba(255,255,255,0.2)' : '#000',
+                fontWeight: '800', fontSize: '16px', cursor: 'pointer', transition: 'all 0.2s', letterSpacing: '0.5px'
+              }}
+            >
+              {isAnswerChecked ? 'CONTINUE →' : 'CHECK PRONUNCIATION'}
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    if (quizLevel === 'pronunciation') {
+      return renderPronunciationQuiz();
+    }
 
     return (
       <div style={{ maxWidth: '620px', width: '100%', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -1189,9 +1441,11 @@ const LessonsPage = () => {
             <NavItem icon={<Music size={20} />} label="Library" onClick={() => navigate('/dashboard?tab=library')} collapsed={isSidebarCollapsed} />
           )}
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" onClick={() => navigate('/dashboard?tab=statistics')} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Award size={20} />} label="Achievements" onClick={() => navigate('/dashboard?tab=achievements')} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<HelpCircle size={20} />} label="Documentation" onClick={() => navigate('/dashboard?tab=docs')} collapsed={isSidebarCollapsed} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
-          <NavItem icon={<Settings size={20} />} label="Settings" collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Settings size={20} />} label="Profile" onClick={() => navigate('/dashboard?tab=profile')} collapsed={isSidebarCollapsed} />
           <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); navigate('/login'); }} collapsed={isSidebarCollapsed} />
         </div>
       </aside>
