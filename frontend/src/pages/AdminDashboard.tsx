@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { 
@@ -84,7 +85,7 @@ const AdminDashboard = () => {
     setUsersLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/users', {
+      const response = await axios.get(`${API_BASE}/api/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setUsers(response.data);
@@ -101,7 +102,7 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const newMode = currentMode === 'music' ? 'traditional' : 'music';
-      await axios.put(`http://localhost:5000/api/users/${userId}/mode`, { mode: newMode }, {
+      await axios.put(`${API_BASE}/api/users/${userId}/mode`, { mode: newMode }, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       // Update local state
@@ -117,12 +118,12 @@ const AdminDashboard = () => {
     setProgressLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5000/api/admin/users/${userId}/attempts`, {
+      const response = await axios.get(`${API_BASE}/api/admin/users/${userId}/attempts`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setSelectedUserAttempts(response.data);
 
-      const progResponse = await axios.get(`http://localhost:5000/api/lessons/admin/progress/${userId}`, {
+      const progResponse = await axios.get(`${API_BASE}/api/lessons/admin/progress/${userId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setSelectedUserProgress(progResponse.data);
@@ -140,7 +141,7 @@ const AdminDashboard = () => {
     setShowReviewModal(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5000/api/admin/attempts/${attemptId}`, {
+      const response = await axios.get(`${API_BASE}/api/admin/attempts/${attemptId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setSelectedAttempt(response.data);
@@ -162,7 +163,7 @@ const AdminDashboard = () => {
       navigate('/dashboard');
     } else {
       // Fetch admin profile
-      axios.get('http://localhost:5000/api/users/me', {
+      axios.get(`${API_BASE}/api/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       }).then(res => {
         setCurrentUser(res.data);
@@ -187,7 +188,7 @@ const AdminDashboard = () => {
     setProfileSuccessMessage('');
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.put('http://localhost:5000/api/users/me/profile', {
+      const res = await axios.put(`${API_BASE}/api/users/me/profile`, {
         name: profileForm.name,
         nativeLanguage: profileForm.nativeLanguage,
         learningLanguage: profileForm.learningLanguage,
@@ -227,7 +228,7 @@ const AdminDashboard = () => {
     setSuggestionsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/admin/song-suggestions', {
+      const response = await axios.get(`${API_BASE}/api/admin/song-suggestions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setSongSuggestions(response.data);
@@ -243,7 +244,7 @@ const AdminDashboard = () => {
     if (!window.confirm("Are you sure you want to permanently delete this user?")) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/users/${id}`, {
+      await axios.delete(`${API_BASE}/api/users/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       // Remove from UI
@@ -264,7 +265,7 @@ const AdminDashboard = () => {
     setIsSendingNotify(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/notifications/admin/send', {
+      await axios.post(`${API_BASE}/api/notifications/admin/send`, {
         userId: notifyUser._id,
         title: notifyTitle,
         message: notifyMessage,
@@ -288,7 +289,7 @@ const AdminDashboard = () => {
   const fetchAnalytics = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/admin/analytics/comparison', {
+      const response = await axios.get(`${API_BASE}/api/admin/analytics/comparison`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setAnalyticsData(response.data);
@@ -307,7 +308,7 @@ const AdminDashboard = () => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:5000/api/admin/song', {
+      const response = await axios.post(`${API_BASE}/api/admin/song`, {
         title: form.title,
         artistName: form.artist,
         language: form.language,
@@ -348,7 +349,7 @@ const AdminDashboard = () => {
       const token = localStorage.getItem('token');
       console.log("Requesting translation for:", savedSongId);
       
-      const response = await axios.post(`http://localhost:5000/api/admin/translate/${savedSongId}`, {}, {
+      const response = await axios.post(`${API_BASE}/api/admin/translate/${savedSongId}`, {}, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -798,7 +799,7 @@ const AdminDashboard = () => {
 
   const handleRequestPasswordReset = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/request-password-reset', { email: passwordResetEmail });
+      const res = await axios.post(`${API_BASE}/api/auth/request-password-reset`, { email: passwordResetEmail });
       setResetCodeSent(true);
       setResetMessage(res.data.message || 'Verification code sent (check console if simulated)');
     } catch (err: any) {
@@ -809,10 +810,10 @@ const AdminDashboard = () => {
   const handleVerifyAndReset = async () => {
     try {
       // 1. Verify code
-      await axios.post('http://localhost:5000/api/auth/verify-reset-code', { email: passwordResetEmail, code: resetCode });
+      await axios.post(`${API_BASE}/api/auth/verify-reset-code`, { email: passwordResetEmail, code: resetCode });
       
       // 2. Reset password
-      await axios.post('http://localhost:5000/api/auth/reset-password', { email: passwordResetEmail, code: resetCode, newPassword });
+      await axios.post(`${API_BASE}/api/auth/reset-password`, { email: passwordResetEmail, code: resetCode, newPassword });
       
       setResetMessage('Password updated successfully!');
       setResetCodeSent(false);

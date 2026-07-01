@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Music, Check, Languages, User, ChevronRight } from 'lucide-react';
@@ -32,7 +33,7 @@ const PreferencesPage = () => {
       const token = localStorage.getItem('token');
       
       // Update Preferences
-      const prefsRes = await fetch('http://localhost:5000/api/preferences', {
+      const prefsRes = await fetch(`${API_BASE}/api/preferences`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ const PreferencesPage = () => {
       });
 
       // Update User Profile (Known Languages)
-      const profileRes = await fetch('http://localhost:5000/api/users/me/profile', {
+      const profileRes = await fetch(`${API_BASE}/api/users/me/profile`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

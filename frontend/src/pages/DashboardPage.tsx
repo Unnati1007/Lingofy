@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -133,7 +134,7 @@ const DashboardPage = () => {
         if (!token) { navigate('/login'); return; }
         
         // Fetch User
-        const userRes = await fetch('http://localhost:5000/api/users/me', {
+        const userRes = await fetch(`${API_BASE}/api/users/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (userRes.ok) {
@@ -164,7 +165,7 @@ const DashboardPage = () => {
         }
 
         // Fetch Preferences
-        const prefRes = await fetch('http://localhost:5000/api/preferences', {
+        const prefRes = await fetch(`${API_BASE}/api/preferences`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (prefRes.ok) {
@@ -173,7 +174,7 @@ const DashboardPage = () => {
         } else if (prefRes.status === 401) { navigate('/login'); }
 
         // Fetch Songs
-        const songRes = await fetch('http://localhost:5000/api/admin', {
+        const songRes = await fetch(`${API_BASE}/api/admin`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (songRes.ok) {
@@ -183,7 +184,7 @@ const DashboardPage = () => {
         }
 
         // Fetch Roadmap Progress
-        const progRes = await fetch('http://localhost:5000/api/lessons/progress', {
+        const progRes = await fetch(`${API_BASE}/api/lessons/progress`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (progRes.ok) {
@@ -191,7 +192,7 @@ const DashboardPage = () => {
           setRoadmapProgress(data);
         }
         // Fetch Notifications
-        const notifRes = await fetch('http://localhost:5000/api/notifications', {
+        const notifRes = await fetch(`${API_BASE}/api/notifications`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (notifRes.ok) {
@@ -244,7 +245,7 @@ const DashboardPage = () => {
     setHistoryLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/lessons/history', {
+      const res = await fetch(`${API_BASE}/api/lessons/history`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -261,7 +262,7 @@ const DashboardPage = () => {
   const handleMarkNotificationAsRead = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/notifications/${id}/read`, {
+      await fetch(`${API_BASE}/api/notifications/${id}/read`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -274,7 +275,7 @@ const DashboardPage = () => {
   const handleMarkAllNotificationsAsRead = async () => {
     try {
       const token = localStorage.getItem('token');
-      await fetch('http://localhost:5000/api/notifications/read-all', {
+      await fetch(`${API_BASE}/api/notifications/read-all`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -298,7 +299,7 @@ const DashboardPage = () => {
     setShowReviewModal(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/lessons/history/${attemptId}`, {
+      const res = await fetch(`${API_BASE}/api/lessons/history/${attemptId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -317,7 +318,7 @@ const DashboardPage = () => {
     const newMode = currentUser.learningMode === 'music' ? 'traditional' : 'music';
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/users/me/mode', {
+      const res = await fetch(`${API_BASE}/api/users/me/mode`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: newMode })
@@ -340,7 +341,7 @@ const DashboardPage = () => {
     setProfileSuccessMessage('');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/users/me/profile', {
+      const res = await fetch(`${API_BASE}/api/users/me/profile`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -413,7 +414,7 @@ const DashboardPage = () => {
       const fetchSegments = async () => {
         try {
           const token = localStorage.getItem('token');
-          const res = await fetch(`http://localhost:5000/api/admin/segments/${currentSong._id}`, {
+          const res = await fetch(`${API_BASE}/api/admin/segments/${currentSong._id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) {
@@ -827,7 +828,7 @@ const DashboardPage = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) { navigate('/login'); return; }
-      const res = await fetch('http://localhost:5000/api/playlists', {
+      const res = await fetch(`${API_BASE}/api/playlists`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.status === 401) { navigate('/login'); return; }
@@ -850,7 +851,7 @@ const DashboardPage = () => {
     setSelectedPlaylistLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/playlists/${playlistId}`, {
+      const res = await fetch(`${API_BASE}/api/playlists/${playlistId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -868,7 +869,7 @@ const DashboardPage = () => {
     if (!newPlaylistTitle.trim()) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/playlists', {
+      const res = await fetch(`${API_BASE}/api/playlists`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -894,7 +895,7 @@ const DashboardPage = () => {
     if (!confirm('Are you sure you want to delete this playlist?')) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/playlists/${playlistId}`, {
+      const res = await fetch(`${API_BASE}/api/playlists/${playlistId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -911,7 +912,7 @@ const DashboardPage = () => {
     if (!selectedPlaylist) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/playlists/${selectedPlaylist.playlist._id}/songs`, {
+      const res = await fetch(`${API_BASE}/api/playlists/${selectedPlaylist.playlist._id}/songs`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -934,7 +935,7 @@ const DashboardPage = () => {
     if (!selectedPlaylist) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/playlists/${selectedPlaylist.playlist._id}/songs/${songId}`, {
+      const res = await fetch(`${API_BASE}/api/playlists/${selectedPlaylist.playlist._id}/songs/${songId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

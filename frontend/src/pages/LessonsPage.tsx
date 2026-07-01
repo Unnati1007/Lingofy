@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -76,7 +77,7 @@ const LessonsPage = () => {
     setView('loading');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/lessons/generate-focus', {
+      const res = await fetch(`${API_BASE}/api/lessons/generate-focus`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ language, focusArea })
@@ -131,10 +132,10 @@ const LessonsPage = () => {
   const fetchProgress = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/lessons/progress', { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`${API_BASE}/api/lessons/progress`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.ok) { const data = await res.json(); setRoadmapProgress(data); }
       
-      const userRes = await fetch('http://localhost:5000/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+      const userRes = await fetch(`${API_BASE}/api/users/me`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (userRes.ok) {
         const user = await userRes.json();
         setCurrentUser(user);
@@ -236,7 +237,7 @@ const LessonsPage = () => {
     try {
       const token = localStorage.getItem('token');
       const hasSong = songIdParam || new URLSearchParams(window.location.search).get('songId');
-      const endpoint = hasSong ? 'http://localhost:5000/api/lessons/generate-from-song' : 'http://localhost:5000/api/lessons/generate';
+      const endpoint = hasSong ? `${API_BASE}/api/lessons/generate-from-song` : `${API_BASE}/api/lessons/generate`;
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -298,7 +299,7 @@ const LessonsPage = () => {
     const newMode = currentUser.learningMode === 'music' ? 'traditional' : 'music';
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/users/me/mode', {
+      const res = await fetch(`${API_BASE}/api/users/me/mode`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: newMode })
@@ -327,7 +328,7 @@ const LessonsPage = () => {
     setView('loading');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/lessons/submit', {
+      const res = await fetch(`${API_BASE}/api/lessons/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ 
