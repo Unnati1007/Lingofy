@@ -224,6 +224,11 @@ lingofy/
 
 ---
 
+## 🏗️ System Architecture
+
+![System Architecture](system-archietecture/architecture1.png)
+
+
 ## ▶️ Quick Start
 
 See **[SETUP.md](./SETUP.md)** for full step-by-step instructions.
