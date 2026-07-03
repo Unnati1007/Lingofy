@@ -198,6 +198,8 @@ lingofy/
 ├── docs/                        # Research documentation
 ├── system-archietecture/        # Architecture diagrams
 └── README.md
+```
+
 ---
 
 ## 🏗️ Architecture Overview
