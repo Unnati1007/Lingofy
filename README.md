@@ -49,17 +49,6 @@ This allows researchers to measure whether music-based context improves engageme
 
 ---
 
-## 📸 Screenshots
-
-*(UI screenshots and demos will be added here)*
-
-<!-- 
-![Dashboard Placeholder](placeholder-link)
-![Music Player Placeholder](placeholder-link)
--->
-
----
-
 ## ✨ Core Features
 
 | Feature | Description |
@@ -309,22 +298,10 @@ The `ExperimentAssignment` model tracks group assignments. The analytics dashboa
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions from researchers and developers! To contribute:
-1. **Fork** the repository
-2. **Clone** your fork locally
-3. **Create a branch** for your feature or bugfix (`git checkout -b feature/amazing-feature`)
-4. **Commit** your changes (`git commit -m 'feat: added amazing feature'`)
-5. **Push** to the branch (`git push origin feature/amazing-feature`)
-6. **Open a Pull Request** to the `main` branch
-
----
-
 ## ✍️ Author
 
 **Unnati Jadon**  
-HCI Researcher & Full-Stack Developer
+Full-Stack Developer & AI/ML Enthusiast 
 
 ---
 
