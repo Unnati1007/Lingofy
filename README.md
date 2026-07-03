@@ -4,19 +4,59 @@
 
 ![Tech Stack](https://img.shields.io/badge/Stack-React%20%2B%20Node.js%20%2B%20MongoDB-blue)
 ![AI](https://img.shields.io/badge/AI-Groq%20LLaMA%203.3-orange)
+![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)
+![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red)
 ![License](https://img.shields.io/badge/License-Academic%2FHCI-green)
+
+---
+
+## 📑 Table of Contents
+
+- [Live Demo](#-live-demo)
+- [What is Lingofy?](#-what-is-lingofy)
+- [Screenshots](#-screenshots)
+- [Core Features](#-core-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Architecture Overview](#-architecture-overview)
+- [System Architecture](#-system-architecture)
+- [Quick Start](#-quick-start)
+- [Documentation Index](#-documentation-index)
+- [HCI Research Context](#-hci-research-context)
+- [Contributing](#-contributing)
+- [Author](#-author)
+- [License](#-license)
+
+---
+
+## 🌐 Live Demo
+
+Experience the live application here: **[Lingofy Live Demo](https://lingofy-frontend-seven.vercel.app/)**
 
 ---
 
 ## 🎯 What is Lingofy?
 
-Lingofy is a full-stack web application built as part of an **HCI (Human-Computer Interaction) academic research study**. It teaches users languages (Hindi, Spanish, Korean) through **music-driven immersion**: song playback with synchronized lyrics, vocabulary quizzes generated from those lyrics via AI, and structured learning roadmaps.
+Lingofy is a full-stack web application built as part of an **HCI (Human-Computer Interaction) academic research study**. It teaches users languages (Hindi, Spanish, Korean) through **music-driven immersion**: song playback with synchronized lyrics, vocabulary quizzes generated from those lyrics via AI, and structured learning roadmaps. 
+
+Designed primarily for educational researchers, linguists, and students, the platform serves as a vital tool for conducting empirical studies on language acquisition. The motivation behind this project is to bridge the gap between passive music listening and active language learning, transforming a universal hobby into a structured educational methodology.
 
 The application compares two experimental conditions:
 - **Music Mode** — learners interact with songs, synchronized lyrics, and AI quizzes derived from lyric content
 - **Traditional Mode** — learners use standard text-based AI-generated vocabulary quizzes
 
 This allows researchers to measure whether music-based context improves engagement, retention, and learning outcomes compared to traditional methods.
+
+---
+
+## 📸 Screenshots
+
+*(UI screenshots and demos will be added here)*
+
+<!-- 
+![Dashboard Placeholder](placeholder-link)
+![Music Player Placeholder](placeholder-link)
+-->
 
 ---
 
@@ -169,8 +209,6 @@ lingofy/
 ├── docs/                        # Research documentation
 ├── system-archietecture/        # Architecture diagrams
 └── README.md
-```
-
 ---
 
 ## 🏗️ Architecture Overview
@@ -268,6 +306,25 @@ This application implements a **between-subjects experiment**:
 - **Group B (Traditional Mode)** — learners take standard text vocabulary quizzes without music context
 
 The `ExperimentAssignment` model tracks group assignments. The analytics dashboard compares avg. score, accuracy %, XP earned, dropout rate, and time-per-question between the two groups.
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from researchers and developers! To contribute:
+1. **Fork** the repository
+2. **Clone** your fork locally
+3. **Create a branch** for your feature or bugfix (`git checkout -b feature/amazing-feature`)
+4. **Commit** your changes (`git commit -m 'feat: added amazing feature'`)
+5. **Push** to the branch (`git push origin feature/amazing-feature`)
+6. **Open a Pull Request** to the `main` branch
+
+---
+
+## ✍️ Author
+
+**Unnati Jadon**  
+HCI Researcher & Full-Stack Developer
 
 ---
 
