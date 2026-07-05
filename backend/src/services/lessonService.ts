@@ -141,16 +141,18 @@ export const generateLesson = async (
 
   const isPronunciationMode = levelStr === 'pronunciation';
 
-  const musicModeInstructions = isMusicMode ? `
+  const musicModeInstructions = isPronunciationMode ? `
+3. Generate exactly 20 questions.
+   - ALL 20 questions MUST be of type 'translate_word'.
+   - The 'targetWord' MUST be the foreign language phrase or sentence the user needs to pronounce.
+   - USE A MIX of song phrases, commonly used conversational phrases (e.g. greetings, common questions), and random conversational ${language} words.
+   ${musicPhrases.length > 0 ? `   - MUST INCLUDE these song phrases as targetWords: ${musicPhrases.slice(0, 10).map(p => `"${p}"`).join(', ')}` : ''}
+   - The 'explanation' MUST contain the exact English meaning of the phrase, and any tips on pronunciation.
+   - Leave 'options' empty as this is a speaking exercise.` : isMusicMode ? `
 3. Generate exactly 10 questions. 
    - EXACTLY 4 of these questions MUST be of type 'listen_translate'.
    - EXACTLY 2 of these questions MUST be of type 'translate_word', where the 'targetWord' is a FULL LINE or PHRASE (5-8 words long) directly from the song lyrics, and the user must choose the correct translation.
-   - The remaining 4 should be randomly distributed among 'translate_word' (single word), 'multiple_choice', 'fill_blank', and 'match_meaning'.` : isPronunciationMode ? `
-3. Generate exactly 10 questions.
-   - ALL 10 questions MUST be of type 'translate_word'.
-   - The 'targetWord' MUST be the foreign language phrase or sentence the user needs to pronounce (e.g. "Hola, ¿cómo estás?").
-   - The 'explanation' MUST contain the exact English meaning of the phrase, and any tips on pronunciation.
-   - Leave 'options' empty as this is a speaking exercise.` : `
+   - The remaining 4 should be randomly distributed among 'translate_word' (single word), 'multiple_choice', 'fill_blank', and 'match_meaning'.` : `
 3. Generate exactly 10 questions randomly distributed among the 4 question types: translate_word, multiple_choice, fill_blank, match_meaning.`;
 
   const musicModeStructure = isMusicMode ? `
@@ -252,7 +254,7 @@ ${isPronunciationMode ? `   - questionText: "Pronounce this phrase:"
 11. correctAnswer must EXACTLY match one of the 4 options
     (same spelling, same script, same capitalization)
 
-Generate exactly 10 questions following ALL rules above.
+${isPronunciationMode ? 'Generate exactly 20 questions following ALL rules above.' : 'Generate exactly 10 questions following ALL rules above.'}
 
 Respond with ONLY raw JSON — zero markdown, zero backticks,
 zero text outside the JSON object.

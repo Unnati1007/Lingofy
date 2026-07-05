@@ -1064,6 +1064,21 @@ const LessonsPage = () => {
             <div style={{ fontSize: '42px', fontWeight: '900', color: '#fff', marginBottom: '16px', lineHeight: '1.3' }}>
               {targetPhrase}
             </div>
+            {language && (
+              <button 
+                onClick={() => playAudio(targetPhrase, language)}
+                style={{
+                  background: 'rgba(234,179,8,0.1)', border: '1px solid #eab308',
+                  borderRadius: '50%', width: '56px', height: '56px', display: 'inline-flex',
+                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  marginBottom: '16px', transition: 'transform 0.2s', fontSize: '24px'
+                }}
+                className="btn-hover"
+                title="Listen to pronunciation"
+              >
+                🔊
+              </button>
+            )}
             
             {question.explanation && (
               <div style={{ fontSize: '16px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '40px' }}>

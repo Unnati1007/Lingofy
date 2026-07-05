@@ -20,7 +20,7 @@ router.post("/generate", protect, async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: "Invalid language" });
     }
 
-    const activeLevel = ['easy', 'intermediate', 'hard'].includes(level) ? level : 'easy';
+    const activeLevel = ['easy', 'intermediate', 'hard', 'pronunciation'].includes(level) ? level : 'easy';
 
     // Fetch user's past attempts for this language+level to extract seen words & attempt count
     const pastAttempts = await LessonAttempt.find({
@@ -48,16 +48,17 @@ router.post("/generate", protect, async (req: AuthRequest, res: Response) => {
     });
 
     const isMusicMode = req.user.learningMode === 'music';
+    const isPronunciationMode = activeLevel === 'pronunciation';
     let musicPhrases: string[] = [];
 
-    if (isMusicMode) {
+    if (isMusicMode || isPronunciationMode) {
       // Pick random songs to get lyrics
       const songs = await Song.aggregate([{ $match: { language: new RegExp(`^${language}$`, 'i') } }, { $sample: { size: 2 } }]);
       if (songs.length > 0) {
         const songIds = songs.map(s => s._id);
         const segments = await LyricSegment.aggregate([
           { $match: { songId: { $in: songIds } } },
-          { $sample: { size: 10 } }
+          { $sample: { size: 20 } }
         ]);
         musicPhrases = segments.map(seg => seg.text).filter(t => t && t.trim().length > 0);
       }
