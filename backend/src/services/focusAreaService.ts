@@ -55,19 +55,23 @@ async function generateWithRetry(prompt: string) {
 
 export const generateFocusLesson = async (
   language: 'hindi' | 'spanish' | 'korean',
-  focusArea: string
+  focusArea: string,
+  musicPhrases: string[] = []
 ) => {
   const randomSeed = Math.floor(Math.random() * 100000);
 
   let focusInstructions = "";
   if (focusArea === "Vocabulary") {
-    focusInstructions = "Focus strictly on expanding vocabulary. Provide words related to common nouns, verbs, and adjectives. Use translate_word and multiple_choice.";
+    focusInstructions = `Focus strictly on expanding vocabulary. Generate exactly 10 questions of type 'multiple_choice' or 'translate_word'. Provide words related to common nouns, verbs, and adjectives.
+    USE A MIX of random words and song phrases.
+    ${musicPhrases.length > 0 ? `MUST INCLUDE these song phrases as targetWords: ${musicPhrases.slice(0, 5).map(p => `"${p}"`).join(', ')}` : ''}
+    DO NOT USE ANY PRONUNCIATION OR VOICE TASKS.`;
   } else if (focusArea === "Listening") {
-    focusInstructions = "Focus strictly on listening skills. Provide short conversational phrases or words. Generate EXACTLY 6 questions of type 'listen_translate' where the user listens to TTS and chooses the meaning. And 4 questions of 'translate_word'.";
+    focusInstructions = "Focus strictly on listening skills. Generate EXACTLY 10 questions of type 'listen_translate' where the user listens to TTS and chooses the meaning. DO NOT require the user to speak or pronounce anything.";
   } else if (focusArea === "Grammar") {
-    focusInstructions = "Focus strictly on grammar rules, verb conjugations, and sentence structuring. Generate questions of type 'fill_blank' mostly.";
+    focusInstructions = "Focus strictly on grammar rules, verb conjugations, and sentence structuring. Generate EXACTLY 10 questions of type 'fill_blank' mostly. DO NOT USE ANY PRONUNCIATION OR VOICE TASKS.";
   } else if (focusArea === "Culture (idioms, slangs)") {
-    focusInstructions = "Focus strictly on cultural nuances, idioms, and common slangs. Teach them phrases native speakers use. Use 'match_meaning' and 'translate_word'.";
+    focusInstructions = "Focus strictly on cultural nuances, idioms, and common slangs. Teach them phrases native speakers use. Generate EXACTLY 10 questions using 'match_meaning' and 'translate_word'. DO NOT include song phrases. DO NOT USE ANY PRONUNCIATION OR VOICE TASKS.";
   } else {
     focusInstructions = "Focus on general practice.";
   }

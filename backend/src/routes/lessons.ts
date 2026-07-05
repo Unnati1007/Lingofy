@@ -156,7 +156,19 @@ router.post("/generate-focus", protect, async (req: AuthRequest, res: Response) 
       return res.status(400).json({ message: "Focus area is required" });
     }
 
-    const lessonData = await generateFocusLesson(language, focusArea);
+    let musicPhrases: string[] = [];
+    // Pick random songs to get lyrics
+    const songs = await Song.aggregate([{ $match: { language: new RegExp(`^${language}$`, 'i') } }, { $sample: { size: 2 } }]);
+    if (songs.length > 0) {
+      const songIds = songs.map(s => s._id);
+      const segments = await LyricSegment.aggregate([
+        { $match: { songId: { $in: songIds } } },
+        { $sample: { size: 10 } }
+      ]);
+      musicPhrases = segments.map(seg => seg.text).filter(t => t && t.trim().length > 0);
+    }
+
+    const lessonData = await generateFocusLesson(language, focusArea, musicPhrases);
     
     // Ensure all questions have a correctAnswer to satisfy Mongoose validation
     const sanitizedQuestions = lessonData.questions.map((q: any) => ({
