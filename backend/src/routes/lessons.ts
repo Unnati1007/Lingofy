@@ -319,9 +319,8 @@ router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
 // GET /api/lessons/history
 router.get("/history", protect, async (req: AuthRequest, res: Response) => {
   try {
-    const history = await LessonAttempt.find({ userId: req.user._id })
+    const history = await LessonAttempt.find({ userId: req.user._id, $or: [{ status: 'completed' }, { score: { $gt: 0 } }] })
       .sort({ completedAt: -1 })
-      .limit(20)
       .select('language level score xpEarned completedAt');
 
     res.status(200).json(history);
@@ -348,7 +347,39 @@ router.get("/attempt/:attemptId", protect, async (req: AuthRequest, res: Respons
 // GET /api/lessons/progress - Get user's roadmap progress and badges
 router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
   try {
-    const attempts = await LessonAttempt.find({ userId: req.user._id, score: { $gte: 5 } });
+    const allAttempts = await LessonAttempt.find({ userId: req.user._id, $or: [{ status: 'completed' }, { score: { $gt: 0 } }] }).sort({ completedAt: -1 });
+    const attempts = allAttempts.filter(a => a.score >= 5);
+
+    // Calculate streak
+    let streak = 0;
+    if (allAttempts.length > 0) {
+      const uniqueDays = Array.from(new Set(allAttempts.map(a => {
+        const d = new Date(a.completedAt || a.startedAt);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      })));
+
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+      if (uniqueDays.includes(todayStr) || uniqueDays.includes(yesterdayStr)) {
+        let checkDate = new Date(today);
+        if (!uniqueDays.includes(todayStr)) checkDate = new Date(yesterday);
+        
+        while (true) {
+          const checkStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+          if (uniqueDays.includes(checkStr)) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      }
+    }
 
     const getProgressForLang = (lang: string) => {
       const langAttempts = attempts.filter(a => a.language === lang);
@@ -394,7 +425,8 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
     res.status(200).json({
       hindi: getProgressForLang('hindi'),
       spanish: getProgressForLang('spanish'),
-      korean: getProgressForLang('korean')
+      korean: getProgressForLang('korean'),
+      streak
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });

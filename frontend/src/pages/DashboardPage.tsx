@@ -669,6 +669,63 @@ const DashboardPage = () => {
             </div>
           );
         })()}
+        {/* Learning Focus Distribution */}
+        {(() => {
+          const total = history.length;
+          const core = history.filter(a => ['easy', 'beginner', 'intermediate', 'hard'].includes(a.level)).length;
+          const song = history.filter(a => a.level === 'dynamic').length;
+          const focus = history.filter(a => a.level === 'focus').length;
+          const pron = history.filter(a => a.level === 'pronunciation').length;
+
+          const data = [
+            { label: 'Core Lessons', count: core, color: '#3b82f6' },
+            { label: 'Song Practice', count: song, color: '#a855f7' },
+            { label: 'Focus Areas', count: focus, color: '#eab308' },
+            { label: 'Pronunciation', count: pron, color: '#ef4444' }
+          ].sort((a,b) => b.count - a.count);
+
+          return (
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', marginBottom: '32px' }}>
+              <div style={{ marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px 0' }}>Learning Focus Distribution</h3>
+                <p style={{ opacity: 0.5, fontSize: '13px', margin: 0 }}>Breakdown of how you spend your learning time</p>
+              </div>
+              
+              {total === 0 ? (
+                <div style={{ height: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
+                  <p>Complete a lesson to see your distribution!</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {data.map((item, i) => {
+                    const pct = total === 0 ? 0 : Math.round((item.count / total) * 100);
+                    return (
+                      <div key={i}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: item.color }}></div>
+                            {item.label}
+                          </span>
+                          <span style={{ opacity: 0.8 }}>{item.count} quizzes <span style={{ opacity: 0.5, marginLeft: '8px', minWidth: '40px', display: 'inline-block', textAlign: 'right' }}>({pct}%)</span></span>
+                        </div>
+                        <div style={{ width: '100%', height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px', overflow: 'hidden' }}>
+                          <div style={{ 
+                            width: `${pct}%`, 
+                            height: '100%', 
+                            background: item.color,
+                            borderRadius: '100px',
+                            boxShadow: pct > 0 ? `0 0 12px ${item.color}80` : 'none',
+                            transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '48px' }} className="content-grid-desktop">
           {/* Performance Chart Card */}
@@ -783,7 +840,7 @@ const DashboardPage = () => {
                     <div key={attempt._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '14px', padding: '12px 16px' }}>
                       <div>
                         <div style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'capitalize' }}>
-                          {attempt.level === 'dynamic' ? 'Song Practice' : 'Lesson'} • {attempt.language}
+                          {attempt.level === 'focus' ? 'Focus: Grammar/Vocab' : attempt.level === 'pronunciation' ? 'Pronunciation Practice' : attempt.level === 'dynamic' ? 'Song Practice' : 'Lesson'} • {attempt.language}
                         </div>
                         <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '2px' }}>
                           {new Date(attempt.completedAt).toLocaleString()}

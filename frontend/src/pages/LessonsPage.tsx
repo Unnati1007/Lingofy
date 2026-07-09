@@ -692,7 +692,7 @@ const LessonsPage = () => {
     const selectedNode = nodes[selectedNodeIdx];
     const totalXP = progress ? (progress.easyCompleted * 100) + (progress.intermediateCompleted * 150) + (progress.hardCompleted * 200) : 0;
     const totalCompleted = progress ? Math.min(progress.easyCompleted, 1) + Math.min(progress.intermediateCompleted, 2) + Math.min(progress.hardCompleted || 0, 3) : 0;
-    const streak = Math.floor(Math.random() * 7) + 1; // TODO: pull from API
+    const streak = roadmapProgress?.streak || 0;
 
     return (
       <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)' }}>
@@ -727,9 +727,9 @@ const LessonsPage = () => {
               <Flame size={14} color="#ef4444" />
               <span style={{ color: '#ef4444', fontWeight: '800', fontSize: '14px' }}>{streak} day streak</span>
             </div>
-            <div style={{ background: 'rgba(18,209,94,0.1)', border: '1px solid rgba(18,209,94,0.2)', padding: '8px 16px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div title="Core Roadmap Progress" style={{ background: 'rgba(18,209,94,0.1)', border: '1px solid rgba(18,209,94,0.2)', padding: '8px 16px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Target size={14} color="#12d15e" />
-              <span style={{ color: '#12d15e', fontWeight: '800', fontSize: '14px' }}>{totalCompleted}/6 Done</span>
+              <span style={{ color: '#12d15e', fontWeight: '800', fontSize: '14px' }}>{totalCompleted}/6 Stages Done</span>
             </div>
           </div>
         </div>
