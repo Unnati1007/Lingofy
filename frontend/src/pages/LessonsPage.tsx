@@ -58,6 +58,7 @@ const LessonsPage = () => {
   const [activeTab, setActiveTab] = useState<'roadmap' | 'focus' | 'pronunciation'>('roadmap');
   const [focusArea, setFocusArea] = useState<string>('Vocabulary');
   const [showPronunciationModal, setShowPronunciationModal] = useState(false);
+  const [pronunciationSettings, setPronunciationSettings] = useState<any>({ sensitivity: 'Medium (Standard)', micBoost: 'On' });
   
   // Pronunciation Speech State
   const [isListening, setIsListening] = useState(false);
@@ -761,6 +762,7 @@ const LessonsPage = () => {
             onClose={() => setShowPronunciationModal(false)}
             onSave={(settings: any) => {
               setShowPronunciationModal(false);
+              setPronunciationSettings(settings);
               setQuizLevel('pronunciation');
               startLesson(language, undefined, 'pronunciation');
             }}
@@ -1016,9 +1018,14 @@ const LessonsPage = () => {
       // Since it's automated, we assume the user checks the answer by clicking a button after speaking
       const handleVoiceCheck = () => {
         if (!transcript) return;
+        
+        let threshold = 75; // Medium (Standard)
+        if (pronunciationSettings?.sensitivity === 'Low (Beginner)') threshold = 60;
+        else if (pronunciationSettings?.sensitivity === 'High (Near-native accuracy)') threshold = 90;
+
         // In checkPronunciationScore, we get 0-100.
-        // We'll consider > 70 as correct.
-        const isCorrect = (pronunciationScore || 0) > 60;
+        // We'll use the dynamic threshold based on sensitivity settings.
+        const isCorrect = (pronunciationScore || 0) >= threshold;
         
         const answerData = {
           questionId: question.id,
@@ -1046,9 +1053,9 @@ const LessonsPage = () => {
       };
 
       return (
-        <div style={{ maxWidth: '620px', width: '100%', margin: '0 auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ maxWidth: '620px', width: '100%', margin: '0 auto', minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' }}>
           {/* Progress bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px', flexShrink: 0 }}>
             <X size={22} color="#6b7280" cursor="pointer" onClick={exitLesson} />
             <div style={{ flex: 1, height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '100px', overflow: 'hidden' }}>
               <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #eab308, #ca8a04)', borderRadius: '100px', transition: 'width 0.4s ease', boxShadow: '0 0 8px rgba(234,179,8,0.4)' }} />
@@ -1056,92 +1063,110 @@ const LessonsPage = () => {
             <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: '700', minWidth: '45px', textAlign: 'right' }}>{currentQuestionIdx + 1}/{questions.length}</span>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: '40px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ textAlign: 'center', marginTop: '16px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <h2 style={{ fontSize: '20px', color: '#eab308', fontWeight: '800', marginBottom: '8px' }}>🗣️ Pronounce this phrase</h2>
-            <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '40px' }}>Read the phrase aloud clearly.</p>
+            <p style={{ opacity: 0.6, fontSize: '14px', marginBottom: '24px' }}>Read the phrase aloud clearly.</p>
             
             {/* Target Phrase */}
-            <div style={{ fontSize: '42px', fontWeight: '900', color: '#fff', marginBottom: '16px', lineHeight: '1.3' }}>
+            <div style={{ fontSize: '46px', fontWeight: '900', color: '#fff', marginBottom: '16px', lineHeight: '1.3', textShadow: '0 0 20px rgba(234, 179, 8, 0.4)' }}>
               {targetPhrase}
             </div>
             {language && (
-              <button 
+              <motion.button 
                 onClick={() => playAudio(targetPhrase, language)}
+                whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(234,179,8,0.4)' }}
+                whileTap={{ scale: 0.95 }}
                 style={{
                   background: 'rgba(234,179,8,0.1)', border: '1px solid #eab308',
                   borderRadius: '50%', width: '56px', height: '56px', display: 'inline-flex',
                   alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                  marginBottom: '16px', transition: 'transform 0.2s', fontSize: '24px'
+                  marginBottom: '16px', fontSize: '24px'
                 }}
-                className="btn-hover"
                 title="Listen to pronunciation"
               >
                 🔊
-              </button>
+              </motion.button>
             )}
             
             {question.explanation && (
-              <div style={{ fontSize: '16px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '40px' }}>
+              <div style={{ fontSize: '16px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '24px' }}>
                 Meaning: {question.explanation}
               </div>
             )}
 
             {/* Voice UI Component */}
-            <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', marginBottom: '40px' }}>
+            <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', marginBottom: '16px' }}>
               {/* Mic Button */}
-              <button 
-                onPointerDown={() => !isAnswerChecked && startListening(targetPhrase)}
-                onPointerUp={() => {}} // Could stop listening, but continuous=false handles it
-                disabled={isAnswerChecked || !isSpeechSupported}
-                style={{
-                  width: '120px', height: '120px', borderRadius: '50%', border: 'none',
-                  background: isListening ? '#ef4444' : 'rgba(234,179,8,0.15)',
-                  boxShadow: isListening ? '0 0 40px rgba(239,68,68,0.6)' : '0 0 0 transparent',
-                  cursor: isAnswerChecked ? 'default' : 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transform: isListening ? 'scale(1.1)' : 'scale(1)'
-                }}
-              >
-                <Mic size={48} color={isListening ? '#fff' : '#eab308'} />
-              </button>
-              <div style={{ marginTop: '24px', fontSize: '14px', fontWeight: '600', color: isListening ? '#ef4444' : '#9ca3af' }}>
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100px', height: '100px' }}>
+                {isListening && (
+                  <motion.div
+                    animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '50%', border: '4px solid #ef4444' }}
+                  />
+                )}
+                <motion.button 
+                  onPointerDown={() => !isAnswerChecked && startListening(targetPhrase)}
+                  onPointerUp={() => {}} 
+                  disabled={isAnswerChecked || !isSpeechSupported}
+                  whileHover={!isAnswerChecked && !isListening ? { scale: 1.05 } : {}}
+                  whileTap={!isAnswerChecked && !isListening ? { scale: 0.95 } : {}}
+                  style={{
+                    width: '90px', height: '90px', borderRadius: '50%', border: 'none',
+                    background: isListening ? '#ef4444' : 'rgba(234,179,8,0.15)',
+                    boxShadow: isListening ? '0 0 30px rgba(239,68,68,0.6)' : '0 0 0 transparent',
+                    cursor: isAnswerChecked ? 'default' : 'pointer', transition: 'background 0.3s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    position: 'relative', zIndex: 2
+                  }}
+                >
+                  <Mic size={36} color={isListening ? '#fff' : '#eab308'} />
+                </motion.button>
+              </div>
+              <div style={{ marginTop: '16px', fontSize: '14px', fontWeight: '600', color: isListening ? '#ef4444' : '#9ca3af' }}>
                 {isListening ? 'Listening...' : 'Tap to speak'}
               </div>
 
               {/* Transcript & Feedback */}
-              <AnimatePresence>
-                {transcript && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                    style={{ marginTop: '24px', background: 'rgba(255,255,255,0.05)', padding: '16px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}
-                  >
-                    <div style={{ fontSize: '12px', opacity: 0.5, marginBottom: '8px', textTransform: 'uppercase' }}>You said:</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>"{transcript}"</div>
-                    {pronunciationScore !== null && (
-                      <div style={{ marginTop: '12px', fontSize: '14px', fontWeight: '800', color: pronunciationScore > 60 ? '#22c55e' : '#ef4444' }}>
-                        Accuracy: {pronunciationScore}%
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div style={{ minHeight: '90px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <AnimatePresence>
+                  {transcript && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                      style={{ marginTop: '16px', background: 'rgba(255,255,255,0.05)', padding: '12px 20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '400px' }}
+                    >
+                      <div style={{ fontSize: '11px', opacity: 0.5, marginBottom: '6px', textTransform: 'uppercase' }}>You said:</div>
+                      <div style={{ fontSize: '16px', fontWeight: 'bold' }}>"{transcript}"</div>
+                      {pronunciationScore !== null && (
+                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: '800', color: pronunciationScore > 60 ? '#22c55e' : '#ef4444' }}>
+                          Accuracy: {pronunciationScore}%
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
 
           {/* Action Button */}
-          <div style={{ paddingTop: '24px' }}>
-            <button
+          <div style={{ paddingTop: '12px', paddingBottom: '12px', flexShrink: 0 }}>
+            <motion.button
               onClick={isAnswerChecked ? handleNextVoice : handleVoiceCheck}
               disabled={!isAnswerChecked && !transcript}
+              whileHover={(!isAnswerChecked && !transcript) ? {} : { scale: 1.02 }}
+              whileTap={(!isAnswerChecked && !transcript) ? {} : { scale: 0.98 }}
               style={{
                 width: '100%', height: '54px', borderRadius: '14px', border: 'none',
-                background: (!isAnswerChecked && !transcript) ? 'rgba(255,255,255,0.05)' : isAnswerChecked ? '#22c55e' : '#eab308',
-                color: (!isAnswerChecked && !transcript) ? 'rgba(255,255,255,0.2)' : '#000',
-                fontWeight: '800', fontSize: '16px', cursor: 'pointer', transition: 'all 0.2s', letterSpacing: '0.5px'
+                background: (!isAnswerChecked && !transcript) ? '#2a2a2a' : isAnswerChecked ? '#22c55e' : 'linear-gradient(135deg, #eab308 0%, #d97706 100%)',
+                color: (!isAnswerChecked && !transcript) ? '#6b7280' : '#000',
+                fontWeight: '800', fontSize: '16px', cursor: (!isAnswerChecked && !transcript) ? 'not-allowed' : 'pointer', 
+                boxShadow: (!isAnswerChecked && !transcript) ? 'none' : isAnswerChecked ? '0 0 20px rgba(34,197,94,0.4)' : '0 0 20px rgba(234,179,8,0.4)',
+                letterSpacing: '0.5px'
               }}
             >
               {isAnswerChecked ? 'CONTINUE →' : 'CHECK PRONUNCIATION'}
-            </button>
+            </motion.button>
           </div>
         </div>
       );
