@@ -31,7 +31,7 @@
 
 ## 🌐 Live Demo
 
-Experience the live application here: **[Lingofy Live Demo](https://lingofy-frontend-seven.vercel.app/)**
+Experience the live application here: **[Lingofy Live Demo](https://lingofy-seven.vercel.app/)**
 
 ---
 
