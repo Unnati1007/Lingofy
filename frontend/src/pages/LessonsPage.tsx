@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, BookOpen, Music, BarChart2, Settings, LogOut, ChevronRight, X, Check, XCircle, Menu, ChevronLeft,
-  Zap, Lock, Flame, Target, Award, Mic, HelpCircle
+  Zap, Lock, Flame, Target, Award, Mic, HelpCircle, Headphones
 } from 'lucide-react';
 import PronunciationSettingsModal from '../components/learning/PronunciationSettingsModal';
 
@@ -1494,6 +1494,7 @@ const LessonsPage = () => {
             <NavItem icon={<Home size={20} />} label="Home" onClick={() => navigate('/dashboard?tab=home')} collapsed={isSidebarCollapsed} />
           )}
           <NavItem icon={<BookOpen size={20} />} label="Lessons" active collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isSidebarCollapsed} />
           {currentUser?.learningMode !== 'traditional' && (
             <NavItem icon={<Music size={20} />} label="Library" onClick={() => navigate('/dashboard?tab=library')} collapsed={isSidebarCollapsed} />
           )}

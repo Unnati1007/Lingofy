@@ -6,6 +6,7 @@ import PreferencesPage from './pages/PreferencesPage'
 import DashboardPage from './pages/DashboardPage'
 import AdminDashboard from './pages/AdminDashboard'
 import LessonsPage from './pages/LessonsPage'
+import { MindfulListeningPage } from './pages/MindfulListeningPage'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/lessons" element={<LessonsPage />} />
+        <Route path="/mindful-listening" element={<MindfulListeningPage />} />
       </Routes>
     </Router>
   )

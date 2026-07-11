@@ -29,7 +29,8 @@ import {
   Share2,
   Copy,
   Check,
-  Bell
+  Bell,
+  Headphones
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LearningFocusDistribution } from '../components/LearningFocusDistribution';
@@ -1836,6 +1837,7 @@ const DashboardPage = () => {
             <NavItem icon={<Home size={20} />} label="Home" active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           )}
           <NavItem icon={<BookOpen size={20} />} label="Lessons" onClick={() => navigate('/lessons')} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isSidebarCollapsed} />
           {currentUser?.learningMode !== 'traditional' && (
             <NavItem icon={<Music size={20} />} label="Library" active={activeTab === 'library'} onClick={() => { setActiveTab('library'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           )}
