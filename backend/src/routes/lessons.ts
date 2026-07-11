@@ -8,6 +8,8 @@ import Song from "../models/music/Song";
 import LyricSegment from "../models/music/LyricSegment";
 import { adminOnly } from "../middleware/roleMiddleware";
 import Notification from "../models/user/Notification";
+import nodemailer from "nodemailer";
+import User from "../models/user/User";
 
 const router = express.Router();
 
@@ -181,6 +183,7 @@ router.post("/generate-focus", protect, async (req: AuthRequest, res: Response) 
       userId: req.user._id,
       language,
       level: 'focus', // Changed from dynamic to distinguish from song lessons
+      focusArea,
       questions: sanitizedQuestions,
       status: 'in_progress',
       startedAt: new Date()
@@ -266,41 +269,78 @@ router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
     await attempt.save();
 
     // Check if a badge was unlocked
-    if (score >= 5) {
-      const prevAttempts = await LessonAttempt.find({ 
-        userId: req.user._id, 
-        language: attempt.language,
-        score: { $gte: 5 },
-        status: 'completed',
-        _id: { $ne: attempt._id }
+    let newBadgeName = null;
+    let badgeEarned = null;
+    
+    const currentPct = questions.length > 0 ? score / questions.length : 0;
+
+    const prevAttempts = await LessonAttempt.find({ 
+      userId: req.user._id, 
+      language: attempt.language,
+      status: 'completed',
+      _id: { $ne: attempt._id }
+    });
+    
+    const prevEasyCount = prevAttempts.filter(a => (a.level === 'easy' || a.level === 'beginner') && a.score >= 5).length;
+    const prevInterCount = prevAttempts.filter(a => a.level === 'intermediate' && a.score >= 5).length;
+    const prevHardCount = prevAttempts.filter(a => a.level === 'hard' && a.score >= 5).length;
+    const prevFocusCount = prevAttempts.filter(a => a.level === 'focus' && (a.questions && a.questions.length > 0 ? a.score / a.questions.length >= 0.6 : false)).length;
+    const prevPronunciationCount = prevAttempts.filter(a => a.level === 'pronunciation' && (a.questions && a.questions.length > 0 ? a.score / a.questions.length >= 0.8 : false)).length;
+
+    if (score >= 5 && (attempt.level === 'easy' || attempt.level === 'beginner') && prevEasyCount === 0) {
+      newBadgeName = 'Easy Explorer';
+      badgeEarned = 'easy_explorer';
+    } else if (score >= 5 && attempt.level === 'intermediate' && prevInterCount === 1) {
+      newBadgeName = 'Intermediate Scholar';
+      badgeEarned = 'intermediate_scholar';
+    } else if (score >= 5 && attempt.level === 'hard' && prevHardCount === 2) {
+      newBadgeName = 'Language Star';
+      badgeEarned = 'language_star';
+    } else if (currentPct >= 0.6 && attempt.level === 'focus' && prevFocusCount === 3) {
+      newBadgeName = 'Focus Scholar';
+      badgeEarned = 'focus_scholar';
+    } else if (currentPct >= 0.8 && attempt.level === 'pronunciation' && prevPronunciationCount === 0) {
+      newBadgeName = 'Pronunciation Master';
+      badgeEarned = 'Pronunciation Master';
+    }
+
+    if (newBadgeName) {
+      await Notification.create({
+        userId: req.user._id,
+        title: 'Badge Unlocked! 🎉',
+        message: `Congratulations! You've unlocked the ${newBadgeName} badge in ${attempt.language}. Keep up the great work!`,
       });
-      
-      const prevEasyCount = prevAttempts.filter(a => a.level === 'easy' || a.level === 'beginner').length;
-      const prevInterCount = prevAttempts.filter(a => a.level === 'intermediate').length;
-      const prevHardCount = prevAttempts.filter(a => a.level === 'hard').length;
-      const prevFocusCount = prevAttempts.filter(a => a.level === 'focus').length;
-      const prevPronunciationCount = prevAttempts.filter(a => a.level === 'pronunciation').length;
 
-      let newBadgeName = null;
-
-      if ((attempt.level === 'easy' || attempt.level === 'beginner') && prevEasyCount === 0) {
-        newBadgeName = 'Easy Explorer';
-      } else if (attempt.level === 'intermediate' && prevInterCount === 1) {
-        newBadgeName = 'Intermediate Scholar';
-      } else if (attempt.level === 'hard' && prevHardCount === 2) {
-        newBadgeName = 'Language Star';
-      } else if (attempt.level === 'focus' && prevFocusCount === 0) {
-        newBadgeName = 'Focus Scholar';
-      } else if (attempt.level === 'pronunciation' && prevPronunciationCount === 0) {
-        newBadgeName = 'Pronunciation Master';
-      }
-
-      if (newBadgeName) {
-        await Notification.create({
-          userId: req.user._id,
-          title: 'Badge Unlocked! 🎉',
-          message: `Congratulations! You've unlocked the ${newBadgeName} badge in ${attempt.language}. Keep up the great work!`,
-        });
+      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        try {
+          const userObj = await User.findById(req.user._id);
+          if (userObj && userObj.email) {
+            const transporter = nodemailer.createTransport({
+              service: "gmail",
+              auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+              },
+            });
+            const mailOptions = {
+              from: process.env.EMAIL_USER,
+              to: userObj.email,
+              subject: 'Badge Unlocked! 🎉',
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                  <h2 style="color: #a855f7;">Badge Unlocked! 🎉</h2>
+                  <p style="font-size: 16px; color: #333; line-height: 1.5;">Hello ${userObj.name},</p>
+                  <p style="font-size: 16px; color: #333; line-height: 1.5;">Congratulations! You've unlocked the ${newBadgeName} badge in ${attempt.language}. Keep up the great work!</p>
+                  <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                  <p style="font-size: 12px; color: #999;">This is an automated message from Lingofy.</p>
+                </div>
+              `,
+            };
+            transporter.sendMail(mailOptions).catch(err => console.error('Error sending email:', err));
+          }
+        } catch (emailErr) {
+          console.error("Email error:", emailErr);
+        }
       }
     }
 
@@ -308,7 +348,8 @@ router.post("/submit", protect, async (req: AuthRequest, res: Response) => {
       score,
       total: questions.length,
       xpEarned,
-      results
+      results,
+      ...(badgeEarned && { badgeEarned })
     });
   } catch (error) {
     console.error("Error submitting lesson:", error);
@@ -382,13 +423,13 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
     }
 
     const getProgressForLang = (lang: string) => {
-      const langAttempts = attempts.filter(a => a.language === lang);
+      const langAttempts = allAttempts.filter(a => a.language === lang);
 
-      const easyCount = langAttempts.filter(a => a.level === 'easy' || a.level === 'beginner').length;
-      const intermediateCount = langAttempts.filter(a => a.level === 'intermediate').length;
-      const hardCount = langAttempts.filter(a => a.level === 'hard').length;
-      const focusCount = langAttempts.filter(a => a.level === 'focus').length;
-      const pronunciationCount = langAttempts.filter(a => a.level === 'pronunciation').length;
+      const easyCount = langAttempts.filter(a => (a.level === 'easy' || a.level === 'beginner') && a.score >= 5).length;
+      const intermediateCount = langAttempts.filter(a => a.level === 'intermediate' && a.score >= 5).length;
+      const hardCount = langAttempts.filter(a => a.level === 'hard' && a.score >= 5).length;
+      const focusCount = langAttempts.filter(a => a.level === 'focus' && (a.questions && a.questions.length > 0 ? a.score / a.questions.length >= 0.6 : false)).length;
+      const pronunciationCount = langAttempts.filter(a => a.level === 'pronunciation' && (a.questions && a.questions.length > 0 ? a.score / a.questions.length >= 0.8 : false)).length;
 
       let currentStage = 'easy';
       const badges: string[] = [];
@@ -405,7 +446,7 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
         badges.push('language_star');
         currentStage = 'completed';
       }
-      if (focusCount >= 1) {
+      if (focusCount >= 4) {
         badges.push('focus_scholar');
       }
       if (pronunciationCount >= 1) {
@@ -436,14 +477,16 @@ router.get("/progress", protect, async (req: AuthRequest, res: Response) => {
 // GET /api/lessons/admin/progress/:userId - Get target user's progress (Admin only)
 router.get("/admin/progress/:userId", protect, adminOnly, async (req: AuthRequest, res: Response) => {
   try {
-    const attempts = await LessonAttempt.find({ userId: req.params.userId, score: { $gte: 5 } });
+    const allAttempts = await LessonAttempt.find({ userId: req.params.userId, $or: [{ status: 'completed' }, { score: { $gt: 0 } }] }).sort({ completedAt: -1 });
 
     const getProgressForLang = (lang: string) => {
-      const langAttempts = attempts.filter(a => a.language === lang);
+      const langAttempts = allAttempts.filter(a => a.language === lang);
 
-      const easyCount = langAttempts.filter(a => a.level === 'easy' || a.level === 'beginner').length;
-      const intermediateCount = langAttempts.filter(a => a.level === 'intermediate').length;
-      const hardCount = langAttempts.filter(a => a.level === 'hard').length;
+      const easyCount = langAttempts.filter(a => (a.level === 'easy' || a.level === 'beginner') && a.score >= 5).length;
+      const intermediateCount = langAttempts.filter(a => a.level === 'intermediate' && a.score >= 5).length;
+      const hardCount = langAttempts.filter(a => a.level === 'hard' && a.score >= 5).length;
+      const focusCount = langAttempts.filter(a => a.level === 'focus' && (a.questions && a.questions.length > 0 ? a.score / a.questions.length >= 0.6 : false)).length;
+      const pronunciationCount = langAttempts.filter(a => a.level === 'pronunciation' && (a.questions && a.questions.length > 0 ? a.score / a.questions.length >= 0.8 : false)).length;
 
       let currentStage = 'easy';
       const badges: string[] = [];
@@ -460,11 +503,18 @@ router.get("/admin/progress/:userId", protect, adminOnly, async (req: AuthReques
         badges.push('language_star');
         currentStage = 'completed';
       }
+      if (focusCount >= 4) {
+        badges.push('focus_scholar');
+      }
+      if (pronunciationCount >= 1) {
+        badges.push('Pronunciation Master');
+      }
 
       return {
         easyCompleted: Math.min(easyCount, 1),
         intermediateCompleted: Math.min(intermediateCount, 2),
         hardCompleted: Math.min(hardCount, 3),
+        focusCompleted: focusCount,
         currentStage,
         badges
       };

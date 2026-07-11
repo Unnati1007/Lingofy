@@ -1,5 +1,6 @@
 import { API_BASE } from '../config';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Play, 
@@ -374,8 +375,7 @@ const DashboardPage = () => {
 
   // Chart data calculations
   const chartData = useMemo(() => {
-    const last7 = [...history].slice(0, 7).reverse();
-    return last7.map((attempt, index) => ({
+    return [...history].slice(0, 7).reverse().map((attempt, index) => ({
       index,
       label: new Date(attempt.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
       score: attempt.score,
@@ -390,10 +390,14 @@ const DashboardPage = () => {
   const plotWidth = width - 2 * xPadding;
   const plotHeight = height - 2 * yPadding;
 
+  const validScores = chartData.map(d => Number(d.score) || 0);
+  const maxAxisScore = chartData.length > 0 && Math.max(...validScores) > 12 ? 20 : 12;
+  const gridSteps = maxAxisScore === 20 ? [0, 5, 10, 15, 20] : [0, 3, 6, 9, 12];
+
   const points = chartData.map((d, i) => {
     const x = xPadding + (chartData.length > 1 ? (i * plotWidth / (chartData.length - 1)) : plotWidth / 2);
-    const y = height - yPadding - (d.score * plotHeight / 12); // score out of 12 max
-    return { x, y, score: d.score, label: d.label, xp: d.xp };
+    const y = height - yPadding - ((Number(d.score) || 0) * plotHeight / maxAxisScore); // Dynamic max with fallback
+    return { x, y, score: Number(d.score) || 0, label: d.label, xp: d.xp };
   });
 
   const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
@@ -693,8 +697,8 @@ const DashboardPage = () => {
                   </defs>
 
                   {/* Horizontal Gridlines */}
-                  {[0, 3, 6, 9, 12].map(scoreVal => {
-                    const yVal = height - yPadding - (scoreVal * plotHeight / 12);
+                  {gridSteps.map(scoreVal => {
+                    const yVal = height - yPadding - (scoreVal * plotHeight / maxAxisScore);
                     return (
                       <g key={scoreVal}>
                         <line x1={xPadding} y1={yVal} x2={width - xPadding} y2={yVal} stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
@@ -1482,6 +1486,14 @@ const DashboardPage = () => {
         id: `hard_${lang}`, title: `Master (${lang.charAt(0).toUpperCase()+lang.slice(1)})`, desc: 'Completed advanced comprehension challenges.', icon: '👑', color: '#eab308',
         unlocked: prog.hardCompleted >= 3
       });
+      badges.push({
+        id: `focus_${lang}`, title: `Focus Scholar (${lang.charAt(0).toUpperCase()+lang.slice(1)})`, desc: 'Passed 4 Focus Area Quizzes.', icon: '🎯', color: '#ec4899',
+        unlocked: prog.focusCompleted >= 4
+      });
+      badges.push({
+        id: `pronunciation_${lang}`, title: `Pronunciation Master (${lang.charAt(0).toUpperCase()+lang.slice(1)})`, desc: '80% accuracy in Pronunciation.', icon: '🎙️', color: '#8b5cf6',
+        unlocked: prog.badges?.includes('Pronunciation Master') || false
+      });
     });
 
     // 2. Goal/Streak Badges (mocked logic based on session/history)
@@ -1503,7 +1515,18 @@ const DashboardPage = () => {
           {badges.map(b => (
             <div 
               key={b.id}
-              onClick={() => b.unlocked ? setShareBadgeModal(b) : null}
+              onClick={(e) => {
+                if (b.unlocked) {
+                  setShareBadgeModal(b);
+                  confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    zIndex: 20000,
+                    colors: [b.color, '#ffffff', '#facc15']
+                  });
+                }
+              }}
               style={{
                 background: b.unlocked ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.01)',
                 border: `1px solid ${b.unlocked ? b.color + '40' : 'rgba(255,255,255,0.05)'}`,
@@ -1902,6 +1925,10 @@ const DashboardPage = () => {
                         key={notif._id}
                         onClick={() => {
                           if (!notif.isRead) handleMarkNotificationAsRead(notif._id);
+                          if (notif.title?.includes('Badge')) {
+                            setActiveTab('achievements');
+                            setShowNotificationsDropdown(false);
+                          }
                         }}
                         style={{
                           padding: '16px',

@@ -26,7 +26,8 @@ const BADGES = [
   { id: 'easy', icon: '🎖️', name: 'Easy Explorer', desc: 'Completed Easy Basics', color: '#12d15e', bg: 'rgba(18,209,94,0.15)', level: 'easy' },
   { id: 'intermediate', icon: '🏆', name: 'Inter Scholar', desc: 'Completed Intermediate', color: '#a855f7', bg: 'rgba(168,85,247,0.15)', level: 'intermediate' },
   { id: 'star', icon: '⭐', name: 'Language Star', desc: 'Mastered all 3 Hard Quizzes', color: '#facc15', bg: 'rgba(250,204,21,0.15)', level: 'hard' },
-  { id: 'focus', icon: '🎯', name: 'Focus Master', desc: 'Completed a Focus Area Quiz', color: '#ec4899', bg: 'rgba(236,72,153,0.15)', level: 'focus' },
+  { id: 'focus', icon: '🎯', name: 'Focus Scholar', desc: 'Passed 4 Focus Area Quizzes', color: '#ec4899', bg: 'rgba(236,72,153,0.15)', level: 'focus' },
+  { id: 'pronunciation', icon: '🎙️', name: 'Pronunciation Master', desc: '80% accuracy in Pronunciation', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)', level: 'pronunciation' },
 ];
 
 const LessonsPage = () => {
@@ -228,6 +229,20 @@ const LessonsPage = () => {
       if (levelParam) { setQuizLevel(levelParam); startLesson(langParam, undefined, levelParam); }
     }
   }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (view === 'quiz') {
+        const message = 'You have a quiz in progress. Are you sure you want to leave? Your progress will be lost.';
+        e.preventDefault();
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [view]);
 
   const startLesson = async (overrideLang?: any, songIdParam?: string, levelParam?: string) => {
     const activeLang = (typeof overrideLang === 'string' ? overrideLang : null) || language;
@@ -639,7 +654,8 @@ const LessonsPage = () => {
                           const earned = i === 0 ? prog.easyCompleted >= 1 
                                      : i === 1 ? prog.intermediateCompleted >= 2 
                                      : i === 2 ? prog.hardCompleted >= 3 
-                                     : prog.focusCompleted >= 1;
+                                     : i === 3 ? prog.focusCompleted >= 4
+                                     : prog.badges?.includes('Pronunciation Master');
                           return (
                             <span key={b.id} title={b.name} style={{ 
                               fontSize: '14px', 
