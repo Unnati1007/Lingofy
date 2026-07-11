@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
@@ -24,7 +24,7 @@ export function LearningFocusDistribution({ history }: { history: any[] }) {
   // The original sorted by count, so we will still sort them, but zeroes stay at the bottom.
   data.sort((a,b) => b.count - a.count);
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -32,7 +32,7 @@ export function LearningFocusDistribution({ history }: { history: any[] }) {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
     show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };
