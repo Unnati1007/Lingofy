@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, type Variants } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Headphones } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Headphones, ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -25,6 +26,7 @@ interface ITrack {
 }
 
 export function MindfulListeningPage() {
+  const navigate = useNavigate();
   const [tracks, setTracks] = useState<ITrack[]>([]);
   const [activeTrack, setActiveTrack] = useState<ITrack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -165,14 +167,41 @@ export function MindfulListeningPage() {
   };
 
   return (
-    <div style={{ padding: '40px', minHeight: '100vh', background: 'linear-gradient(to bottom, #09090b, #18181b)' }}>
+    <div style={{ padding: '24px 40px', height: '100vh', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000000', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* Header with Back Button */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', maxWidth: '1200px', width: '100%', margin: '0 auto 16px auto' }}>
+        <button 
+          onClick={() => navigate(-1)}
+          style={{ 
+            background: 'rgba(255,255,255,0.05)', 
+            border: '1px solid rgba(255,255,255,0.1)', 
+            color: '#fff', 
+            borderRadius: '12px', 
+            padding: '10px 16px', 
+            cursor: 'pointer', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            fontSize: '14px',
+            fontWeight: '600',
+            transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+        >
+          <ArrowLeft size={18} />
+          Back
+        </button>
+      </div>
+
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        style={{ maxWidth: '1000px', margin: '0 auto' }}
+        style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px', flexShrink: 0 }}>
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -181,19 +210,20 @@ export function MindfulListeningPage() {
               display: 'inline-flex', 
               alignItems: 'center', 
               justifyContent: 'center', 
-              width: '64px', 
-              height: '64px', 
+              width: '56px', 
+              height: '56px', 
               borderRadius: '50%', 
-              background: 'rgba(255, 255, 255, 0.03)', 
-              marginBottom: '20px' 
+              background: 'rgba(18, 209, 94, 0.1)', 
+              color: '#12d15e',
+              marginBottom: '16px' 
             }}
           >
-            <Headphones size={32} color="rgba(255,255,255,0.7)" />
+            <Headphones size={28} />
           </motion.div>
-          <h1 style={{ fontSize: '32px', fontWeight: '300', letterSpacing: '2px', color: '#fff', marginBottom: '16px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '1px', color: '#fff', marginBottom: '12px' }}>
             Mindful Listening
           </h1>
-          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.5)', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6', marginBottom: '24px' }}>
+          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', maxWidth: '600px', margin: '0 auto', lineHeight: '1.5', marginBottom: '20px' }}>
             Immerse yourself in gentle language practice. No scoring, no pressure. Just relax, listen, and let the language flow naturally.
           </p>
 
@@ -217,34 +247,35 @@ export function MindfulListeningPage() {
           </select>
         </div>
 
-        <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '32px', flex: 1, overflow: 'hidden' }}>
           
           {/* Tracks Sidebar */}
-          <motion.div variants={containerVariants} style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h2 style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '8px', fontWeight: '400' }}>Available Tracks</h2>
+          <motion.div variants={containerVariants} className="custom-scrollbar" style={{ flex: '1', minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', paddingRight: '12px' }}>
+            <h2 style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '8px', fontWeight: 'bold' }}>Available Tracks</h2>
             {tracks.map(track => (
               <div 
                 key={track._id}
                 onClick={() => handleTrackChange(track)}
                 style={{
-                  padding: '20px',
+                  padding: '16px',
                   borderRadius: '16px',
-                  background: activeTrack?._id === track._id ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)',
-                  border: activeTrack?._id === track._id ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
+                  background: activeTrack?._id === track._id ? 'rgba(18, 209, 94, 0.1)' : 'rgba(255,255,255,0.02)',
+                  border: activeTrack?._id === track._id ? '1px solid rgba(18, 209, 94, 0.3)' : '1px solid transparent',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
                 }}
               >
-                <div style={{ fontSize: '16px', color: '#fff', marginBottom: '4px' }}>{track.title}</div>
-                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>{track.theme}</div>
+                <div style={{ fontSize: '15px', fontWeight: activeTrack?._id === track._id ? 'bold' : 'normal', color: '#fff', marginBottom: '4px' }}>{track.title}</div>
+                <div style={{ fontSize: '12px', color: activeTrack?._id === track._id ? '#12d15e' : 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>{track.theme}</div>
               </div>
             ))}
           </motion.div>
 
           {/* Player Main Area */}
-          <motion.div variants={containerVariants} style={{ flex: '2', minWidth: '400px' }}>
-            <Card style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', overflow: 'hidden' }}>
-              <CardContent style={{ padding: '40px', display: 'flex', flexDirection: 'column', minHeight: '400px' }}>
+          <motion.div variants={containerVariants} style={{ flex: '2', minWidth: '400px', display: 'flex', flexDirection: 'column' }}>
+            <Card style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardContent style={{ padding: '32px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                 
                 {activeTrack ? (
                   <>
@@ -331,7 +362,7 @@ export function MindfulListeningPage() {
                             width: '64px',
                             height: '64px',
                             borderRadius: '50%',
-                            background: '#fff',
+                            background: '#12d15e',
                             border: 'none',
                             display: 'flex',
                             alignItems: 'center',

@@ -622,21 +622,23 @@ const AdminDashboard = () => {
                           >
                             Notify
                           </button>
-                          <button
-                            onClick={(e) => handleDeleteUser(e, user._id)}
-                            style={{
-                              background: 'rgba(239, 68, 68, 0.1)',
-                              border: '1px solid rgba(239, 68, 68, 0.3)',
-                              color: '#ef4444',
-                              padding: '4px 8px',
-                              borderRadius: '6px',
-                              fontSize: '10px',
-                              fontWeight: 'bold',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Delete
-                          </button>
+                          {user.email !== 'admin123@gmail.com' && (
+                            <button
+                              onClick={(e) => handleDeleteUser(e, user._id)}
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                color: '#ef4444',
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                fontSize: '10px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                         <span style={{ fontSize: '11px', opacity: 0.4 }}>
                           Joined {new Date(user.createdAt).toLocaleDateString()}

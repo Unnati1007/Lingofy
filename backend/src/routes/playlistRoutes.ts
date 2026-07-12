@@ -10,7 +10,15 @@ const router = express.Router();
 router.get("/", protect, async (req: AuthRequest, res) => {
   try {
     const playlists = await Playlist.find({ userId: req.user._id }).sort({ createdAt: -1 });
-    res.status(200).json(playlists);
+    
+    const playlistsWithCount = await Promise.all(
+      playlists.map(async (playlist) => {
+        const count = await PlaylistSong.countDocuments({ playlistId: playlist._id });
+        return { ...playlist.toObject(), songsCount: count };
+      })
+    );
+
+    res.status(200).json(playlistsWithCount);
   } catch (err: any) {
     res.status(500).json({ message: err.message });
   }

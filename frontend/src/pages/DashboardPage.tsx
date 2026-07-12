@@ -156,8 +156,8 @@ const DashboardPage = () => {
             knownLanguages: userData.knownLanguages ? userData.knownLanguages.join(', ') : ''
           });
           
-          // Check if profile is incomplete
-          if (!userData.nativeLanguage || !userData.learningLanguage || !userData.age) {
+          // Check if profile is incomplete (only check critical fields like learningLanguage)
+          if (!userData.learningLanguage) {
             setShowCompleteProfilePopup(true);
           }
 
@@ -472,14 +472,30 @@ const DashboardPage = () => {
 
   // Initialize/Update Player
   useEffect(() => {
+    // DO NOT initialize the player if the page is still loading, 
+    // because the <div id="youtube-player"> does not exist in the DOM yet!
+    if (loading) return;
+
     if (videoId && ytReady && (window as any).YT && (window as any).YT.Player) {
-      if (playerRef.current && playerRef.current.loadVideoById) {
-        playerRef.current.loadVideoById(videoId);
+      const container = document.getElementById('youtube-player');
+      if (!container) return; // Guard: ensure DOM element actually exists
+
+      const isIframe = container.tagName === 'IFRAME';
+      
+      if (playerRef.current && playerRef.current.loadVideoById && isIframe) {
+        if (playerRef.current._isReady) {
+          playerRef.current.loadVideoById(videoId);
+        }
       } else {
+        // Cleanup orphaned player instance (e.g. from StrictMode remount or phantom creation)
+        if (playerRef.current && typeof playerRef.current.destroy === 'function') {
+          try { playerRef.current.destroy(); } catch (e) {}
+        }
+        
         playerRef.current = new (window as any).YT.Player('youtube-player', {
           height: '100%',
           width: '100%',
-          videoId: videoId,
+          videoId: videoId || '',
           playerVars: { 'autoplay': 1, 'controls': 0, 'mute': 0, 'enablejsapi': 1 },
           events: {
             'onStateChange': (event: any) => {
@@ -493,14 +509,19 @@ const DashboardPage = () => {
                 setShowQuizModal(true);
               }
             },
-            'onReady': () => {
+            'onReady': (event: any) => {
               console.log("Player Ready");
+              playerRef.current._isReady = true;
+              // If videoId changed while we were waiting for player to be ready, load it now!
+              if (videoId && event.target && event.target.loadVideoById) {
+                event.target.loadVideoById(videoId);
+              }
             }
           }
         });
       }
     }
-  }, [videoId, ytReady]);
+  }, [videoId, ytReady, loading]);
 
   // Sync currentTime with actual YouTube player
   useEffect(() => {
@@ -511,23 +532,34 @@ const DashboardPage = () => {
           const time = playerRef.current.getCurrentTime();
           setCurrentTime(time);
         } catch (e) { console.error("Sync error", e); }
-      }, 300); // 300ms for ultra-smooth sync
+      }, 50); // 50ms for ultra-smooth sync like Spotify
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
 
   const handlePlayPause = () => {
+    console.log("handlePlayPause clicked, playerRef.current:", playerRef.current);
     if (!playerRef.current || typeof playerRef.current.playVideo !== 'function') {
       console.log("Player not ready yet...");
       return;
     }
     
     const state = playerRef.current.getPlayerState();
-    if (state === (window as any).YT.PlayerState.PLAYING) {
+    console.log("Current player state:", state);
+    if (isPlaying) {
+      console.log("Pausing video...");
       playerRef.current.pauseVideo();
       setIsPlaying(false);
     } else {
-      playerRef.current.playVideo();
+      console.log("Playing video...");
+      // FIX: If the player is stuck in UNSTARTED (-1) or CUED (5) on initial load, playVideo() often fails silently. 
+      // Forcefully loading the video by ID guarantees playback starts, satisfying the initial-click requirement.
+      if ((state === -1 || state === 5) && videoId) {
+        console.log("Player was unstarted/cued. Explicitly loading video:", videoId);
+        playerRef.current.loadVideoById(videoId);
+      } else {
+        playerRef.current.playVideo();
+      }
       setIsPlaying(true);
     }
   };
@@ -1703,7 +1735,9 @@ const DashboardPage = () => {
           boxShadow: '0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(18, 209, 94, 0.15)',
           border: '1px solid rgba(255,255,255,0.12)',
           background: '#000',
-          display: isPlaying && !hideVideo ? 'block' : 'none',
+          opacity: isPlaying && !hideVideo ? 1 : 0,
+          pointerEvents: isPlaying && !hideVideo ? 'auto' : 'none',
+          visibility: isPlaying && !hideVideo ? 'visible' : 'hidden',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
@@ -2475,7 +2509,20 @@ const DashboardPage = () => {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px', maxHeight: '320px', overflowY: 'auto', paddingRight: '12px' }} className="custom-scrollbar">
                     {playlists.map((playlist: any, i: number) => (
-                      <PlaylistCard key={playlist._id} title={playlist.name} color={i % 2 === 0 ? '#3b82f6' : '#10b981'} onClick={() => { setActiveTab('library'); setSelectedPlaylist({ playlist, songs: [] }); fetchPlaylistDetails(playlist._id); }} />
+                      <PlaylistCard 
+                        key={playlist._id} 
+                        title={playlist.title || playlist.name} 
+                        color={i % 2 === 0 ? '#3b82f6' : '#10b981'} 
+                        songsCount={playlist.songsCount !== undefined ? playlist.songsCount : (playlist.songs ? playlist.songs.length : 0)}
+                        onClick={() => { 
+                          if (selectedPlaylist?.playlist?._id === playlist._id) {
+                            setSelectedPlaylist(null); // Toggle off
+                          } else {
+                            setSelectedPlaylist({ playlist, songs: [] }); 
+                            fetchPlaylistDetails(playlist._id); 
+                          }
+                        }} 
+                      />
                     ))}
                   </div>
                 </div>
@@ -2496,17 +2543,37 @@ const DashboardPage = () => {
             </section>
 
             <section>
-              <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '24px' }}>Song Library</h3>
+              <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '24px' }}>
+                {selectedPlaylist ? selectedPlaylist.playlist.name || selectedPlaylist.playlist.title : 'Song Library'}
+              </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '320px', overflowY: 'auto', paddingRight: '12px' }} className="custom-scrollbar">
-                {songs.map((song, idx) => (
+                {selectedPlaylistLoading && <div style={{ opacity: 0.5 }}>Loading playlist...</div>}
+                
+                {/* Playlist View */}
+                {!selectedPlaylistLoading && selectedPlaylist && selectedPlaylist.songs.map((song: any, idx: number) => (
                   <SongItem 
                     key={song._id} 
                     song={song} 
-                    active={currentSongIndex === idx} 
-                    onClick={() => { setCurrentSongIndex(idx); setCurrentTime(0); setIsPlaying(true); setHideVideo(false); }} 
+                    active={currentSong?._id === song._id && queueName === (selectedPlaylist.playlist.name || selectedPlaylist.playlist.title)} 
+                    onClick={() => handlePlaySongFromPlaylist(selectedPlaylist.songs, selectedPlaylist.playlist.name || selectedPlaylist.playlist.title, idx)} 
                   />
                 ))}
-                {songs.length === 0 && <p style={{ opacity: 0.4 }}>No songs in the library yet.</p>}
+                {!selectedPlaylistLoading && selectedPlaylist && selectedPlaylist.songs.length === 0 && (
+                  <p style={{ opacity: 0.4 }}>No songs in this playlist.</p>
+                )}
+
+                {/* Default Library View */}
+                {!selectedPlaylist && songs.map((song, idx) => (
+                  <SongItem 
+                    key={song._id} 
+                    song={song} 
+                    active={currentSongIndex === idx && (queueName === 'Your Library' || !queueName)} 
+                    onClick={() => { handlePlaySongFromPlaylist(songs, 'Your Library', idx); }} 
+                  />
+                ))}
+                {!selectedPlaylist && songs.length === 0 && (
+                  <p style={{ opacity: 0.4 }}>No songs in the library yet.</p>
+                )}
               </div>
             </section>
           </div>
@@ -3128,12 +3195,15 @@ const NavItem = ({ icon, label, active = false, onClick, collapsed = false }: an
   </div>
 );
 
-const PlaylistCard = ({ title, color }: any) => (
-  <div style={{ 
+const PlaylistCard = ({ title, color, songsCount, onClick }: any) => (
+  <div onClick={onClick} style={{ 
     height: '140px', background: `linear-gradient(135deg, ${color}dd 0%, ${color} 100%)`,
-    borderRadius: '20px', padding: '24px', display: 'flex', alignItems: 'flex-end', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer', transition: 'transform 0.2s', position: 'relative', overflow: 'hidden'
+    borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer', transition: 'transform 0.2s', position: 'relative', overflow: 'hidden'
   }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-    <span style={{ zIndex: 1 }}>{title}</span>
+    <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <span>{title}</span>
+      {songsCount !== undefined && <span style={{ fontSize: '13px', fontWeight: 'normal', opacity: 0.8 }}>{songsCount} {songsCount === 1 ? 'song' : 'songs'}</span>}
+    </div>
     <Globe size={80} style={{ position: 'absolute', right: '-15px', bottom: '-15px', opacity: 0.15 }} />
   </div>
 );
