@@ -37,7 +37,7 @@ Experience the live application here: **[Lingofy Live Demo](https://lingofy-seve
 
 ## 🎯 What is Lingofy?
 
-Lingofy is a full-stack web application built as part of an **HCI (Human-Computer Interaction) academic research study**. It teaches users languages (Hindi, Spanish, Korean) through **music-driven immersion**: song playback with synchronized lyrics, vocabulary quizzes generated from those lyrics via AI, and structured learning roadmaps. 
+Lingofy is a full-stack web application built as part of an **HCI (Human-Computer Interaction) academic research study**. It helps users learn languages (Hindi, Spanish, Korean) through **music-driven immersion**: song playback with synchronized lyrics, vocabulary quizzes generated from those lyrics via AI, and structured learning roadmaps. 
 
 Designed primarily for educational researchers, linguists, and students, the platform serves as a vital tool for conducting empirical studies on language acquisition. The motivation behind this project is to bridge the gap between passive music listening and active language learning, transforming a universal hobby into a structured educational methodology.
 
