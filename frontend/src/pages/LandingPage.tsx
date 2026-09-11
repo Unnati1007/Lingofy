@@ -17,12 +17,6 @@ const LandingPage = () => {
             <span style={{ fontWeight: 'bold' }}>Log In</span>
           </Link>
         </div>
-
-        <div style={{ marginTop: '24px' }}>
-          <button style={{ background: 'none', border: 'none', color: '#fff', textDecoration: 'underline', cursor: 'pointer', fontSize: '14px', letterSpacing: '1px' }}>
-            SETTINGS
-          </button>
-        </div>
       </div>
     </div>
   );
