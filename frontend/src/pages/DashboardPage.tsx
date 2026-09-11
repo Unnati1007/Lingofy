@@ -30,10 +30,12 @@ import {
   Copy,
   Check,
   Bell,
-  Headphones
+  Headphones,
+  Bookmark
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LearningFocusDistribution } from '../components/LearningFocusDistribution';
+import NotesHub from '../components/notes/NotesHub';
 
 const SONGS_DATA = [
   { id: 1, title: 'STRUCT', artist: 'UdieNnx', duration: 234, image: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop' },
@@ -61,7 +63,7 @@ const DashboardPage = () => {
   const [modalMode, setModalMode] = useState<'completed' | 'practice'>('practice');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes'>('home');
   const [history, setHistory] = useState<any[]>([]);
 
   // Notification States
@@ -236,10 +238,10 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const tabParam = params.get('tab') as 'home' | 'statistics' | 'library';
+    const tabParam = params.get('tab') as 'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes';
     if (currentUser?.learningMode === 'traditional' && (!tabParam || tabParam === 'home' || tabParam === 'library')) {
       setActiveTab('statistics');
-    } else if (tabParam && ['home', 'statistics', 'library'].includes(tabParam)) {
+    } else if (tabParam && ['home', 'statistics', 'library', 'profile', 'docs', 'achievements', 'notes'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [location.search, currentUser]);
@@ -1875,6 +1877,7 @@ const DashboardPage = () => {
           {currentUser?.learningMode !== 'traditional' && (
             <NavItem icon={<Music size={20} />} label="Library" active={activeTab === 'library'} onClick={() => { setActiveTab('library'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           )}
+          <NavItem icon={<Bookmark size={20} />} label="Notes" active={activeTab === 'notes'} onClick={() => { setActiveTab('notes'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           <NavItem icon={<Award size={20} />} label="Achievements" active={activeTab === 'achievements'} onClick={() => { setActiveTab('achievements'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
           <NavItem icon={<HelpCircle size={20} />} label="Documentation" active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
@@ -2001,7 +2004,9 @@ const DashboardPage = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
-            {activeTab === 'docs' ? renderDocs() : activeTab === 'achievements' ? renderAchievements() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : currentUser?.learningMode !== 'traditional' ? (
+            {activeTab === 'docs' ? renderDocs() : activeTab === 'achievements' ? renderAchievements() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : activeTab === 'notes' ? (
+              <NotesHub currentUser={currentUser} />
+            ) : currentUser?.learningMode !== 'traditional' ? (
               <div style={{ width: '100%', maxWidth: '1200px' }}>
           
           <div className="dashboard-layout-custom" style={{ 

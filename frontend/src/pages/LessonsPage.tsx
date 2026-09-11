@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, BookOpen, Music, BarChart2, Settings, LogOut, ChevronRight, X, Check, XCircle, Menu, ChevronLeft,
-  Zap, Lock, Flame, Target, Award, Mic, HelpCircle, Headphones
+  Zap, Lock, Flame, Target, Award, Mic, HelpCircle, Headphones, Bookmark
 } from 'lucide-react';
 import PronunciationSettingsModal from '../components/learning/PronunciationSettingsModal';
+import ToughWordModal from '../components/notes/ToughWordModal';
 
 type ViewState = 'setup' | 'loading' | 'quiz' | 'hci_form' | 'results';
 type Language = 'hindi' | 'spanish' | 'korean';
@@ -73,6 +74,26 @@ const LessonsPage = () => {
   const [isFlashing, setIsFlashing] = useState<boolean>(false);
   // Ref to always hold latest answers (avoids stale closure in submit)
   const latestAnswersRef = useRef<any[]>([]);
+
+  // Tough Word Bookmark Modal State
+  const [showToughWordModal, setShowToughWordModal] = useState(false);
+  const [toughWordModalData, setToughWordModalData] = useState<any>({
+    word: '',
+    meaning: '',
+    context: '',
+    language: 'spanish'
+  });
+
+  const handleOpenToughWordModal = (customWord?: string, customMeaning?: string, customContext?: string) => {
+    const question = questions[currentQuestionIdx];
+    setToughWordModalData({
+      word: customWord || question?.targetWord || question?.questionText || '',
+      meaning: customMeaning || question?.explanation || question?.correctAnswer || '',
+      context: customContext || question?.sentence || question?.questionText || '',
+      language: language || 'spanish'
+    });
+    setShowToughWordModal(true);
+  };
 
   const startFocusLesson = async () => {
     if (!language) return;
@@ -1105,10 +1126,31 @@ const LessonsPage = () => {
             )}
             
             {question.explanation && (
-              <div style={{ fontSize: '16px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '24px' }}>
+              <div style={{ fontSize: '16px', color: '#9ca3af', fontStyle: 'italic', marginBottom: '16px' }}>
                 Meaning: {question.explanation}
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => handleOpenToughWordModal(targetPhrase, question.explanation, targetPhrase)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(234,179,8,0.1)',
+                border: '1px solid rgba(234,179,8,0.3)',
+                color: '#eab308',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                marginBottom: '24px'
+              }}
+            >
+              <Bookmark size={14} /> Bookmark Phrase as Tough Word
+            </button>
 
             {/* Voice UI Component */}
             <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', marginBottom: '16px' }}>
@@ -1227,10 +1269,33 @@ const LessonsPage = () => {
           </div>
         </div>
 
-        {/* Question type badge */}
-        <div style={{ fontSize: '11px', fontWeight: '800', color: typeColor, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: typeColor }} />
-          {typeLabel}
+        {/* Question type badge & Tough Word Action */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '800', color: typeColor, textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: typeColor }} />
+            {typeLabel}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleOpenToughWordModal(question.targetWord || question.questionText, question.explanation, question.sentence || question.questionText)}
+            style={{
+              background: 'rgba(234, 179, 8, 0.1)',
+              border: '1px solid rgba(234, 179, 8, 0.3)',
+              color: '#eab308',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              fontSize: '11px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Bookmark size={13} /> Bookmark as Tough
+          </button>
         </div>
 
         {/* Question bubble */}
@@ -1335,8 +1400,45 @@ const LessonsPage = () => {
           )}
 
           {isAnswerChecked && (
-            <div style={{ marginTop: '20px', padding: '14px 18px', background: userAnswers[userAnswers.length-1]?.isCorrect ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${userAnswers[userAnswers.length-1]?.isCorrect ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`, borderRadius: '12px', fontSize: '13px', color: '#9ca3af', fontStyle: 'italic', lineHeight: '1.5' }}>
-              💡 {question.explanation}
+            <div style={{
+              marginTop: '20px',
+              padding: '14px 18px',
+              background: userAnswers[userAnswers.length-1]?.isCorrect ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+              border: `1px solid ${userAnswers[userAnswers.length-1]?.isCorrect ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+              borderRadius: '12px',
+              fontSize: '13px',
+              color: '#9ca3af',
+              fontStyle: 'italic',
+              lineHeight: '1.5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
+            }}>
+              <div style={{ flex: 1 }}>
+                💡 {question.explanation}
+              </div>
+              <button
+                type="button"
+                onClick={() => handleOpenToughWordModal(question.targetWord || question.questionText, question.explanation, question.sentence || question.questionText)}
+                style={{
+                  background: 'rgba(234, 179, 8, 0.15)',
+                  border: '1px solid rgba(234, 179, 8, 0.35)',
+                  color: '#facc15',
+                  borderRadius: '8px',
+                  padding: '6px 12px',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
+                }}
+              >
+                <Bookmark size={13} /> Save Word
+              </button>
             </div>
           )}
         </div>
@@ -1498,6 +1600,7 @@ const LessonsPage = () => {
           {currentUser?.learningMode !== 'traditional' && (
             <NavItem icon={<Music size={20} />} label="Library" onClick={() => navigate('/dashboard?tab=library')} collapsed={isSidebarCollapsed} />
           )}
+          <NavItem icon={<Bookmark size={20} />} label="Notes" onClick={() => navigate('/dashboard?tab=notes')} collapsed={isSidebarCollapsed} />
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" onClick={() => navigate('/dashboard?tab=statistics')} collapsed={isSidebarCollapsed} />
           <NavItem icon={<Award size={20} />} label="Achievements" onClick={() => navigate('/dashboard?tab=achievements')} collapsed={isSidebarCollapsed} />
           <NavItem icon={<HelpCircle size={20} />} label="Documentation" onClick={() => navigate('/dashboard?tab=docs')} collapsed={isSidebarCollapsed} />
@@ -1594,6 +1697,17 @@ const LessonsPage = () => {
           pointerEvents: 'none', animation: 'flash-anim 0.3s ease-out'
         }} />
       )}
+
+      {/* Tough Word Bookmark Modal */}
+      <ToughWordModal
+        isOpen={showToughWordModal}
+        onClose={() => setShowToughWordModal(false)}
+        initialWord={toughWordModalData.word}
+        initialMeaning={toughWordModalData.meaning}
+        initialContext={toughWordModalData.context}
+        language={toughWordModalData.language}
+        source="quiz"
+      />
 
       <style>{`
         @keyframes flash-anim {

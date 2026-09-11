@@ -33,6 +33,7 @@ import userRoutes from "./routes/userRoutes";
 import analyticsRoutes from "./routes/analyticsRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import mindfulRoutes from "./routes/mindfulRoutes";
+import noteRoutes from "./routes/noteRoutes";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -43,6 +44,7 @@ app.use("/api/lessons", lessonsRouter);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/mindful-listening", mindfulRoutes);
+app.use("/api/notes", noteRoutes);
 
 
 /*
