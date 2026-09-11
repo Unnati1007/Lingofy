@@ -95,8 +95,8 @@ const PreferencesPage = () => {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <div className="logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '15px' }}>
-            <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '64px', height: '64px', filter: 'drop-shadow(0 0 15px rgba(32, 190, 255, 0.4))' }} />
-            <div className="logo-text" style={{ fontSize: '36px', fontWeight: 800, letterSpacing: '-1px', background: 'linear-gradient(135deg, #fff 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Lingofy</div>
+            <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
+            <div className="logo-text" style={{ fontSize: '36px', fontWeight: 800, letterSpacing: '-1px', background: 'linear-gradient(135deg, #fff 0%, #20BEFF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Lingofy</div>
           </div>
           <p style={{ opacity: 0.6, fontSize: '18px' }}>Personalize your musical language journey</p>
         </div>

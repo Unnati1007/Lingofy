@@ -20,16 +20,11 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: 
-    linear-gradient(
-      to bottom, 
-      rgba(26, 44, 58, 0.4), 
-      rgba(11, 12, 16, 0.7), 
-      rgba(44, 26, 50, 0.9)
-    ),
-    url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=2000&auto=format&fit=crop');
-  background-size: cover;
-  background-position: center;
+  background-color: #08090d;
+  background-image: 
+    radial-gradient(circle at 50% 15%, rgba(32, 190, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(circle at 85% 85%, rgba(138, 43, 226, 0.04) 0%, transparent 45%),
+    linear-gradient(to bottom, #08090d 0%, #050608 100%);
   background-attachment: fixed;
   display: flex;
   flex-direction: column;
@@ -60,22 +55,26 @@ a {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 20px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
 .auth-card {
-  background: linear-gradient(145deg, rgba(20, 20, 28, 0.8) 0%, rgba(10, 10, 14, 0.95) 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(16, 18, 26, 0.85) 0%, rgba(10, 11, 16, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(32, 190, 255, 0.15);
+  border-radius: 24px;
   padding: 40px 32px;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02) inset;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(32, 190, 255, 0.08);
+  position: relative;
+  z-index: 2;
 }
 
 .logo-container {
@@ -83,19 +82,50 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .logo-container img {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
 }
 
 .logo-text {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #20BEFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Sound Wave Equalizer Bars */
+.equalizer-container {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+  padding: 0 4px;
+}
+
+.equalizer-bar {
+  width: 3px;
+  background: #20BEFF;
+  border-radius: 3px;
+  animation: equalizerBounce 1.2s ease-in-out infinite alternate;
+}
+
+.equalizer-bar:nth-child(1) { height: 35%; animation-delay: 0.1s; }
+.equalizer-bar:nth-child(2) { height: 75%; animation-delay: 0.3s; }
+.equalizer-bar:nth-child(3) { height: 100%; animation-delay: 0.0s; }
+.equalizer-bar:nth-child(4) { height: 60%; animation-delay: 0.4s; }
+.equalizer-bar:nth-child(5) { height: 85%; animation-delay: 0.2s; }
+.equalizer-bar:nth-child(6) { height: 40%; animation-delay: 0.5s; }
+
+@keyframes equalizerBounce {
+  0% { transform: scaleY(0.3); opacity: 0.5; }
+  100% { transform: scaleY(1); opacity: 1; filter: drop-shadow(0 0 4px #20BEFF); }
 }
 
 .btn {
