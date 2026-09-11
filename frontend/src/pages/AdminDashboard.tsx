@@ -390,7 +390,7 @@ const AdminDashboard = () => {
     
     const accuracyData = [
       { name: 'Traditional Mode', accuracy: Math.round(analyticsData.traditional.averageAccuracy) || 0, fill: '#ef4444' },
-      { name: 'Music Mode', accuracy: Math.round(analyticsData.music.averageAccuracy) || 0, fill: '#12d15e' }
+      { name: 'Music Mode', accuracy: Math.round(analyticsData.music.averageAccuracy) || 0, fill: '#20BEFF' }
     ];
 
     const engagementData = [
@@ -400,24 +400,24 @@ const AdminDashboard = () => {
 
     const dropoutData = [
       { name: 'Traditional Mode', rate: Math.round(analyticsData.traditional.dropoutRate || 0), fill: '#ef4444' },
-      { name: 'Music Mode', rate: Math.round(analyticsData.music.dropoutRate || 0), fill: '#12d15e' }
+      { name: 'Music Mode', rate: Math.round(analyticsData.music.dropoutRate || 0), fill: '#20BEFF' }
     ];
 
     const timeData = [
       { name: 'Traditional Mode', time: Math.round(analyticsData.traditional.averageTimeSpentSeconds || 0), fill: '#ef4444' },
-      { name: 'Music Mode', time: Math.round(analyticsData.music.averageTimeSpentSeconds || 0), fill: '#12d15e' }
+      { name: 'Music Mode', time: Math.round(analyticsData.music.averageTimeSpentSeconds || 0), fill: '#20BEFF' }
     ];
 
-    const COLORS = ['#ef4444', '#12d15e'];
+    const COLORS = ['#ef4444', '#20BEFF'];
 
     return (
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '4px', background: 'linear-gradient(90deg, #12d15e, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Dashboard Overview</h1>
+            <h1 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '4px', background: 'linear-gradient(90deg, #20BEFF, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Dashboard Overview</h1>
             <p style={{ opacity: 0.6, fontSize: '13px' }}>Welcome back, Admin. Here's a summary of the platform's performance and research metrics.</p>
           </div>
-          <div style={{ padding: '8px 16px', background: 'rgba(18, 209, 94, 0.1)', border: '1px solid rgba(18, 209, 94, 0.2)', borderRadius: '10px', color: '#12d15e', fontWeight: 'bold', fontSize: '13px' }}>
+          <div style={{ padding: '8px 16px', background: 'rgba(32, 190, 255, 0.1)', border: '1px solid rgba(32, 190, 255, 0.2)', borderRadius: '10px', color: '#20BEFF', fontWeight: 'bold', fontSize: '13px' }}>
             Total Users: {users.length}
           </div>
         </div>
@@ -429,9 +429,9 @@ const AdminDashboard = () => {
             <div style={{ fontSize: '36px', fontWeight: '900', color: '#ef4444', filter: 'drop-shadow(0 0 10px rgba(239,68,68,0.3))' }}>{analyticsData.traditional.uniqueUsersCount || 0}</div>
             <p style={{ opacity: 0.7, fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>Active Participants</p>
           </div>
-          <div style={{ background: 'linear-gradient(135deg, rgba(18, 209, 94, 0.15) 0%, rgba(18, 209, 94, 0.05) 100%)', border: '1px solid rgba(18, 209, 94, 0.3)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 20px rgba(18, 209, 94, 0.05)' }}>
-            <h3 style={{ fontSize: '12px', fontWeight: '700', color: '#12d15e', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Music Mode Learners</h3>
-            <div style={{ fontSize: '36px', fontWeight: '900', color: '#12d15e', filter: 'drop-shadow(0 0 10px rgba(18,209,94,0.3))' }}>{analyticsData.music.uniqueUsersCount || 0}</div>
+          <div style={{ background: 'linear-gradient(135deg, rgba(32, 190, 255, 0.15) 0%, rgba(32, 190, 255, 0.05) 100%)', border: '1px solid rgba(32, 190, 255, 0.3)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 20px rgba(32, 190, 255, 0.05)' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Music Mode Learners</h3>
+            <div style={{ fontSize: '36px', fontWeight: '900', color: '#20BEFF', filter: 'drop-shadow(0 0 10px rgba(32,190,255,0.3))' }}>{analyticsData.music.uniqueUsersCount || 0}</div>
             <p style={{ opacity: 0.7, fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>Active Participants</p>
           </div>
         </div>
@@ -578,8 +578,8 @@ const AdminDashboard = () => {
                             fontSize: '10px', 
                             padding: '2px 6px', 
                             borderRadius: '4px', 
-                            background: user.learningMode === 'traditional' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(18, 209, 94, 0.2)',
-                            color: user.learningMode === 'traditional' ? '#3b82f6' : '#12d15e'
+                            background: user.learningMode === 'traditional' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(32, 190, 255, 0.2)',
+                            color: user.learningMode === 'traditional' ? '#3b82f6' : '#20BEFF'
                           }}>
                             {user.learningMode === 'traditional' ? 'Traditional' : 'Music'}
                           </span>
@@ -760,7 +760,7 @@ const AdminDashboard = () => {
                         
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#12d15e' }}>{attempt.score} Correct</div>
+                            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#20BEFF' }}>{attempt.score} Correct</div>
                             <div style={{ fontSize: '10px', color: '#eab308', fontWeight: 'bold' }}>+{attempt.xpEarned} XP</div>
                           </div>
                           <button
@@ -853,12 +853,12 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <button type="submit" disabled={savingProfile} style={{ padding: '16px', borderRadius: '12px', border: 'none', background: '#12d15e', color: '#000', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
+            <button type="submit" disabled={savingProfile} style={{ padding: '16px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
               {savingProfile ? 'Saving...' : 'Save Profile'}
             </button>
 
             {profileSuccessMessage && (
-              <p style={{ color: '#12d15e', fontSize: '14px', textAlign: 'center', marginTop: '10px' }}>{profileSuccessMessage}</p>
+              <p style={{ color: '#20BEFF', fontSize: '14px', textAlign: 'center', marginTop: '10px' }}>{profileSuccessMessage}</p>
             )}
           </form>
 
@@ -868,14 +868,14 @@ const AdminDashboard = () => {
             <p style={{ opacity: 0.6, fontSize: '14px' }}>Change your password by verifying your email via code.</p>
 
             {!resetCodeSent ? (
-              <button onClick={handleRequestPasswordReset} style={{ padding: '12px 24px', borderRadius: '12px', border: '1px solid #12d15e', background: 'transparent', color: '#12d15e', fontWeight: 'bold', cursor: 'pointer' }}>
+              <button onClick={handleRequestPasswordReset} style={{ padding: '12px 24px', borderRadius: '12px', border: '1px solid #20BEFF', background: 'transparent', color: '#20BEFF', fontWeight: 'bold', cursor: 'pointer' }}>
                 Request Password Reset
               </button>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <input type="text" placeholder="Enter 6-digit Code" value={resetCode} onChange={(e) => setResetCode(e.target.value)} style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
                 <input type="password" placeholder="Enter New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
-                <button onClick={handleVerifyAndReset} style={{ padding: '16px', borderRadius: '12px', border: 'none', background: '#12d15e', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>
+                <button onClick={handleVerifyAndReset} style={{ padding: '16px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>
                   Verify & Reset Password
                 </button>
               </div>
@@ -895,8 +895,8 @@ const AdminDashboard = () => {
       {/* Sidebar */}
       <aside style={{ width: '260px', background: '#000', borderRight: '1px solid #18181b', padding: '32px 16px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '0 12px' }}>
-          <div style={{ background: '#12793d', padding: '8px', borderRadius: '10px' }}>
-            <Music size={24} color="#fff" />
+          <div style={{ background: '#20BEFF', padding: '8px', borderRadius: '10px' }}>
+            <Music size={24} color="#000" />
           </div>
           <span style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.5px' }}>Lingofy Admin</span>
         </div>
@@ -972,7 +972,7 @@ const AdminDashboard = () => {
             {suggestionsLoading ? (
               <div style={{ marginBottom: '32px', textAlign: 'center', opacity: 0.5, padding: '24px' }}>Loading smart recommendations...</div>
             ) : songSuggestions.length > 0 && (
-              <div style={{ marginBottom: '32px', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(18, 209, 94, 0.15) 100%)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '24px' }}>
+              <div style={{ marginBottom: '32px', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(32, 190, 255, 0.15) 100%)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '24px' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   ✨ Recommended by User Preferences
                 </h3>
@@ -984,7 +984,7 @@ const AdminDashboard = () => {
                           <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff' }}>{suggestion.title}</h4>
                           <p style={{ fontSize: '12px', opacity: 0.7 }}>{suggestion.artist}</p>
                         </div>
-                        <span style={{ background: '#12d15e', color: '#000', fontSize: '10px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>{suggestion.language}</span>
+                        <span style={{ background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', fontSize: '10px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>{suggestion.language}</span>
                       </div>
                       <p style={{ fontSize: '11px', opacity: 0.5, marginBottom: '16px', fontStyle: 'italic' }}>{suggestion.reason}</p>
                       
@@ -1128,8 +1128,8 @@ const AdminDashboard = () => {
                       padding: '14px', 
                       borderRadius: '12px', 
                       border: 'none', 
-                      background: savedSongId ? '#12793d' : '#fff', 
-                      color: savedSongId ? '#fff' : '#000', 
+                      background: savedSongId ? 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)' : '#fff', 
+                      color: savedSongId ? '#000' : '#000', 
                       fontWeight: '700', 
                       cursor: (isSaving || !!savedSongId) ? 'not-allowed' : 'pointer',
                       display: 'flex',
@@ -1213,7 +1213,7 @@ const AdminDashboard = () => {
           zIndex: 1000,
           animation: 'slideIn 0.3s ease'
         }}>
-          <CheckCircle2 size={20} color="#12793d" />
+          <CheckCircle2 size={20} color="#20BEFF" />
           <span style={{ fontWeight: '600' }}>Song saved successfully!</span>
         </div>
       )}
@@ -1318,18 +1318,18 @@ const AdminDashboard = () => {
                         key={question.id} 
                         style={{
                           background: 'rgba(255,255,255,0.02)',
-                          border: `1px solid ${isCorrect ? 'rgba(18, 209, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)'}`,
+                          border: `1px solid ${isCorrect ? 'rgba(32, 190, 255, 0.15)' : 'rgba(239, 68, 68, 0.15)'}`,
                           borderRadius: '16px',
                           padding: '20px',
                           borderLeftWidth: '5px',
-                          borderLeftColor: isCorrect ? '#12d15e' : '#ef4444'
+                          borderLeftColor: isCorrect ? '#20BEFF' : '#ef4444'
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                           <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'rgba(255,255,255,0.4)' }}>Question {idx + 1}</span>
                           <span style={{
-                            background: isCorrect ? 'rgba(18, 209, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                            color: isCorrect ? '#12d15e' : '#ef4444',
+                            background: isCorrect ? 'rgba(32, 190, 255, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                            color: isCorrect ? '#20BEFF' : '#ef4444',
                             padding: '3px 8px',
                             borderRadius: '6px',
                             fontSize: '11px',
@@ -1363,8 +1363,8 @@ const AdminDashboard = () => {
                             let color = '#fff';
                             
                             if (isCorrectOpt) {
-                              bg = 'rgba(18, 209, 94, 0.1)';
-                              border = '1px solid #12d15e';
+                              bg = 'rgba(32, 190, 255, 0.1)';
+                              border = '1px solid #20BEFF';
                             } else if (isUserSelected && !isCorrect) {
                               bg = 'rgba(239, 68, 68, 0.1)';
                               border = '1px solid #ef4444';
@@ -1373,7 +1373,7 @@ const AdminDashboard = () => {
                             return (
                               <div key={oIdx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderRadius: '10px', background: bg, border: border, color: color, fontSize: '13px' }}>
                                 <span>{opt}</span>
-                                {isCorrectOpt && <span style={{ color: '#12d15e', fontWeight: 'bold', fontSize: '11px' }}>Correct Answer</span>}
+                                {isCorrectOpt && <span style={{ color: '#20BEFF', fontWeight: 'bold', fontSize: '11px' }}>Correct Answer</span>}
                                 {isUserSelected && !isCorrect && <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '11px' }}>User Answer</span>}
                               </div>
                             );

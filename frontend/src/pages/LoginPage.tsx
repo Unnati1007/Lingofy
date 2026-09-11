@@ -59,7 +59,6 @@ const LoginPage = () => {
         if (data.role === 'admin') {
           navigate('/admin');
         } else {
-          // If user already has preferences, go straight to dashboard
           if (data.hasPreferences) {
             navigate('/dashboard');
           } else {
@@ -198,7 +197,7 @@ const LoginPage = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontSize: '12px' }}>
-            <input type="checkbox" id="remember" style={{ accentColor: '#12793d' }} />
+            <input type="checkbox" id="remember" style={{ accentColor: '#20BEFF' }} />
             <label htmlFor="remember" style={{ color: '#ccc' }}>Remember Me</label>
           </div>
 
@@ -210,17 +209,18 @@ const LoginPage = () => {
         <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
           <a href="#" onClick={(e) => { e.preventDefault(); setShowForgotModal(true); setForgotStep(1); setForgotError(''); setForgotMessage(''); }} style={{ fontSize: '13px', color: '#ccc', textDecoration: 'underline' }}>Forgot your Password?</a>
           <div style={{ fontSize: '13px', color: '#ccc' }}>
-            Don't have an account? <span onClick={() => navigate('/signup')} style={{ color: '#12d15e', cursor: 'pointer', fontWeight: 'bold' }}>Register</span>
+            Don't have an account? <span onClick={() => navigate('/signup')} style={{ color: '#20BEFF', cursor: 'pointer', fontWeight: 'bold' }}>Register</span>
           </div>
         </div>
       </motion.div>
+
       {showForgotModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ background: '#1a1a1a', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '400px', border: '1px solid #333' }}>
             <h2 style={{ margin: '0 0 24px 0', fontSize: '24px', fontWeight: 'bold' }}>Reset Password</h2>
             
             {forgotError && <div style={{ color: '#ef4444', marginBottom: '16px', fontSize: '14px' }}>{forgotError}</div>}
-            {forgotMessage && <div style={{ color: '#12d15e', marginBottom: '16px', fontSize: '14px' }}>{forgotMessage}</div>}
+            {forgotMessage && <div style={{ color: '#20BEFF', marginBottom: '16px', fontSize: '14px' }}>{forgotMessage}</div>}
             
             {forgotStep === 1 && (
               <form onSubmit={handleForgotEmail}>

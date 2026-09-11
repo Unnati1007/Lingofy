@@ -144,7 +144,7 @@ export const ToughWordModal: React.FC<ToughWordModalProps> = ({
             borderRadius: '24px',
             width: '100%',
             maxWidth: '520px',
-            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 30px rgba(18, 209, 94, 0.15)',
+            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 30px rgba(32, 190, 255, 0.15)',
             overflow: 'hidden',
             position: 'relative'
           }}
@@ -237,8 +237,8 @@ export const ToughWordModal: React.FC<ToughWordModalProps> = ({
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: 'rgba(34, 197, 94, 0.2)',
-                    color: '#22c55e',
+                    background: 'rgba(32, 190, 255, 0.2)',
+                    color: '#20BEFF',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
@@ -461,7 +461,7 @@ export const ToughWordModal: React.FC<ToughWordModalProps> = ({
                     style={{
                       flex: 2,
                       padding: '12px 20px',
-                      background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)',
+                      background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                       border: 'none',
                       borderRadius: '12px',
                       color: '#000',
@@ -472,7 +472,7 @@ export const ToughWordModal: React.FC<ToughWordModalProps> = ({
                       justifyContent: 'center',
                       gap: '8px',
                       cursor: saving || !word.trim() ? 'not-allowed' : 'pointer',
-                      boxShadow: '0 0 20px rgba(18, 209, 94, 0.3)'
+                      boxShadow: '0 0 20px rgba(32, 190, 255, 0.35)'
                     }}
                   >
                     <Sparkles size={16} />

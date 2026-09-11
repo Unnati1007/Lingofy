@@ -88,14 +88,14 @@ const PreferencesPage = () => {
     }}>
       {/* Background Orbs for Premium Feel */}
       <div style={{ position: 'fixed', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'rgba(138, 43, 226, 0.1)', filter: 'blur(100px)', borderRadius: '50%', zIndex: 0 }}></div>
-      <div style={{ position: 'fixed', bottom: '-10%', right: '-10%', width: '40%', height: '40%', background: 'rgba(18, 121, 61, 0.1)', filter: 'blur(100px)', borderRadius: '50%', zIndex: 0 }}></div>
+      <div style={{ position: 'fixed', bottom: '-10%', right: '-10%', width: '40%', height: '40%', background: 'rgba(32, 190, 255, 0.1)', filter: 'blur(100px)', borderRadius: '50%', zIndex: 0 }}></div>
 
       <div style={{ width: '100%', maxWidth: '900px', position: 'relative', zIndex: 1 }}>
         
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <div className="logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '15px' }}>
-            <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '64px', height: '64px', filter: 'drop-shadow(0 0 15px rgba(18, 121, 61, 0.4))' }} />
+            <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '64px', height: '64px', filter: 'drop-shadow(0 0 15px rgba(32, 190, 255, 0.4))' }} />
             <div className="logo-text" style={{ fontSize: '36px', fontWeight: 800, letterSpacing: '-1px', background: 'linear-gradient(135deg, #fff 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Lingofy</div>
           </div>
           <p style={{ opacity: 0.6, fontSize: '18px' }}>Personalize your musical language journey</p>
@@ -178,8 +178,8 @@ const PreferencesPage = () => {
           marginBottom: '32px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ background: 'rgba(18, 121, 61, 0.2)', padding: '10px', borderRadius: '12px' }}>
-              <Music size={20} color="#12793d" />
+            <div style={{ background: 'rgba(32, 190, 255, 0.2)', padding: '10px', borderRadius: '12px' }}>
+              <Music size={20} color="#20BEFF" />
             </div>
             <h3 style={{ fontSize: '20px', fontWeight: '600' }}>Pick your favorite vibes</h3>
           </div>
@@ -251,7 +251,7 @@ const PreferencesPage = () => {
                     transform: isSelected ? 'translateY(-2px)' : 'translateY(0)'
                   }}
                 >
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isSelected ? '#12793d' : 'rgba(255,255,255,0.3)', transition: 'all 0.2s' }}></div>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isSelected ? '#20BEFF' : 'rgba(255,255,255,0.3)', transition: 'all 0.2s' }}></div>
                   {artist}
                 </button>
               );

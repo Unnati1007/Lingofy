@@ -213,8 +213,8 @@ export function MindfulListeningPage() {
               width: '56px', 
               height: '56px', 
               borderRadius: '50%', 
-              background: 'rgba(18, 209, 94, 0.1)', 
-              color: '#12d15e',
+              background: 'rgba(32, 190, 255, 0.1)', 
+              color: '#20BEFF',
               marginBottom: '16px' 
             }}
           >
@@ -259,15 +259,15 @@ export function MindfulListeningPage() {
                 style={{
                   padding: '16px',
                   borderRadius: '16px',
-                  background: activeTrack?._id === track._id ? 'rgba(18, 209, 94, 0.1)' : 'rgba(255,255,255,0.02)',
-                  border: activeTrack?._id === track._id ? '1px solid rgba(18, 209, 94, 0.3)' : '1px solid transparent',
+                  background: activeTrack?._id === track._id ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.02)',
+                  border: activeTrack?._id === track._id ? '1px solid rgba(32, 190, 255, 0.3)' : '1px solid transparent',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   flexShrink: 0
                 }}
               >
                 <div style={{ fontSize: '15px', fontWeight: activeTrack?._id === track._id ? 'bold' : 'normal', color: '#fff', marginBottom: '4px' }}>{track.title}</div>
-                <div style={{ fontSize: '12px', color: activeTrack?._id === track._id ? '#12d15e' : 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>{track.theme}</div>
+                <div style={{ fontSize: '12px', color: activeTrack?._id === track._id ? '#20BEFF' : 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>{track.theme}</div>
               </div>
             ))}
           </motion.div>
@@ -326,7 +326,7 @@ export function MindfulListeningPage() {
                           onTouchEnd={handleScrubEnd}
                           style={{
                             flex: 1,
-                            accentColor: '#fff',
+                            accentColor: '#20BEFF',
                             height: '4px',
                             background: 'rgba(255,255,255,0.1)',
                             borderRadius: '4px',
@@ -352,7 +352,7 @@ export function MindfulListeningPage() {
                             min="0" max="1" step="0.05" 
                             value={volume} 
                             onChange={(e) => { setVolume(Number(e.target.value)); setIsMuted(false); }}
-                            style={{ width: '80px', accentColor: '#fff', height: '4px' }}
+                            style={{ width: '80px', accentColor: '#20BEFF', height: '4px' }}
                           />
                         </div>
 
@@ -362,14 +362,15 @@ export function MindfulListeningPage() {
                             width: '64px',
                             height: '64px',
                             borderRadius: '50%',
-                            background: '#12d15e',
+                            background: '#20BEFF',
                             border: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
                             color: '#000',
-                            transition: 'transform 0.2s'
+                            transition: 'transform 0.2s',
+                            boxShadow: '0 0 20px rgba(32, 190, 255, 0.4)'
                           }}
                           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                           onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}

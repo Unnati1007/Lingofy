@@ -126,7 +126,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
             borderRadius: '28px',
             width: '100%',
             maxWidth: '560px',
-            boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(18, 209, 94, 0.15)',
+            boxShadow: '0 30px 70px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(32, 190, 255, 0.15)',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column'
@@ -216,14 +216,14 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                     <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase' }}>Reviewed</div>
                   </div>
                   <div style={{
-                    background: 'rgba(34, 197, 94, 0.08)',
-                    border: '1px solid rgba(34, 197, 94, 0.2)',
+                    background: 'rgba(32, 190, 255, 0.08)',
+                    border: '1px solid rgba(32, 190, 255, 0.2)',
                     borderRadius: '16px',
                     padding: '16px 24px',
                     textAlign: 'center'
                   }}>
-                    <div style={{ fontSize: '28px', fontWeight: '900', color: '#22c55e' }}>{masteredCount}</div>
-                    <div style={{ fontSize: '12px', color: 'rgba(34, 197, 94, 0.7)', textTransform: 'uppercase' }}>Marked Mastered</div>
+                    <div style={{ fontSize: '28px', fontWeight: '900', color: '#20BEFF' }}>{masteredCount}</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(32, 190, 255, 0.8)', textTransform: 'uppercase' }}>Marked Mastered</div>
                   </div>
                 </div>
 
@@ -253,7 +253,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                     style={{
                       flex: 1,
                       padding: '14px',
-                      background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)',
+                      background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                       border: 'none',
                       borderRadius: '14px',
                       color: '#000',
@@ -275,7 +275,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                       style={{
                         width: `${((currentIndex + 1) / words.length) * 100}%`,
                         height: '100%',
-                        background: 'linear-gradient(90deg, #12d15e, #22c55e)',
+                        background: 'linear-gradient(90deg, #20BEFF, #0099e6)',
                         borderRadius: '100px',
                         transition: 'width 0.3s ease'
                       }}
@@ -305,8 +305,8 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                       position: 'relative',
                       transformStyle: 'preserve-3d',
                       borderRadius: '24px',
-                      background: isFlipped ? 'rgba(34, 197, 94, 0.06)' : 'rgba(255, 255, 255, 0.03)',
-                      border: `1px solid ${isFlipped ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255, 255, 255, 0.08)'}`,
+                      background: isFlipped ? 'rgba(32, 190, 255, 0.06)' : 'rgba(255, 255, 255, 0.03)',
+                      border: `1px solid ${isFlipped ? 'rgba(32, 190, 255, 0.25)' : 'rgba(255, 255, 255, 0.08)'}`,
                       padding: '28px',
                       boxSizing: 'border-box',
                       display: 'flex',
@@ -338,8 +338,8 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                               fontWeight: '800',
                               padding: '4px 10px',
                               borderRadius: '100px',
-                              background: 'rgba(34, 197, 94, 0.15)',
-                              color: '#22c55e'
+                              background: 'rgba(32, 190, 255, 0.15)',
+                              color: '#20BEFF'
                             }}>
                               🎯 Mastered
                             </span>
@@ -400,7 +400,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                           fontWeight: '800',
                           textTransform: 'uppercase',
                           letterSpacing: '1px',
-                          color: '#22c55e'
+                          color: '#20BEFF'
                         }}>
                           Meaning / Translation
                         </span>
@@ -485,7 +485,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                     style={{
                       flex: 1.2,
                       padding: '14px',
-                      background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)',
+                      background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                       border: 'none',
                       borderRadius: '14px',
                       color: '#000',
@@ -496,7 +496,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                       justifyContent: 'center',
                       gap: '8px',
                       cursor: updating ? 'not-allowed' : 'pointer',
-                      boxShadow: '0 0 15px rgba(18, 209, 94, 0.3)'
+                      boxShadow: '0 0 15px rgba(32, 190, 255, 0.35)'
                     }}
                   >
                     <CheckCircle2 size={16} /> Mastered! 🎯

@@ -10,10 +10,10 @@ const LandingPage = () => {
         </div>
 
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '30px' }}>
-          <Link to="/signup" className="btn btn-outline" style={{ display: 'block', textAlign: 'center', borderColor: '#12793d', color: '#fff', textDecoration: 'none' }}>
+          <Link to="/signup" className="btn btn-outline" style={{ display: 'block', textAlign: 'center', borderColor: '#20BEFF', color: '#fff', textDecoration: 'none' }}>
             <span style={{ fontWeight: 'bold' }}>Sign up for free</span>
           </Link>
-          <Link to="/login" className="btn btn-outline" style={{ display: 'block', textAlign: 'center', color: '#12793d', textDecoration: 'none' }}>
+          <Link to="/login" className="btn btn-outline" style={{ display: 'block', textAlign: 'center', color: '#20BEFF', textDecoration: 'none' }}>
             <span style={{ fontWeight: 'bold' }}>Log In</span>
           </Link>
         </div>

@@ -607,7 +607,7 @@ const DashboardPage = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px', marginBottom: '40px' }}>
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '24px', textAlign: 'center' }}>
             <div style={{ opacity: 0.5, fontSize: '13px', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '8px' }}>Quizzes Attempted</div>
-            <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#12d15e' }}>{totalQuizzes}</div>
+            <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#20BEFF' }}>{totalQuizzes}</div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '24px', textAlign: 'center' }}>
             <div style={{ opacity: 0.5, fontSize: '13px', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '8px' }}>Average Score</div>
@@ -645,9 +645,9 @@ const DashboardPage = () => {
 
           const getColor = (intensity: number) => {
             if (intensity === 0) return 'rgba(255,255,255,0.05)';
-            if (intensity === 1) return 'rgba(18, 209, 94, 0.4)';
-            if (intensity === 2) return 'rgba(18, 209, 94, 0.7)';
-            return 'rgba(18, 209, 94, 1)';
+            if (intensity === 1) return 'rgba(32, 190, 255, 0.4)';
+            if (intensity === 2) return 'rgba(32, 190, 255, 0.7)';
+            return 'rgba(32, 190, 255, 1)';
           };
           
           const monthName = targetDate.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -726,8 +726,8 @@ const DashboardPage = () => {
                 <svg width="100%" height="250" viewBox="0 0 500 250" style={{ overflow: 'visible' }}>
                   <defs>
                     <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#12d15e" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#12d15e" stopOpacity="0.0" />
+                      <stop offset="0%" stopColor="#20BEFF" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#20BEFF" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
 
@@ -751,7 +751,7 @@ const DashboardPage = () => {
                   <path d={areaPath} fill="url(#chart-glow)" />
 
                   {/* Line Chart */}
-                  <polyline points={polylinePoints} fill="none" stroke="#12d15e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 6px rgba(18, 209, 94, 0.4))' }} />
+                  <polyline points={polylinePoints} fill="none" stroke="#20BEFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 6px rgba(32, 190, 255, 0.4))' }} />
 
                   {/* Circular Markers */}
                   {points.map((p, i) => (
@@ -761,7 +761,7 @@ const DashboardPage = () => {
                       cy={p.y} 
                       r="6" 
                       fill="#000" 
-                      stroke="#12d15e" 
+                      stroke="#20BEFF" 
                       strokeWidth="3" 
                       cursor="pointer"
                       style={{ transition: 'r 0.2s' }}
@@ -784,7 +784,7 @@ const DashboardPage = () => {
                     left: `${(activeTooltip.x / 500) * 100}%`,
                     top: `${(activeTooltip.y / 250) * 100 - 25}%`,
                     transform: 'translate(-50%, -100%)',
-                    background: '#12d15e',
+                    background: '#20BEFF',
                     color: '#000',
                     padding: '6px 12px',
                     borderRadius: '8px',
@@ -832,7 +832,7 @@ const DashboardPage = () => {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#12d15e' }}>{attempt.score} Correct</div>
+                          <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#20BEFF' }}>{attempt.score} Correct</div>
                           <div style={{ fontSize: '11px', color: '#eab308', fontWeight: 'bold' }}>+{attempt.xpEarned} XP</div>
                         </div>
                         <button 
@@ -1031,12 +1031,11 @@ const DashboardPage = () => {
           <div>
             <h1 style={{ fontSize: '32px', fontWeight: 'bold', margin: '0 0 8px 0' }}>Your Library</h1>
             <p style={{ opacity: 0.6, margin: 0 }}>Create, manage, and listen to your custom playlists.</p>
-          </div>
-          <button 
+          </div>          <button 
             onClick={() => setShowCreateModal(true)}
             className="btn-hover"
             style={{
-              background: 'linear-gradient(135deg, #12d15e 0%, #0bb04c 100%)',
+              background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
               color: '#000',
               border: 'none',
               padding: '12px 24px',
@@ -1046,7 +1045,7 @@ const DashboardPage = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: '0 10px 20px rgba(18, 209, 94, 0.15)'
+              boxShadow: '0 10px 20px rgba(32, 190, 255, 0.2)'
             }}
           >
             <Plus size={16} /> Create Playlist
@@ -1058,7 +1057,7 @@ const DashboardPage = () => {
           {/* Playlists Sidebar */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '24px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <ListMusic size={18} color="#12d15e" /> My Playlists
+              <ListMusic size={18} color="#20BEFF" /> My Playlists
             </h3>
 
             {playlistsLoading ? (
@@ -1081,7 +1080,7 @@ const DashboardPage = () => {
 
                   return (
                     <div 
-                      key={playlist._id}
+                      key={playlist._id} 
                       onClick={() => fetchPlaylistDetails(playlist._id)}
                       className="btn-hover"
                       style={{
@@ -1090,8 +1089,8 @@ const DashboardPage = () => {
                         justifyContent: 'space-between',
                         padding: '16px',
                         borderRadius: '16px',
-                        background: isSelected ? 'rgba(18, 209, 94, 0.08)' : 'rgba(255,255,255,0.02)',
-                        border: `1px solid ${isSelected ? '#12d15e' : 'rgba(255,255,255,0.04)'}`,
+                        background: isSelected ? 'rgba(32, 190, 255, 0.08)' : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${isSelected ? '#20BEFF' : 'rgba(255,255,255,0.04)'}`,
                         cursor: 'pointer',
                         transition: 'all 0.2s'
                       }}
@@ -1101,16 +1100,16 @@ const DashboardPage = () => {
                           width: '40px', 
                           height: '40px', 
                           borderRadius: '10px', 
-                          background: isSelected ? 'rgba(18, 209, 94, 0.15)' : 'rgba(255,255,255,0.05)',
+                          background: isSelected ? 'rgba(32, 190, 255, 0.15)' : 'rgba(255,255,255,0.05)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: isSelected ? '#12d15e' : '#fff'
+                          color: isSelected ? '#20BEFF' : '#fff'
                         }}>
                           <Music size={18} />
                         </div>
                         <div>
-                          <div style={{ fontSize: '14px', fontWeight: 'bold', color: isSelected ? '#12d15e' : '#fff' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 'bold', color: isSelected ? '#20BEFF' : '#fff' }}>
                             {playlist.title}
                           </div>
                           <div style={{ fontSize: '11px', opacity: 0.4, marginTop: '2px' }}>
@@ -1118,7 +1117,7 @@ const DashboardPage = () => {
                           </div>
                         </div>
                       </div>
-                      <ChevronRight size={16} opacity={isSelected ? 1 : 0.4} color={isSelected ? '#12d15e' : '#fff'} />
+                      <ChevronRight size={16} opacity={isSelected ? 1 : 0.4} color={isSelected ? '#20BEFF' : '#fff'} />
                     </div>
                   );
                 })}
@@ -1147,7 +1146,7 @@ const DashboardPage = () => {
                       onClick={() => handlePlayPlaylist(selectedPlaylist.songs, selectedPlaylist.playlist.title)}
                       className="btn-hover"
                       style={{
-                        background: '#12d15e',
+                        background: '#20BEFF',
                         color: '#000',
                         border: 'none',
                         padding: '10px 20px',
@@ -1211,7 +1210,7 @@ const DashboardPage = () => {
                                 <img src={song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Song" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               </div>
                               <div>
-                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: isCurrentPlayingSong ? '#12d15e' : '#fff' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: isCurrentPlayingSong ? '#20BEFF' : '#fff' }}>
                                   {song.title}
                                 </div>
                                 <div style={{ fontSize: '12px', opacity: 0.5 }}>{song.artistName}</div>
@@ -1222,9 +1221,9 @@ const DashboardPage = () => {
                               <button 
                                 onClick={() => handlePlaySongFromPlaylist(selectedPlaylist.songs, selectedPlaylist.playlist.title, index)}
                                 style={{
-                                  background: isCurrentPlayingSong ? 'rgba(18, 209, 94, 0.1)' : 'rgba(255,255,255,0.05)',
+                                  background: isCurrentPlayingSong ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.05)',
                                   border: 'none',
-                                  color: isCurrentPlayingSong ? '#12d15e' : '#fff',
+                                  color: isCurrentPlayingSong ? '#20BEFF' : '#fff',
                                   padding: '8px 14px',
                                   borderRadius: '8px',
                                   fontSize: '11px',
@@ -1314,9 +1313,9 @@ const DashboardPage = () => {
                             disabled={isAlreadyIn}
                             onClick={() => handleAddSongToPlaylist(song._id)}
                             style={{
-                              background: isAlreadyIn ? 'rgba(255,255,255,0.05)' : 'rgba(18, 209, 94, 0.1)',
+                              background: isAlreadyIn ? 'rgba(255,255,255,0.05)' : 'rgba(32, 190, 255, 0.1)',
                               border: 'none',
-                              color: isAlreadyIn ? 'rgba(255,255,255,0.3)' : '#12d15e',
+                              color: isAlreadyIn ? 'rgba(255,255,255,0.3)' : '#20BEFF',
                               padding: '6px 12px',
                               borderRadius: '8px',
                               fontSize: '11px',
@@ -1351,7 +1350,7 @@ const DashboardPage = () => {
     return (
       <div style={{ padding: '32px', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '56px', marginTop: '24px' }}>
-          <h2 style={{ fontSize: '42px', fontWeight: '900', marginBottom: '16px', background: 'linear-gradient(135deg, #fff 0%, #12d15e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-1px' }}>Welcome to Lingofy</h2>
+          <h2 style={{ fontSize: '42px', fontWeight: '900', marginBottom: '16px', background: 'linear-gradient(135deg, #fff 0%, #20BEFF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-1px' }}>Welcome to Lingofy</h2>
           <p style={{ opacity: 0.8, fontSize: '18px', maxWidth: '700px', margin: '0 auto', lineHeight: '1.6' }}>
             Lingofy is a revolutionary music-integrated language learning platform. 
             We combine the emotional engagement of music with structured learning to help you master languages naturally and intuitively!
@@ -1364,8 +1363,8 @@ const DashboardPage = () => {
             <span style={{ fontSize: '28px' }}>✨</span> Why Lingofy Works
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            <div className="doc-card" style={{ background: 'linear-gradient(135deg, rgba(18, 209, 94, 0.08) 0%, rgba(0,0,0,0) 100%)', border: '1px solid rgba(18, 209, 94, 0.2)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', cursor: 'default' }}>
-              <div style={{ background: '#12d15e', color: '#000', width: '48px', height: '48px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', boxShadow: '0 8px 16px rgba(18, 209, 94, 0.3)' }}><Music size={24} /></div>
+            <div className="doc-card" style={{ background: 'linear-gradient(135deg, rgba(32, 190, 255, 0.08) 0%, rgba(0,0,0,0) 100%)', border: '1px solid rgba(32, 190, 255, 0.2)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', cursor: 'default' }}>
+              <div style={{ background: '#20BEFF', color: '#000', width: '48px', height: '48px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', boxShadow: '0 8px 16px rgba(32, 190, 255, 0.3)' }}><Music size={24} /></div>
               <h4 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>Music-Driven Immersion</h4>
               <p style={{ opacity: 0.7, fontSize: '14px', lineHeight: '1.6' }}>Learn through rhythm and melody. Music engages multiple areas of the brain, making vocabulary retention significantly faster and more enjoyable than traditional flashcards.</p>
             </div>
@@ -1390,9 +1389,9 @@ const DashboardPage = () => {
               <div style={{ position: 'absolute', left: '23px', top: '24px', bottom: '24px', width: '2px', background: 'rgba(255,255,255,0.05)', zIndex: 0 }}></div>
               
               <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
-                <div style={{ background: 'rgba(18, 209, 94, 0.15)', color: '#12d15e', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold', flexShrink: 0, border: '4px solid #14141c' }}>1</div>
+                <div style={{ background: 'rgba(32, 190, 255, 0.15)', color: '#20BEFF', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold', flexShrink: 0, border: '4px solid #14141c' }}>1</div>
                 <div style={{ paddingTop: '8px' }}>
-                  <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#12d15e', marginBottom: '8px' }}>Easy Tier (Vocabulary)</h4>
+                  <h4 style={{ fontSize: '18px', fontWeight: 'bold', color: '#20BEFF', marginBottom: '8px' }}>Easy Tier (Vocabulary)</h4>
                   <p style={{ opacity: 0.6, fontSize: '14px', lineHeight: '1.6' }}>Focuses on extracting single target words from a song. You will learn basic nouns, verbs, and adjectives by hearing them directly in the lyrics.</p>
                 </div>
               </div>
@@ -1449,9 +1448,9 @@ const DashboardPage = () => {
               We don't just track your scores; we analyze your learning behavior. Head over to the <strong>Statistics</strong> tab to explore:
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '16px', borderLeft: '4px solid #12d15e' }}>
-                <h4 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#12d15e' }}>Activity Streak Heatmap</h4>
-                <p style={{ opacity: 0.7, fontSize: '14px', margin: 0, lineHeight: '1.5' }}>Similar to GitHub contributions, this visual grid shows your daily activity. The brighter the green, the more quizzes you've completed that day! Keep your streak alive to build strong habits.</p>
+              <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '16px', borderLeft: '4px solid #20BEFF' }}>
+                <h4 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#20BEFF' }}>Activity Streak Heatmap</h4>
+                <p style={{ opacity: 0.7, fontSize: '14px', margin: 0, lineHeight: '1.5' }}>Similar to GitHub contributions, this visual grid shows your daily activity. The brighter the blue, the more quizzes you've completed that day! Keep your streak alive to build strong habits.</p>
               </div>
               <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '16px', borderLeft: '4px solid #3b82f6' }}>
                 <h4 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#3b82f6' }}>Interactive Score Trends</h4>
@@ -1514,7 +1513,7 @@ const DashboardPage = () => {
         unlocked: prog.easyCompleted >= 1
       });
       badges.push({
-        id: `inter_${lang}`, title: `Scholar (${lang.charAt(0).toUpperCase()+lang.slice(1)})`, desc: 'Mastered intermediate sentence structures.', icon: '🏆', color: '#12d15e',
+        id: `inter_${lang}`, title: `Scholar (${lang.charAt(0).toUpperCase()+lang.slice(1)})`, desc: 'Mastered intermediate sentence structures.', icon: '🏆', color: '#20BEFF',
         unlocked: prog.intermediateCompleted >= 2
       });
       badges.push({
@@ -1684,9 +1683,9 @@ const DashboardPage = () => {
                 <div
                   key={lvl}
                   style={{
-                    flex: 1, padding: '10px', borderRadius: '10px', border: `1px solid ${profileForm.proficiency === lvl ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
-                    background: profileForm.proficiency === lvl ? 'rgba(18, 209, 94, 0.1)' : 'rgba(255,255,255,0.02)',
-                    color: profileForm.proficiency === lvl ? '#12d15e' : 'rgba(255,255,255,0.5)', fontWeight: 'bold', textAlign: 'center', transition: 'all 0.2s', textTransform: 'capitalize',
+                    flex: 1, padding: '10px', borderRadius: '10px', border: `1px solid ${profileForm.proficiency === lvl ? '#20BEFF' : 'rgba(255,255,255,0.1)'}`,
+                    background: profileForm.proficiency === lvl ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.02)',
+                    color: profileForm.proficiency === lvl ? '#20BEFF' : 'rgba(255,255,255,0.5)', fontWeight: 'bold', textAlign: 'center', transition: 'all 0.2s', textTransform: 'capitalize',
                     cursor: 'not-allowed'
                   }}
                 >{lvl}</div>
@@ -1695,8 +1694,8 @@ const DashboardPage = () => {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
-            {profileSuccessMessage && <span style={{ color: '#12d15e', fontSize: '13px', fontWeight: 'bold' }}>{profileSuccessMessage}</span>}
-            <button type="submit" disabled={savingProfile} className="btn-hover" style={{ background: '#12d15e', color: '#000', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: '800', cursor: savingProfile ? 'not-allowed' : 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
+            {profileSuccessMessage && <span style={{ color: '#20BEFF', fontSize: '13px', fontWeight: 'bold' }}>{profileSuccessMessage}</span>}
+            <button type="submit" disabled={savingProfile} className="btn-hover" style={{ background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: '800', cursor: savingProfile ? 'not-allowed' : 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
               {savingProfile ? 'Saving...' : 'Save Profile'}
             </button>
           </div>
@@ -1734,7 +1733,7 @@ const DashboardPage = () => {
           borderRadius: '20px',
           overflow: 'hidden', 
           zIndex: 1000,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(18, 209, 94, 0.15)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(32, 190, 255, 0.15)',
           border: '1px solid rgba(255,255,255,0.12)',
           background: '#000',
           opacity: isPlaying && !hideVideo ? 1 : 0,
@@ -2081,7 +2080,7 @@ const DashboardPage = () => {
                           </p>
                         </div>
                       </div>
-                      <div style={{ background: '#12d15e', color: '#000', padding: '4px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: 'bold' }}>
+                      <div style={{ background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', padding: '4px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: 'bold' }}>
                         {activeCardLanguage === 'hindi' ? 'N3' : activeCardLanguage === 'spanish' ? 'A2' : 'TOPIK 2'}
                       </div>
                     </div>
@@ -2096,17 +2095,17 @@ const DashboardPage = () => {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', flex: 1 }}>
                           {/* Connector Line behind steps */}
                           <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', height: '2px', background: 'rgba(255,255,255,0.08)', zIndex: 1 }}>
-                            <div style={{ width: `${(totalCompleted / 5) * 100}%`, height: '100%', background: '#12d15e', transition: 'width 0.5s ease' }}></div>
+                            <div style={{ width: `${(totalCompleted / 5) * 100}%`, height: '100%', background: '#20BEFF', transition: 'width 0.5s ease' }}></div>
                           </div>
 
                           {/* Step 1: Easy */}
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
                             <div style={{ 
                               width: '30px', height: '30px', borderRadius: '50%', 
-                              background: isEasyPassed ? '#12d15e' : (progressObj.currentStage === 'easy' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
-                              border: `2px solid ${isEasyPassed || progressObj.currentStage === 'easy' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
+                              background: isEasyPassed ? '#20BEFF' : (progressObj.currentStage === 'easy' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
+                              border: `2px solid ${isEasyPassed || progressObj.currentStage === 'easy' ? '#20BEFF' : 'rgba(255,255,255,0.1)'}`,
                               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold',
-                              color: isEasyPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'easy' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
+                              color: isEasyPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'easy' ? '0 0 10px rgba(32,190,255,0.4)' : 'none'
                             }}>
                               {isEasyPassed ? '✓' : 'E'}
                             </div>
@@ -2117,10 +2116,10 @@ const DashboardPage = () => {
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
                             <div style={{ 
                               width: '30px', height: '30px', borderRadius: '50%', 
-                              background: isInterPassed ? '#12d15e' : (progressObj.currentStage === 'intermediate' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
-                              border: `2px solid ${isInterPassed || progressObj.currentStage === 'intermediate' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
+                              background: isInterPassed ? '#20BEFF' : (progressObj.currentStage === 'intermediate' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
+                              border: `2px solid ${isInterPassed || progressObj.currentStage === 'intermediate' ? '#20BEFF' : 'rgba(255,255,255,0.1)'}`,
                               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold',
-                              color: isInterPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'intermediate' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
+                              color: isInterPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'intermediate' ? '0 0 10px rgba(32,190,255,0.4)' : 'none'
                             }}>
                               {isInterPassed ? '✓' : 'I'}
                             </div>
@@ -2131,10 +2130,10 @@ const DashboardPage = () => {
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, gap: '4px' }}>
                             <div style={{ 
                               width: '30px', height: '30px', borderRadius: '50%', 
-                              background: isHardPassed ? '#12d15e' : (progressObj.currentStage === 'hard' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
-                              border: `2px solid ${isHardPassed || progressObj.currentStage === 'hard' ? '#12d15e' : 'rgba(255,255,255,0.1)'}`,
+                              background: isHardPassed ? '#20BEFF' : (progressObj.currentStage === 'hard' ? '#1e1e1e' : 'rgba(255,255,255,0.05)'), 
+                              border: `2px solid ${isHardPassed || progressObj.currentStage === 'hard' ? '#20BEFF' : 'rgba(255,255,255,0.1)'}`,
                               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold',
-                              color: isHardPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'hard' ? '0 0 10px rgba(18,209,94,0.4)' : 'none'
+                              color: isHardPassed ? '#000' : '#fff', boxShadow: progressObj.currentStage === 'hard' ? '0 0 10px rgba(32,190,255,0.4)' : 'none'
                             }}>
                               {isHardPassed ? '✓' : `${progressObj.hardCompleted}/3`}
                             </div>
@@ -2166,7 +2165,7 @@ const DashboardPage = () => {
                         <span>{progressPercent}%</span>
                       </div>
                       <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden', marginBottom: '16px' }}>
-                        <div style={{ width: `${progressPercent}%`, height: '100%', background: '#12d15e', transition: 'width 0.5s ease' }}></div>
+                        <div style={{ width: `${progressPercent}%`, height: '100%', background: 'linear-gradient(90deg, #20BEFF, #0099e6)', transition: 'width 0.5s ease' }}></div>
                       </div>
 
                       <button 
@@ -2177,9 +2176,9 @@ const DashboardPage = () => {
                         }}
                         className="btn-hover"
                         style={{ 
-                          width: '100%', background: '#12d15e', color: '#000', border: 'none', padding: '14px', borderRadius: '14px', 
+                          width: '100%', background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', border: 'none', padding: '14px', borderRadius: '14px', 
                           fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer',
-                          fontSize: '14px', boxShadow: '0 4px 12px rgba(18,209,94,0.15)'
+                          fontSize: '14px', boxShadow: '0 4px 12px rgba(32,190,255,0.25)'
                         }}
                       >
                         {progressObj.currentStage === 'completed' 
@@ -2198,7 +2197,7 @@ const DashboardPage = () => {
                 border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '24px' }}>
-                  <div style={{ width: '100px', height: '100px', borderRadius: '16px', background: '#333', overflow: 'hidden', boxShadow: isPlaying ? '0 0 20px rgba(18, 209, 94, 0.3)' : 'none', transition: 'all 0.5s', flexShrink: 0 }}>
+                  <div style={{ width: '100px', height: '100px', borderRadius: '16px', background: '#333', overflow: 'hidden', boxShadow: isPlaying ? '0 0 20px rgba(32, 190, 255, 0.3)' : 'none', transition: 'all 0.5s', flexShrink: 0 }}>
                     <img src={currentSong.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Album" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: isPlaying ? 'scale(1.05)' : 'scale(1)', transition: 'all 0.5s' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -2206,7 +2205,7 @@ const DashboardPage = () => {
                     <p style={{ opacity: 0.6, margin: '0 0 12px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentSong.artistName || currentSong.artist}</p>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
                        <div style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '10px' }}>HQ AUDIO</div>
-                       <div style={{ background: 'rgba(18, 209, 94, 0.2)', color: '#12d15e', padding: '4px 8px', borderRadius: '4px', fontSize: '10px' }}>LYRICS</div>
+                       <div style={{ background: 'rgba(32, 190, 255, 0.15)', color: '#20BEFF', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>LYRICS</div>
                        {currentSong?._id && (
                          <button 
                            onClick={() => {
@@ -2215,9 +2214,9 @@ const DashboardPage = () => {
                            }}
                            className="btn-hover"
                            style={{ 
-                             background: 'rgba(18, 209, 94, 0.1)', 
-                             color: '#12d15e', 
-                             border: '1px solid rgba(18, 209, 94, 0.3)', 
+                             background: 'rgba(32, 190, 255, 0.1)', 
+                             color: '#20BEFF', 
+                             border: '1px solid rgba(32, 190, 255, 0.3)', 
                              padding: '4px 10px', 
                              borderRadius: '6px', 
                              fontSize: '11px', 
@@ -2242,7 +2241,7 @@ const DashboardPage = () => {
                     <div style={{ position: 'relative', width: '100%', height: '6px', marginBottom: '12px' }}>
                       {/* Visual Bar */}
                       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', pointerEvents: 'none' }}>
-                        <div style={{ width: `${(currentTime / (currentSong.durationSeconds || 180)) * 100}%`, height: '100%', background: '#12d15e', borderRadius: '4px', position: 'relative' }}>
+                        <div style={{ width: `${(currentTime / (currentSong.durationSeconds || 180)) * 100}%`, height: '100%', background: 'linear-gradient(90deg, #20BEFF, #0099e6)', borderRadius: '4px', position: 'relative' }}>
                           {/* Circle Handle */}
                           <div style={{ position: 'absolute', right: '-6px', top: '50%', transform: 'translateY(-50%)', width: '12px', height: '12px', background: '#fff', borderRadius: '50%', boxShadow: '0 0 6px rgba(0,0,0,0.8)' }}></div>
                         </div>
@@ -2287,7 +2286,7 @@ const DashboardPage = () => {
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '16px', opacity: 0.8 }}>
                     <span style={{ fontSize: '10px', fontWeight: 'bold', opacity: 0.5 }}>SYNC:</span>
                     <button onClick={() => setSyncOffset(prev => prev - 1)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '10px' }}>-1s</button>
-                    <span style={{ color: '#12d15e', fontWeight: 'bold', fontSize: '11px', minWidth: '25px', textAlign: 'center' }}>{syncOffset > 0 ? `+${syncOffset}` : syncOffset}s</span>
+                    <span style={{ color: '#20BEFF', fontWeight: 'bold', fontSize: '11px', minWidth: '25px', textAlign: 'center' }}>{syncOffset > 0 ? `+${syncOffset}` : syncOffset}s</span>
                     <button onClick={() => setSyncOffset(prev => prev + 1)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '10px' }}>+1s</button>
                   </div>
 
@@ -2373,7 +2372,7 @@ const DashboardPage = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Globe size={20} color="#12d15e" />
+                  <Globe size={20} color="#20BEFF" />
                   <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Interactive Lyrics</h3>
                 </div>
                 <span style={{ fontSize: '12px', opacity: 0.5 }}>
@@ -2458,7 +2457,7 @@ const DashboardPage = () => {
                           fontSize: '19px', 
                           fontWeight: '600', 
                           lineHeight: '1.6',
-                          color: isActive ? '#12d15e' : '#ffffff',
+                          color: isActive ? '#20BEFF' : '#ffffff',
                           margin: 0,
                           transition: 'color 0.3s'
                         }}>
@@ -2510,14 +2509,14 @@ const DashboardPage = () => {
                 <div style={{ marginBottom: '40px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <h3 style={{ fontSize: '22px', fontWeight: 'bold' }}>Your Playlists</h3>
-                    <span style={{ fontSize: '14px', color: '#12d15e', cursor: 'pointer' }} onClick={() => setActiveTab('library')}>View Library</span>
+                    <span style={{ fontSize: '14px', color: '#20BEFF', cursor: 'pointer' }} onClick={() => setActiveTab('library')}>View Library</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px', maxHeight: '320px', overflowY: 'auto', paddingRight: '12px' }} className="custom-scrollbar">
                     {playlists.map((playlist: any, i: number) => (
                       <PlaylistCard 
                         key={playlist._id} 
                         title={playlist.title || playlist.name} 
-                        color={i % 2 === 0 ? '#3b82f6' : '#10b981'} 
+                        color={i % 2 === 0 ? '#3b82f6' : '#20BEFF'} 
                         songsCount={playlist.songsCount !== undefined ? playlist.songsCount : (playlist.songs ? playlist.songs.length : 0)}
                         onClick={() => { 
                           if (selectedPlaylist?.playlist?._id === playlist._id) {
@@ -2535,14 +2534,14 @@ const DashboardPage = () => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '22px', fontWeight: 'bold' }}>Suggested for You</h3>
-                <span style={{ fontSize: '14px', color: '#12d15e', cursor: 'pointer' }}>View All</span>
+                <span style={{ fontSize: '14px', color: '#20BEFF', cursor: 'pointer' }}>View All</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px', maxHeight: '320px', overflowY: 'auto', paddingRight: '12px' }} className="custom-scrollbar">
                 {preferences?.favoriteGenres?.map((genre: string, i: number) => (
                   <PlaylistCard key={genre} title={`${genre} Mix`} color={i % 2 === 0 ? '#ff4b82' : '#8a2be2'} />
                 ))}
                 {!preferences?.favoriteGenres?.length && [1,2,3].map(i => (
-                   <PlaylistCard key={i} title={`Discovery Mix ${i}`} color={i === 1 ? '#ff4b82' : i === 2 ? '#12d15e' : '#8a2be2'} />
+                   <PlaylistCard key={i} title={`Discovery Mix ${i}`} color={i === 1 ? '#ff4b82' : i === 2 ? '#20BEFF' : '#8a2be2'} />
                 ))}
               </div>
             </section>
@@ -2612,17 +2611,17 @@ const DashboardPage = () => {
             maxWidth: '500px',
             width: '100%',
             textAlign: 'center',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(18, 209, 94, 0.2)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(32, 190, 255, 0.2)',
             position: 'relative',
             overflow: 'hidden'
           }}>
-            <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'rgba(18, 209, 94, 0.15)', filter: 'blur(50px)', borderRadius: '50%' }}></div>
+            <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'rgba(32, 190, 255, 0.15)', filter: 'blur(50px)', borderRadius: '50%' }}></div>
             
-            <div style={{ display: 'inline-flex', background: 'rgba(18, 209, 94, 0.1)', padding: '16px', borderRadius: '50%', marginBottom: '24px', color: '#12d15e' }}>
+            <div style={{ display: 'inline-flex', background: 'rgba(32, 190, 255, 0.1)', padding: '16px', borderRadius: '50%', marginBottom: '24px', color: '#20BEFF' }}>
               <Music size={40} className="pulse-icon" />
             </div>
             
-            <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '12px', background: 'linear-gradient(135deg, #fff 0%, #12d15e 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '12px', background: 'linear-gradient(135deg, #fff 0%, #20BEFF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               {modalMode === 'completed' ? 'Song Completed! 🎉' : 'Practice Song 🎵'}
             </h2>
             <p style={{ opacity: 0.8, fontSize: '16px', lineHeight: '1.5', marginBottom: '32px' }}>
@@ -2669,7 +2668,7 @@ const DashboardPage = () => {
                   }}
                   className="btn-hover"
                   style={{
-                    background: 'linear-gradient(135deg, #12d15e 0%, #0bb04c 100%)',
+                    background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                     color: '#000',
                     border: 'none',
                     padding: '16px',
@@ -2682,7 +2681,7 @@ const DashboardPage = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 10px 20px rgba(18, 209, 94, 0.2)',
+                    boxShadow: '0 10px 20px rgba(32, 190, 255, 0.2)',
                     transition: 'all 0.2s'
                   }}
                 >
@@ -2799,7 +2798,7 @@ const DashboardPage = () => {
             ) : selectedAttempt ? (
               <>
                 <div style={{ marginBottom: '24px' }}>
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#12d15e', fontWeight: 'bold', letterSpacing: '1px' }}>
+                  <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#20BEFF', fontWeight: 'bold', letterSpacing: '1px' }}>
                     Quiz Review • {selectedAttempt.language}
                   </span>
                   <h2 style={{ fontSize: '24px', fontWeight: '800', marginTop: '6px', marginBottom: '8px' }}>
@@ -2823,18 +2822,18 @@ const DashboardPage = () => {
                         key={question.id} 
                         style={{
                           background: 'rgba(255,255,255,0.02)',
-                          border: `1px solid ${isCorrect ? 'rgba(18, 209, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)'}`,
+                          border: `1px solid ${isCorrect ? 'rgba(32, 190, 255, 0.15)' : 'rgba(239, 68, 68, 0.15)'}`,
                           borderRadius: '16px',
                           padding: '20px',
                           borderLeftWidth: '5px',
-                          borderLeftColor: isCorrect ? '#12d15e' : '#ef4444'
+                          borderLeftColor: isCorrect ? '#20BEFF' : '#ef4444'
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                           <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'rgba(255,255,255,0.4)' }}>Question {idx + 1}</span>
                           <span style={{
-                            background: isCorrect ? 'rgba(18, 209, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                            color: isCorrect ? '#12d15e' : '#ef4444',
+                            background: isCorrect ? 'rgba(32, 190, 255, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                            color: isCorrect ? '#20BEFF' : '#ef4444',
                             padding: '3px 8px',
                             borderRadius: '6px',
                             fontSize: '11px',
@@ -2868,8 +2867,8 @@ const DashboardPage = () => {
                             let color = '#fff';
                             
                             if (isCorrectOpt) {
-                              bg = 'rgba(18, 209, 94, 0.1)';
-                              border = '1px solid #12d15e';
+                              bg = 'rgba(32, 190, 255, 0.1)';
+                              border = '1px solid #20BEFF';
                             } else if (isUserSelected && !isCorrect) {
                               bg = 'rgba(239, 68, 68, 0.1)';
                               border = '1px solid #ef4444';
@@ -2878,7 +2877,7 @@ const DashboardPage = () => {
                             return (
                               <div key={oIdx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderRadius: '10px', background: bg, border: border, color: color, fontSize: '13px' }}>
                                 <span>{opt}</span>
-                                {isCorrectOpt && <span style={{ color: '#12d15e', fontWeight: 'bold', fontSize: '11px' }}>Correct Answer</span>}
+                                {isCorrectOpt && <span style={{ color: '#20BEFF', fontWeight: 'bold', fontSize: '11px' }}>Correct Answer</span>}
                                 {isUserSelected && !isCorrect && <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '11px' }}>Your Answer</span>}
                               </div>
                             );
@@ -2949,7 +2948,7 @@ const DashboardPage = () => {
               <X size={16} />
             </button>
 
-            <div style={{ display: 'inline-flex', background: 'rgba(18, 209, 94, 0.1)', padding: '16px', borderRadius: '50%', marginBottom: '24px', color: '#12d15e' }}>
+            <div style={{ display: 'inline-flex', background: 'rgba(32, 190, 255, 0.1)', padding: '16px', borderRadius: '50%', marginBottom: '24px', color: '#20BEFF' }}>
               <ListMusic size={32} />
             </div>
 
@@ -3003,7 +3002,7 @@ const DashboardPage = () => {
                 className="btn-hover"
                 style={{
                   flex: 1,
-                  background: 'linear-gradient(135deg, #12d15e 0%, #0bb04c 100%)',
+                  background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                   color: '#000',
                   border: 'none',
                   padding: '14px',
@@ -3012,7 +3011,7 @@ const DashboardPage = () => {
                   fontSize: '14px',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  boxShadow: '0 10px 20px rgba(18, 209, 94, 0.15)'
+                  boxShadow: '0 10px 20px rgba(32, 190, 255, 0.25)'
                 }}
               >
                 Create
@@ -3076,8 +3075,8 @@ const DashboardPage = () => {
             exit={{ opacity: 0, y: -50, scale: 0.9 }}
             style={{
               position: 'fixed', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
-              background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)', padding: '16px 24px', borderRadius: '16px',
-              display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 20px 40px rgba(18,209,94,0.4)', color: '#000', fontWeight: 'bold'
+              background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', padding: '16px 24px', borderRadius: '16px',
+              display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 20px 40px rgba(32,190,255,0.35)', color: '#000', fontWeight: 'bold'
             }}
           >
             <div style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '50%', padding: '8px' }}><Check size={24} color="#000" /></div>
@@ -3099,9 +3098,9 @@ const DashboardPage = () => {
         }}>
           <div style={{
             background: 'linear-gradient(135deg, #1e1e30 0%, #0c0c14 100%)',
-            border: '1px solid rgba(18, 209, 94, 0.3)', borderRadius: '28px',
+            border: '1px solid rgba(32, 190, 255, 0.3)', borderRadius: '28px',
             padding: '40px', maxWidth: '400px', width: '100%', textAlign: 'center',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(18, 209, 94, 0.1)', position: 'relative'
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(32, 190, 255, 0.15)', position: 'relative'
           }}>
             <button 
               onClick={() => setShowCompleteProfilePopup(false)}
@@ -3110,8 +3109,8 @@ const DashboardPage = () => {
 
             <div style={{
               width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 24px auto',
-              background: 'rgba(18, 209, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#12d15e', filter: 'drop-shadow(0 0 10px rgba(18, 209, 94, 0.3))'
+              background: 'rgba(32, 190, 255, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#20BEFF', filter: 'drop-shadow(0 0 10px rgba(32, 190, 255, 0.3))'
             }}>
               <Settings size={40} />
             </div>
@@ -3132,7 +3131,7 @@ const DashboardPage = () => {
               <button 
                 onClick={() => { setShowCompleteProfilePopup(false); setActiveTab('profile'); }} 
                 className="btn-hover" 
-                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: '#12d15e', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}
               >
                 Complete Now
               </button>
@@ -3171,13 +3170,13 @@ const DashboardPage = () => {
           .content-grid-desktop { grid-template-columns: 1fr !important; }
         }
         .btn-hover:hover { filter: brightness(1.1); transform: translateY(-2px); }
-        .control-icon:hover { color: #12d15e; transform: scale(1.1); }
+        .control-icon:hover { color: #20BEFF; transform: scale(1.1); }
         .control-icon { transition: all 0.2s; }
         .loader { font-size: 24px; font-weight: 800; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
         .mini-video-player:hover {
           transform: translateY(-4px) scale(1.02);
-          box-shadow: 0 25px 50px rgba(0,0,0,0.7), 0 0 25px rgba(18, 209, 94, 0.25) !important;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.7), 0 0 25px rgba(32, 190, 255, 0.25) !important;
         }
         .video-close-btn:hover {
           background: #ef4444 !important;
@@ -3192,8 +3191,8 @@ const DashboardPage = () => {
 const NavItem = ({ icon, label, active = false, onClick, collapsed = false }: any) => (
   <div onClick={onClick} style={{ 
     display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '16px', padding: '12px 16px', borderRadius: '12px', 
-    background: active ? 'rgba(18, 209, 94, 0.1)' : 'transparent',
-    color: active ? '#12d15e' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: active ? '700' : '500',
+    background: active ? 'rgba(32, 190, 255, 0.1)' : 'transparent',
+    color: active ? '#20BEFF' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: active ? '700' : '500',
     justifyContent: collapsed ? 'center' : 'flex-start'
   }}>
     {icon} {!collapsed && <span>{label}</span>}
@@ -3216,17 +3215,17 @@ const PlaylistCard = ({ title, color, songsCount, onClick }: any) => (
 const SongItem = ({ song, active, onClick }: any) => (
   <div onClick={onClick} style={{ 
     display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', borderRadius: '16px', 
-    background: active ? 'rgba(18, 209, 94, 0.1)' : 'rgba(255,255,255,0.03)', cursor: 'pointer', transition: 'all 0.2s',
-    border: active ? '1px solid rgba(18, 209, 94, 0.3)' : '1px solid transparent'
+    background: active ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.03)', cursor: 'pointer', transition: 'all 0.2s',
+    border: active ? '1px solid rgba(32, 190, 255, 0.3)' : '1px solid transparent'
   }}>
     <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: '#333', overflow: 'hidden' }}>
       <img src={song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Song" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
     </div>
     <div style={{ flex: 1 }}>
-      <div style={{ fontSize: '14px', fontWeight: 'bold', color: active ? '#12d15e' : '#fff' }}>{song.title}</div>
+      <div style={{ fontSize: '14px', fontWeight: 'bold', color: active ? '#20BEFF' : '#fff' }}>{song.title}</div>
       <div style={{ fontSize: '12px', opacity: 0.5 }}>{song.artistName}</div>
     </div>
-    {active ? <Volume2 size={16} color="#12d15e" /> : <Play size={14} fill="#fff" />}
+    {active ? <Volume2 size={16} color="#20BEFF" /> : <Play size={14} fill="#fff" />}
   </div>
 );
 

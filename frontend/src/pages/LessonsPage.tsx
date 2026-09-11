@@ -24,7 +24,7 @@ interface Question {
 }
 
 const BADGES = [
-  { id: 'easy', icon: '🎖️', name: 'Easy Explorer', desc: 'Completed Easy Basics', color: '#12d15e', bg: 'rgba(18,209,94,0.15)', level: 'easy' },
+  { id: 'easy', icon: '🎖️', name: 'Easy Explorer', desc: 'Completed Easy Basics', color: '#20BEFF', bg: 'rgba(32,190,255,0.15)', level: 'easy' },
   { id: 'intermediate', icon: '🏆', name: 'Inter Scholar', desc: 'Completed Intermediate', color: '#a855f7', bg: 'rgba(168,85,247,0.15)', level: 'intermediate' },
   { id: 'star', icon: '⭐', name: 'Language Star', desc: 'Mastered all 3 Hard Quizzes', color: '#facc15', bg: 'rgba(250,204,21,0.15)', level: 'hard' },
   { id: 'focus', icon: '🎯', name: 'Focus Scholar', desc: 'Passed 4 Focus Area Quizzes', color: '#ec4899', bg: 'rgba(236,72,153,0.15)', level: 'focus' },
@@ -408,7 +408,7 @@ const LessonsPage = () => {
     const pieces = Array.from({ length: 60 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
-      color: ['#12d15e', '#facc15', '#a855f7', '#ef4444', '#3b82f6', '#f97316'][Math.floor(Math.random() * 6)],
+      color: ['#20BEFF', '#facc15', '#a855f7', '#ef4444', '#3b82f6', '#f97316'][Math.floor(Math.random() * 6)],
       delay: Math.random() * 1.5,
       size: 6 + Math.random() * 8,
       rotation: Math.random() * 360,
@@ -436,8 +436,8 @@ const LessonsPage = () => {
     const xp = celebrationData.xpEarned;
     const pct = score / total;
     const stars = pct >= 0.8 ? 3 : pct >= 0.6 ? 2 : 1;
-    const levelColors: Record<string, string> = { easy: '#12d15e', intermediate: '#a855f7', hard: '#ef4444' };
-    const levelColor = levelColors[quizLevel] || '#12d15e';
+    const levelColors: Record<string, string> = { easy: '#20BEFF', intermediate: '#a855f7', hard: '#ef4444' };
+    const levelColor = levelColors[quizLevel] || '#20BEFF';
     const levelEmojis: Record<string, string> = { easy: '🌱', intermediate: '📚', hard: '🔥' };
     const levelEmoji = levelEmojis[quizLevel] || '🏆';
     const badgeInfo = newBadgeEarned
@@ -764,9 +764,9 @@ const LessonsPage = () => {
               <Flame size={14} color="#ef4444" />
               <span style={{ color: '#ef4444', fontWeight: '800', fontSize: '14px' }}>{streak} day streak</span>
             </div>
-            <div title="Core Roadmap Progress" style={{ background: 'rgba(18,209,94,0.1)', border: '1px solid rgba(18,209,94,0.2)', padding: '8px 16px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Target size={14} color="#12d15e" />
-              <span style={{ color: '#12d15e', fontWeight: '800', fontSize: '14px' }}>{totalCompleted}/6 Stages Done</span>
+            <div title="Core Roadmap Progress" style={{ background: 'rgba(32,190,255,0.1)', border: '1px solid rgba(32,190,255,0.2)', padding: '8px 16px', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Target size={14} color="#20BEFF" />
+              <span style={{ color: '#20BEFF', fontWeight: '800', fontSize: '14px' }}>{totalCompleted}/6 Stages Done</span>
             </div>
           </div>
         </div>
@@ -775,7 +775,7 @@ const LessonsPage = () => {
         <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
           <button
             onClick={() => setActiveTab('roadmap')}
-            style={{ background: 'transparent', border: 'none', color: activeTab === 'roadmap' ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === 'roadmap' ? '2px solid #12d15e' : '2px solid transparent', transition: 'all 0.2s' }}
+            style={{ background: 'transparent', border: 'none', color: activeTab === 'roadmap' ? '#fff' : 'rgba(255,255,255,0.4)', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === 'roadmap' ? '2px solid #20BEFF' : '2px solid transparent', transition: 'all 0.2s' }}
           >
             Learning Roadmap
           </button>
@@ -820,7 +820,7 @@ const LessonsPage = () => {
                   <div style={{ position: 'absolute', top: '50%', left: '40px', right: '40px', height: '3px', background: 'rgba(255,255,255,0.06)', zIndex: 1, transform: 'translateY(-50%)' }}>
                     {progress && (() => {
                       const completedPct = nodes.filter(n => n.isCompleted).length;
-                      return <div style={{ height: '100%', width: `${(completedPct / 4) * 100}%`, background: 'linear-gradient(90deg, #12d15e, #a855f7)', boxShadow: '0 0 12px rgba(18,209,94,0.4)', transition: 'width 0.8s ease', borderRadius: '4px' }} />;
+                      return <div style={{ height: '100%', width: `${(completedPct / 4) * 100}%`, background: 'linear-gradient(90deg, #20BEFF, #a855f7)', boxShadow: '0 0 12px rgba(32,190,255,0.4)', transition: 'width 0.8s ease', borderRadius: '4px' }} />;
                     })()}
                   </div>
 
@@ -833,7 +833,7 @@ const LessonsPage = () => {
                     let nodeBorder = '2px solid rgba(255,255,255,0.08)';
                     let textColor = 'rgba(255,255,255,0.25)';
                     let glow = 'none';
-                    let levelColor = '#12d15e';
+                    let levelColor = '#20BEFF';
                     if (node.level === 'intermediate') levelColor = '#a855f7';
                     if (node.level === 'hard') levelColor = '#ef4444';
 
@@ -873,7 +873,7 @@ const LessonsPage = () => {
                 {/* Stats Row Compact */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: 'auto' }}>
                   {[
-                    { label: 'Easy Quizzes', value: progress.easyCompleted, max: 1, color: '#12d15e', icon: '🌱', passed: progress.easyCompleted >= 1 },
+                    { label: 'Easy Quizzes', value: progress.easyCompleted, max: 1, color: '#20BEFF', icon: '🌱', passed: progress.easyCompleted >= 1 },
                     { label: 'Intermediate', value: progress.intermediateCompleted, max: 2, color: '#a855f7', icon: '📚', passed: progress.intermediateCompleted >= 2 },
                     { label: 'Hard Quizzes', value: progress.hardCompleted, max: 3, color: '#ef4444', icon: '🔥', passed: progress.hardCompleted >= 3 },
                   ].map(stat => (
@@ -972,8 +972,8 @@ const LessonsPage = () => {
               <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', boxShadow: '0 8px 40px rgba(0,0,0,0.4)', flexShrink: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <span style={{
-                    background: selectedNode.level === 'easy' ? 'rgba(18,209,94,0.12)' : selectedNode.level === 'intermediate' ? 'rgba(168,85,247,0.12)' : 'rgba(239,68,68,0.12)',
-                    color: selectedNode.level === 'easy' ? '#12d15e' : selectedNode.level === 'intermediate' ? '#a855f7' : '#ef4444',
+                    background: selectedNode.level === 'easy' ? 'rgba(32,190,255,0.12)' : selectedNode.level === 'intermediate' ? 'rgba(168,85,247,0.12)' : 'rgba(239,68,68,0.12)',
+                    color: selectedNode.level === 'easy' ? '#20BEFF' : selectedNode.level === 'intermediate' ? '#a855f7' : '#ef4444',
                     padding: '4px 10px', borderRadius: '100px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px'
                   }}>
                     {selectedNode.level} Stage
@@ -991,7 +991,7 @@ const LessonsPage = () => {
                   onClick={() => startLesson(language, undefined, selectedNode.level)}
                   disabled={!selectedNode.isUnlocked}
                   style={{
-                    width: '100%', background: selectedNode.isUnlocked ? (selectedNode.level === 'easy' ? '#12d15e' : selectedNode.level === 'intermediate' ? '#a855f7' : '#ef4444') : 'rgba(255,255,255,0.05)',
+                    width: '100%', background: selectedNode.isUnlocked ? (selectedNode.level === 'easy' ? '#20BEFF' : selectedNode.level === 'intermediate' ? '#a855f7' : '#ef4444') : 'rgba(255,255,255,0.05)',
                     color: selectedNode.isUnlocked ? '#000' : 'rgba(255,255,255,0.2)', border: 'none', padding: '14px', borderRadius: '14px',
                     fontWeight: '800', fontSize: '14px', cursor: selectedNode.isUnlocked ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
@@ -1029,7 +1029,7 @@ const LessonsPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '70vh', gap: '24px' }}>
       <div style={{ position: 'relative', width: '100px', height: '100px' }}>
         <img src="/Logo-1.png" alt="Loading" style={{ width: '80px', position: 'absolute', top: '10px', left: '10px', animation: 'float 2s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid transparent', borderTopColor: '#12d15e', animation: 'spin 1s linear infinite' }} />
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid transparent', borderTopColor: '#20BEFF', animation: 'spin 1s linear infinite' }} />
       </div>
       <div style={{ fontSize: '18px', color: '#9ca3af', fontWeight: '600' }}>Preparing your lesson...</div>
       <div style={{ fontSize: '13px', opacity: 0.4 }}>Generating AI-powered questions</div>
@@ -1044,7 +1044,7 @@ const LessonsPage = () => {
     const question = questions[currentQuestionIdx];
     if (!question) return null;
     const progressPct = (currentQuestionIdx / (questions.length || 10)) * 100;
-    const typeColor = question.type === 'fill_blank' ? '#22c55e' : question.type === 'listen_translate' ? '#a855f7' : '#1a73e8';
+    const typeColor = question.type === 'fill_blank' ? '#20BEFF' : question.type === 'listen_translate' ? '#a855f7' : '#1a73e8';
     const typeLabel = question.type === 'multiple_choice' ? 'Choose the correct answer' : question.type === 'fill_blank' ? 'Complete the sentence' : question.type === 'translate_word' ? 'Translate this word' : question.type === 'listen_translate' ? 'Listen and Translate' : 'Match the meaning';
 
     const renderPronunciationQuiz = () => {
@@ -1196,7 +1196,7 @@ const LessonsPage = () => {
                       <div style={{ fontSize: '11px', opacity: 0.5, marginBottom: '6px', textTransform: 'uppercase' }}>You said:</div>
                       <div style={{ fontSize: '16px', fontWeight: 'bold' }}>"{transcript}"</div>
                       {pronunciationScore !== null && (
-                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: '800', color: pronunciationScore > 60 ? '#22c55e' : '#ef4444' }}>
+                        <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: '800', color: pronunciationScore > 60 ? '#20BEFF' : '#ef4444' }}>
                           Accuracy: {pronunciationScore}%
                         </div>
                       )}
@@ -1216,10 +1216,10 @@ const LessonsPage = () => {
               whileTap={(!isAnswerChecked && !transcript) ? {} : { scale: 0.98 }}
               style={{
                 width: '100%', height: '54px', borderRadius: '14px', border: 'none',
-                background: (!isAnswerChecked && !transcript) ? '#2a2a2a' : isAnswerChecked ? '#22c55e' : 'linear-gradient(135deg, #eab308 0%, #d97706 100%)',
+                background: (!isAnswerChecked && !transcript) ? '#2a2a2a' : isAnswerChecked ? '#20BEFF' : 'linear-gradient(135deg, #eab308 0%, #d97706 100%)',
                 color: (!isAnswerChecked && !transcript) ? '#6b7280' : '#000',
                 fontWeight: '800', fontSize: '16px', cursor: (!isAnswerChecked && !transcript) ? 'not-allowed' : 'pointer', 
-                boxShadow: (!isAnswerChecked && !transcript) ? 'none' : isAnswerChecked ? '0 0 20px rgba(34,197,94,0.4)' : '0 0 20px rgba(234,179,8,0.4)',
+                boxShadow: (!isAnswerChecked && !transcript) ? 'none' : isAnswerChecked ? '0 0 20px rgba(32,190,255,0.4)' : '0 0 20px rgba(234,179,8,0.4)',
                 letterSpacing: '0.5px'
               }}
             >
@@ -1240,7 +1240,7 @@ const LessonsPage = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
           <X size={22} color="#6b7280" cursor="pointer" onClick={exitLesson} />
           <div style={{ flex: 1, height: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '100px', overflow: 'hidden' }}>
-            <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #12d15e, #22c55e)', borderRadius: '100px', transition: 'width 0.4s ease', boxShadow: '0 0 8px rgba(18,209,94,0.4)' }} />
+            <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #20BEFF, #0099e6)', borderRadius: '100px', transition: 'width 0.4s ease', boxShadow: '0 0 8px rgba(32,190,255,0.4)' }} />
           </div>
           <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: '700', minWidth: '45px', textAlign: 'right' }}>{currentQuestionIdx + 1}/{questions.length}</span>
         </div>
@@ -1262,7 +1262,7 @@ const LessonsPage = () => {
             <span style={{ fontSize: '11px', opacity: 0.4 }}>Correct so far:</span>
             <span style={{
               fontWeight: '800', fontSize: '14px',
-              color: userAnswers.filter((a: any) => a.isCorrect).length >= 6 ? '#22c55e' : 'rgba(255,255,255,0.6)'
+              color: userAnswers.filter((a: any) => a.isCorrect).length >= 6 ? '#20BEFF' : 'rgba(255,255,255,0.6)'
             }}>
               {userAnswers.filter((a: any) => a.isCorrect).length}
             </span>
@@ -1346,7 +1346,7 @@ const LessonsPage = () => {
             <div style={{ textAlign: 'center', marginBottom: '28px', padding: '20px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px' }}>
               <div style={{ fontSize: '20px', fontWeight: '600', color: '#fff', lineHeight: '1.8' }}>
                 {parts.map((p, idx) => (
-                  <span key={idx}>{p}{idx < parts.length - 1 && <span style={{ borderBottom: '3px solid #22c55e', color: '#22c55e', padding: '0 8px', fontWeight: '800' }}>___</span>}</span>
+                  <span key={idx}>{p}{idx < parts.length - 1 && <span style={{ borderBottom: '3px solid #20BEFF', color: '#20BEFF', padding: '0 8px', fontWeight: '800' }}>___</span>}</span>
                 ))}
               </div>
               {translation && <div style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '14px', marginTop: '8px' }}>({translation})</div>}
@@ -1364,13 +1364,13 @@ const LessonsPage = () => {
                 onKeyDown={e => e.key === 'Enter' && handleCheck()}
                 disabled={isAnswerChecked}
                 placeholder="Type your answer here..."
-                style={{ width: '100%', padding: '16px 20px', background: '#1a1a1a', border: `1px solid ${isAnswerChecked ? (userAnswers[userAnswers.length - 1]?.isCorrect ? '#22c55e' : '#ef4444') : '#2a2a2a'}`, borderRadius: '14px', color: '#fff', fontSize: '16px', marginBottom: '16px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                style={{ width: '100%', padding: '16px 20px', background: '#1a1a1a', border: `1px solid ${isAnswerChecked ? (userAnswers[userAnswers.length - 1]?.isCorrect ? '#20BEFF' : '#ef4444') : '#2a2a2a'}`, borderRadius: '14px', color: '#fff', fontSize: '16px', marginBottom: '16px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
               />
               {question.options?.filter(o => o?.trim()).length > 0 && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   {question.options.filter(o => o?.trim()).map((opt, i) => (
                     <button key={i} onClick={() => !isAnswerChecked && setSelectedAnswer(opt)} disabled={isAnswerChecked}
-                      style={{ padding: '10px 14px', background: selectedAnswer === opt ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selectedAnswer === opt ? '#22c55e' : 'rgba(255,255,255,0.08)'}`, borderRadius: '10px', color: selectedAnswer === opt ? '#22c55e' : '#9ca3af', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                      style={{ padding: '10px 14px', background: selectedAnswer === opt ? 'rgba(32,190,255,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selectedAnswer === opt ? '#20BEFF' : 'rgba(255,255,255,0.08)'}`, borderRadius: '10px', color: selectedAnswer === opt ? '#20BEFF' : '#9ca3af', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}>
                       {opt}
                     </button>
                   ))}
@@ -1382,16 +1382,16 @@ const LessonsPage = () => {
               {question.options?.filter(o => o?.trim()).map((opt, i) => {
                 const isSelected = selectedAnswer === opt;
                 let bg = 'rgba(255,255,255,0.03)'; let border = 'rgba(255,255,255,0.08)'; let color = '#fff';
-                if (isSelected && !isAnswerChecked) { bg = 'rgba(34,197,94,0.1)'; border = '#22c55e'; color = '#fff'; }
+                if (isSelected && !isAnswerChecked) { bg = 'rgba(32,190,255,0.1)'; border = '#20BEFF'; color = '#fff'; }
                 else if (isAnswerChecked) {
-                  if (opt === question.correctAnswer) { bg = 'rgba(34,197,94,0.12)'; border = '#22c55e'; color = '#22c55e'; }
+                  if (opt === question.correctAnswer) { bg = 'rgba(32,190,255,0.12)'; border = '#20BEFF'; color = '#20BEFF'; }
                   else if (isSelected) { bg = 'rgba(239,68,68,0.1)'; border = '#ef4444'; color = '#ef4444'; }
                 }
                 return (
                   <button key={i} onClick={() => !isAnswerChecked && setSelectedAnswer(opt)} disabled={isAnswerChecked}
                     style={{ width: '100%', padding: '15px 20px', background: bg, border: `2px solid ${border}`, borderRadius: '14px', color, fontSize: '15px', cursor: isAnswerChecked ? 'default' : 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s', fontWeight: isSelected ? '700' : '500', textAlign: 'left' }}>
                     <span>{opt}</span>
-                    {isAnswerChecked && opt === question.correctAnswer && <Check size={18} color="#22c55e" strokeWidth={3} />}
+                    {isAnswerChecked && opt === question.correctAnswer && <Check size={18} color="#20BEFF" strokeWidth={3} />}
                     {isAnswerChecked && isSelected && opt !== question.correctAnswer && <XCircle size={18} color="#ef4444" />}
                   </button>
                 );
@@ -1403,8 +1403,8 @@ const LessonsPage = () => {
             <div style={{
               marginTop: '20px',
               padding: '14px 18px',
-              background: userAnswers[userAnswers.length-1]?.isCorrect ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
-              border: `1px solid ${userAnswers[userAnswers.length-1]?.isCorrect ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+              background: userAnswers[userAnswers.length-1]?.isCorrect ? 'rgba(32,190,255,0.08)' : 'rgba(239,68,68,0.08)',
+              border: `1px solid ${userAnswers[userAnswers.length-1]?.isCorrect ? 'rgba(32,190,255,0.2)' : 'rgba(239,68,68,0.2)'}`,
               borderRadius: '12px',
               fontSize: '13px',
               color: '#9ca3af',
@@ -1450,7 +1450,7 @@ const LessonsPage = () => {
             disabled={!isAnswerChecked && ((question.type === 'translate_word' || !question.options || question.options.filter(o => o?.trim()).length === 0) ? !selectedAnswer.trim() : !selectedAnswer)}
             style={{
               width: '100%', height: '54px', borderRadius: '14px', border: 'none',
-              background: (!isAnswerChecked && ((question.type === 'translate_word' || !question.options || question.options.filter(o => o?.trim()).length === 0) ? !selectedAnswer.trim() : !selectedAnswer)) ? 'rgba(255,255,255,0.05)' : isAnswerChecked ? '#22c55e' : '#1a73e8',
+              background: (!isAnswerChecked && ((question.type === 'translate_word' || !question.options || question.options.filter(o => o?.trim()).length === 0) ? !selectedAnswer.trim() : !selectedAnswer)) ? 'rgba(255,255,255,0.05)' : isAnswerChecked ? '#20BEFF' : '#1a73e8',
               color: (!isAnswerChecked && ((question.type === 'translate_word' || !question.options || question.options.filter(o => o?.trim()).length === 0) ? !selectedAnswer.trim() : !selectedAnswer)) ? 'rgba(255,255,255,0.2)' : '#000',
               fontWeight: '800', fontSize: '16px', cursor: 'pointer', transition: 'all 0.2s', letterSpacing: '0.5px'
             }}
@@ -1478,9 +1478,9 @@ const LessonsPage = () => {
         {/* Score circle */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '40px' }}>
           <div style={{ position: 'relative', marginBottom: '24px' }}>
-            <div style={{ width: '140px', height: '140px', borderRadius: '50%', background: passed ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', border: `3px solid ${passed ? '#22c55e' : '#ef4444'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 40px ${passed ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+            <div style={{ width: '140px', height: '140px', borderRadius: '50%', background: passed ? 'rgba(32,190,255,0.1)' : 'rgba(239,68,68,0.1)', border: `3px solid ${passed ? '#20BEFF' : '#ef4444'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 40px ${passed ? 'rgba(32,190,255,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
               <div style={{ fontSize: '32px', fontWeight: '900', color: '#fff' }}>{lessonResults.score}/{lessonResults.total || 10}</div>
-              <div style={{ fontSize: '13px', color: passed ? '#22c55e' : '#ef4444', fontWeight: '700' }}>+{lessonResults.xpEarned} XP</div>
+              <div style={{ fontSize: '13px', color: passed ? '#20BEFF' : '#ef4444', fontWeight: '700' }}>+{lessonResults.xpEarned} XP</div>
             </div>
           </div>
 
@@ -1492,14 +1492,14 @@ const LessonsPage = () => {
           {/* Pass / Fail result banner */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: '12px',
-            background: passed ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.08)',
-            border: `1px solid ${passed ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.25)'}`,
+            background: passed ? 'rgba(32,190,255,0.1)' : 'rgba(239,68,68,0.08)',
+            border: `1px solid ${passed ? 'rgba(32,190,255,0.3)' : 'rgba(239,68,68,0.25)'}`,
             borderRadius: '14px', padding: '14px 20px', width: '100%', boxSizing: 'border-box',
             animation: 'fade-in 0.4s ease'
           }}>
             <span style={{ fontSize: '28px' }}>{passed ? '✅' : '❌'}</span>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: '800', fontSize: '15px', color: passed ? '#22c55e' : '#ef4444' }}>
+              <div style={{ fontWeight: '800', fontSize: '15px', color: passed ? '#20BEFF' : '#ef4444' }}>
                 {passed
                   ? `You scored ${lessonResults.score}/${lessonResults.total || 10} — Stage unlocked!`
                   : `You scored ${lessonResults.score}/${lessonResults.total || 10} — Need 6+ to pass`
@@ -1525,8 +1525,8 @@ const LessonsPage = () => {
 
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
-          <div style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '16px', padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', fontWeight: '800', color: '#22c55e' }}>{lessonResults.score}</div>
+          <div style={{ background: 'rgba(32,190,255,0.06)', border: '1px solid rgba(32,190,255,0.15)', borderRadius: '16px', padding: '16px', textAlign: 'center' }}>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#20BEFF' }}>{lessonResults.score}</div>
             <div style={{ fontSize: '12px', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '1px' }}>Correct</div>
           </div>
           <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '16px', padding: '16px', textAlign: 'center' }}>
@@ -1538,13 +1538,13 @@ const LessonsPage = () => {
         {/* Results breakdown */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '36px' }}>
           {lessonResults.results?.map((r: any, idx: number) => (
-            <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '14px 18px', borderRadius: '14px', borderLeft: `4px solid ${r.isCorrect ? '#22c55e' : '#ef4444'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+            <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', padding: '14px 18px', borderRadius: '14px', borderLeft: `4px solid ${r.isCorrect ? '#20BEFF' : '#ef4444'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: '700' }}>Q{idx + 1}</span>
-                  {r.isCorrect ? <Check size={14} color="#22c55e" /> : <XCircle size={14} color="#ef4444" />}
+                  {r.isCorrect ? <Check size={14} color="#20BEFF" /> : <XCircle size={14} color="#ef4444" />}
                 </div>
-                <div style={{ color: '#fff', fontSize: '13px', marginBottom: '4px' }}>Correct: <strong style={{ color: r.isCorrect ? '#22c55e' : '#fff' }}>{r.correctAnswer}</strong></div>
+                <div style={{ color: '#fff', fontSize: '13px', marginBottom: '4px' }}>Correct: <strong style={{ color: r.isCorrect ? '#20BEFF' : '#fff' }}>{r.correctAnswer}</strong></div>
                 <div style={{ color: '#6b7280', fontSize: '12px', fontStyle: 'italic' }}>{r.explanation}</div>
               </div>
             </div>
@@ -1556,7 +1556,7 @@ const LessonsPage = () => {
           <button onClick={() => startLesson()} style={{ flex: 1, padding: '16px', borderRadius: '14px', background: 'transparent', border: '2px solid rgba(255,255,255,0.15)', color: '#fff', fontWeight: '700', fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s' }} className="btn-hover">
             Try Again
           </button>
-          <button onClick={() => { setNewBadgeEarned(null); setView('setup'); }} style={{ flex: 1, padding: '16px', borderRadius: '14px', background: '#22c55e', border: 'none', color: '#000', fontWeight: '800', fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s' }} className="btn-hover">
+          <button onClick={() => { setNewBadgeEarned(null); setView('setup'); }} style={{ flex: 1, padding: '16px', borderRadius: '14px', background: '#20BEFF', border: 'none', color: '#000', fontWeight: '800', fontSize: '15px', cursor: 'pointer', transition: 'all 0.2s' }} className="btn-hover">
             Back to Map →
           </button>
         </div>
@@ -1655,9 +1655,9 @@ const LessonsPage = () => {
                 max="5" 
                 value={cognitiveLoad}
                 onChange={(e) => setCognitiveLoad(parseInt(e.target.value))}
-                style={{ width: '100%', accentColor: '#12d15e', cursor: 'pointer' }}
+                style={{ width: '100%', accentColor: '#20BEFF', cursor: 'pointer' }}
               />
-              <div style={{ textAlign: 'center', marginTop: '8px', color: '#12d15e', fontWeight: 'bold' }}>Rating: {cognitiveLoad} / 5</div>
+              <div style={{ textAlign: 'center', marginTop: '8px', color: '#20BEFF', fontWeight: 'bold' }}>Rating: {cognitiveLoad} / 5</div>
             </div>
 
             <div style={{ marginBottom: '32px' }}>
@@ -1673,7 +1673,7 @@ const LessonsPage = () => {
 
             <button 
               onClick={() => submitLesson(latestAnswersRef.current)}
-              style={{ width: '100%', padding: '16px', borderRadius: '12px', background: '#12d15e', color: '#000', fontWeight: 'bold', fontSize: '16px', border: 'none', cursor: 'pointer' }}
+              style={{ width: '100%', padding: '16px', borderRadius: '12px', background: '#20BEFF', color: '#000', fontWeight: 'bold', fontSize: '16px', border: 'none', cursor: 'pointer' }}
             >
               Submit & See Results
             </button>
@@ -1738,9 +1738,9 @@ const LessonsPage = () => {
 };
 
 const NavItem = ({ icon, label, active = false, onClick, collapsed = false }: any) => (
-  <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '16px', padding: '12px 16px', borderRadius: '12px', background: active ? 'rgba(34,197,94,0.1)' : 'transparent', color: active ? '#22c55e' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: active ? '700' : '500', justifyContent: collapsed ? 'center' : 'flex-start' }}>
+  <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '16px', padding: '12px 16px', borderRadius: '12px', background: active ? 'rgba(32,190,255,0.1)' : 'transparent', color: active ? '#20BEFF' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: active ? '700' : '500', justifyContent: collapsed ? 'center' : 'flex-start' }}>
     {icon}{!collapsed && <span>{label}</span>}
-    {active && !collapsed && <div style={{ marginLeft: 'auto', width: '4px', height: '20px', background: '#22c55e', borderRadius: '2px' }} />}
+    {active && !collapsed && <div style={{ marginLeft: 'auto', width: '4px', height: '20px', background: '#20BEFF', borderRadius: '2px' }} />}
   </div>
 );
 

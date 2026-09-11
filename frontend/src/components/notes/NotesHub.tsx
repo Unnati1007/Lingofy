@@ -263,9 +263,9 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
       {/* Hero Stats Banner */}
       <div
         style={{
-          background: 'linear-gradient(135deg, rgba(18, 209, 94, 0.08) 0%, rgba(24, 24, 27, 0.6) 100%)',
+          background: 'linear-gradient(135deg, rgba(32, 190, 255, 0.08) 0%, rgba(24, 24, 27, 0.6) 100%)',
           borderRadius: '24px',
-          border: '1px solid rgba(18, 209, 94, 0.2)',
+          border: '1px solid rgba(32, 190, 255, 0.2)',
           padding: '32px',
           position: 'relative',
           overflow: 'hidden',
@@ -278,8 +278,8 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
               width: '40px',
               height: '40px',
               borderRadius: '12px',
-              background: 'rgba(18, 209, 94, 0.2)',
-              color: '#12d15e',
+              background: 'rgba(32, 190, 255, 0.2)',
+              color: '#20BEFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -322,8 +322,8 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
             </div>
 
             <div style={{
-              background: 'rgba(34,197,94,0.08)',
-              border: '1px solid rgba(34,197,94,0.2)',
+              background: 'rgba(32,190,255,0.08)',
+              border: '1px solid rgba(32,190,255,0.2)',
               borderRadius: '16px',
               padding: '16px 20px',
               display: 'flex',
@@ -332,10 +332,10 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
             }}>
               <div style={{ fontSize: '28px' }}>🎯</div>
               <div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: '#22c55e' }}>
+                <div style={{ fontSize: '24px', fontWeight: '800', color: '#20BEFF' }}>
                   {stats.masteredWords || 0}
                 </div>
-                <div style={{ fontSize: '12px', color: 'rgba(34,197,94,0.8)', textTransform: 'uppercase', fontWeight: '700' }}>
+                <div style={{ fontSize: '12px', color: 'rgba(32,190,255,0.8)', textTransform: 'uppercase', fontWeight: '700' }}>
                   Mastered Words
                 </div>
               </div>
@@ -371,7 +371,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: '700' }}>
                   Mastery Rate
                 </span>
-                <span style={{ fontSize: '14px', fontWeight: '800', color: '#12d15e' }}>
+                <span style={{ fontSize: '14px', fontWeight: '800', color: '#20BEFF' }}>
                   {masteryPercent}%
                 </span>
               </div>
@@ -380,7 +380,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                   style={{
                     width: `${masteryPercent}%`,
                     height: '100%',
-                    background: 'linear-gradient(90deg, #12d15e, #22c55e)',
+                    background: 'linear-gradient(90deg, #20BEFF, #0099e6)',
                     borderRadius: '100px',
                     transition: 'width 0.4s ease'
                   }}
@@ -409,7 +409,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
               padding: '10px 20px',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'vocabulary' ? '#12d15e' : 'transparent',
+              background: activeTab === 'vocabulary' ? '#20BEFF' : 'transparent',
               color: activeTab === 'vocabulary' ? '#000' : 'rgba(255,255,255,0.7)',
               fontWeight: '800',
               fontSize: '14px',
@@ -430,7 +430,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
               padding: '10px 20px',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'notes' ? '#12d15e' : 'transparent',
+              background: activeTab === 'notes' ? '#20BEFF' : 'transparent',
               color: activeTab === 'notes' ? '#000' : 'rgba(255,255,255,0.7)',
               fontWeight: '800',
               fontSize: '14px',
@@ -478,7 +478,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
               onClick={() => setShowAddWordModal(true)}
               style={{
                 padding: '10px 18px',
-                background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)',
+                background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                 border: 'none',
                 borderRadius: '12px',
                 color: '#000',
@@ -488,7 +488,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 alignItems: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                boxShadow: '0 0 15px rgba(18, 209, 94, 0.3)'
+                boxShadow: '0 0 15px rgba(32, 190, 255, 0.35)'
               }}
             >
               <Plus size={16} strokeWidth={3} /> Add Tough Word
@@ -500,7 +500,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
               onClick={() => openNoteEditor()}
               style={{
                 padding: '10px 18px',
-                background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)',
+                background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                 border: 'none',
                 borderRadius: '12px',
                 color: '#000',
@@ -510,7 +510,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 alignItems: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                boxShadow: '0 0 15px rgba(18, 209, 94, 0.3)'
+                boxShadow: '0 0 15px rgba(32, 190, 255, 0.35)'
               }}
             >
               <Plus size={16} strokeWidth={3} /> New Study Note
@@ -646,9 +646,9 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 onClick={() => setShowAddWordModal(true)}
                 style={{
                   padding: '12px 24px',
-                  background: 'rgba(18, 209, 94, 0.15)',
-                  border: '1px solid #12d15e',
-                  color: '#12d15e',
+                  background: 'rgba(32, 190, 255, 0.15)',
+                  border: '1px solid #20BEFF',
+                  color: '#20BEFF',
                   borderRadius: '12px',
                   fontWeight: '700',
                   fontSize: '14px',
@@ -674,8 +674,8 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{
-                      background: isMastered ? 'rgba(34, 197, 94, 0.04)' : 'rgba(255, 255, 255, 0.03)',
-                      border: `1px solid ${isMastered ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.08)'}`,
+                      background: isMastered ? 'rgba(32, 190, 255, 0.04)' : 'rgba(255, 255, 255, 0.03)',
+                      border: `1px solid ${isMastered ? 'rgba(32, 190, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)'}`,
                       borderRadius: '20px',
                       padding: '24px',
                       display: 'flex',
@@ -759,7 +759,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                       </div>
 
                       {/* Meaning */}
-                      <div style={{ fontSize: '15px', fontWeight: '600', color: '#12d15e', marginBottom: '12px' }}>
+                      <div style={{ fontSize: '15px', fontWeight: '600', color: '#20BEFF', marginBottom: '12px' }}>
                         {item.meaning || 'No meaning added'}
                       </div>
 
@@ -800,9 +800,9 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                         style={{
                           padding: '8px 14px',
                           borderRadius: '10px',
-                          border: isMastered ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.1)',
-                          background: isMastered ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                          color: isMastered ? '#22c55e' : 'rgba(255, 255, 255, 0.6)',
+                          border: isMastered ? '1px solid #20BEFF' : '1px solid rgba(255,255,255,0.1)',
+                          background: isMastered ? 'rgba(32, 190, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                          color: isMastered ? '#20BEFF' : 'rgba(255, 255, 255, 0.6)',
                           fontSize: '12px',
                           fontWeight: '700',
                           display: 'flex',
@@ -852,8 +852,8 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: 'rgba(18, 209, 94, 0.1)',
-                color: '#12d15e',
+                background: 'rgba(32, 190, 255, 0.1)',
+                color: '#20BEFF',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -871,7 +871,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 onClick={() => openNoteEditor()}
                 style={{
                   padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)',
+                  background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                   border: 'none',
                   color: '#000',
                   borderRadius: '12px',
@@ -917,8 +917,8 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                         textTransform: 'uppercase',
                         padding: '3px 8px',
                         borderRadius: '6px',
-                        background: 'rgba(18, 209, 94, 0.15)',
-                        color: '#12d15e'
+                        background: 'rgba(32, 190, 255, 0.15)',
+                        color: '#20BEFF'
                       }}>
                         {item.language === 'spanish' ? '🇪🇸' : item.language === 'hindi' ? '🇮🇳' : '🇰🇷'} {item.language}
                       </span>
@@ -1157,7 +1157,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                   style={{
                     flex: 2,
                     padding: '12px',
-                    background: 'linear-gradient(135deg, #12d15e 0%, #059669 100%)',
+                    background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                     border: 'none',
                     borderRadius: '12px',
                     color: '#000',

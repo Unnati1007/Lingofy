@@ -152,7 +152,7 @@ const SignupPage = () => {
 
         <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
           <div style={{ fontSize: '13px', color: '#ccc' }}>
-            Already have an account? <span onClick={() => navigate('/login')} style={{ color: '#12d15e', cursor: 'pointer', fontWeight: 'bold' }}>Log In</span>
+            Already have an account? <span onClick={() => navigate('/login')} style={{ color: '#20BEFF', cursor: 'pointer', fontWeight: 'bold' }}>Log In</span>
           </div>
         </div>
       </motion.div>
