@@ -6,7 +6,7 @@ import User from "../../models/user/User";
 import UserPreferences from "../../models/user/UserPreference";
 import { AuthRequest } from "../../middleware/authMiddleware";
 import { YoutubeTranscript } from 'youtube-transcript';
-import { translateLyricsWithAI } from "../../services/translationService";
+import { translateLyricsWithAI, decodeHtmlEntities, generateLyricsForSong } from "../../services/translationService";
 
 const MAX_USER_SONG_UPLOADS = 5;
 
@@ -168,20 +168,22 @@ export const addSong = async (req: AuthRequest, res: Response): Promise<void> =>
     let segments: any[] = [];
     const introBuffer = 15;
 
-    // First try to fetch from YouTube transcript if URL is provided
+    // 1. First try to fetch from YouTube transcript if URL is provided
     const targetUrl = youtubeUrl || audioUrl;
     if (targetUrl && (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be'))) {
       try {
         console.log(`Attempting to fetch transcript for: ${targetUrl}`);
         const transcript = await YoutubeTranscript.fetchTranscript(targetUrl);
         
-        segments = transcript.map((item, index) => ({
-          songId: song._id,
-          segmentOrder: index + 1,
-          text: item.text,
-          startTime: item.offset / 1000,
-          endTime: (item.offset + item.duration) / 1000
-        }));
+        if (transcript && transcript.length > 0) {
+          segments = transcript.map((item, index) => ({
+            songId: song._id,
+            segmentOrder: index + 1,
+            text: decodeHtmlEntities(item.text),
+            startTime: item.offset / 1000,
+            endTime: (item.offset + item.duration) / 1000
+          })).filter(s => s.text && s.text.length > 0);
+        }
         
         if (segments.length > 0) {
           const lastSegment = segments[segments.length - 1];
@@ -192,16 +194,37 @@ export const addSong = async (req: AuthRequest, res: Response): Promise<void> =>
       }
     }
 
-    // Fallback: manual lyrics
+    // 2. Fallback: manual lyrics if provided
     if (segments.length === 0 && lyrics && Array.isArray(lyrics) && lyrics.length > 0) {
       segments = lyrics.map((text, index) => ({
         songId: song._id,
         segmentOrder: index + 1,
-        text,
+        text: decodeHtmlEntities(text),
         startTime: introBuffer + (index * 3.5),
         endTime: introBuffer + ((index + 1) * 3.5)
-      }));
+      })).filter(s => s.text && s.text.length > 0);
       await Song.findByIdAndUpdate(song._id, { durationSeconds: Math.ceil(introBuffer + (lyrics.length * 3.5)) });
+    }
+
+    // 3. Fallback: AI Lyric Generation if both transcript and manual lyrics are missing
+    if (segments.length === 0) {
+      try {
+        console.log(`Auto-fetching AI lyrics for "${song.title}" by "${song.artistName}"...`);
+        const aiLines = await generateLyricsForSong(song.title, song.artistName, song.language || 'English');
+        if (aiLines && aiLines.length > 0) {
+          segments = aiLines.map((text, index) => ({
+            songId: song._id,
+            segmentOrder: index + 1,
+            text: decodeHtmlEntities(text),
+            startTime: introBuffer + (index * 4.0),
+            endTime: introBuffer + ((index + 1) * 4.0)
+          })).filter(s => s.text && s.text.length > 0);
+          await Song.findByIdAndUpdate(song._id, { durationSeconds: Math.ceil(introBuffer + (aiLines.length * 4.0)) });
+          console.log(`Generated ${segments.length} AI lyric segments for "${song.title}"`);
+        }
+      } catch (aiErr: any) {
+        console.warn("AI lyric generation failed:", aiErr.message);
+      }
     }
 
     if (segments.length > 0) {
@@ -289,7 +312,68 @@ export const autoTranslate = async (req: Request, res: Response): Promise<void> 
 export const getSegments = async (req: Request, res: Response): Promise<void> => {
   try {
     const { songId } = req.params;
-    const segments = await LyricSegment.find({ songId }).sort({ segmentOrder: 1 });
+    let segments = await LyricSegment.find({ songId }).sort({ segmentOrder: 1 });
+
+    // Auto-heal empty segments for existing songs
+    if (segments.length === 0) {
+      const song = await Song.findById(songId);
+      if (song) {
+        let newSegments: any[] = [];
+        const introBuffer = 15;
+
+        // Try YouTube transcript first
+        const targetUrl = song.audioUrl;
+        if (targetUrl && (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be'))) {
+          try {
+            const transcript = await YoutubeTranscript.fetchTranscript(targetUrl);
+            if (transcript && transcript.length > 0) {
+              newSegments = transcript.map((item, index) => ({
+                songId: song._id,
+                segmentOrder: index + 1,
+                text: decodeHtmlEntities(item.text),
+                startTime: item.offset / 1000,
+                endTime: (item.offset + item.duration) / 1000
+              })).filter(s => s.text && s.text.length > 0);
+            }
+          } catch (e: any) {
+            console.warn("YouTube transcript fetch failed in getSegments:", e.message);
+          }
+        }
+
+        // Try AI generation if still empty
+        if (newSegments.length === 0) {
+          const aiLines = await generateLyricsForSong(song.title, song.artistName, song.language || 'English');
+          if (aiLines && aiLines.length > 0) {
+            newSegments = aiLines.map((text, index) => ({
+              songId: song._id,
+              segmentOrder: index + 1,
+              text: decodeHtmlEntities(text),
+              startTime: introBuffer + (index * 4.0),
+              endTime: introBuffer + ((index + 1) * 4.0)
+            })).filter(s => s.text && s.text.length > 0);
+          }
+        }
+
+        if (newSegments.length > 0) {
+          await LyricSegment.insertMany(newSegments);
+          segments = await LyricSegment.find({ songId }).sort({ segmentOrder: 1 });
+
+          // Auto-generate translations if missing
+          if (!song.translations || (!song.translations.english?.length && !song.translations.spanish?.length && !song.translations.hindi?.length)) {
+            try {
+              const trans = await translateLyricsWithAI(
+                newSegments.map(s => ({ segmentOrder: s.segmentOrder, text: s.text })),
+                song.language || 'English'
+              );
+              await Song.findByIdAndUpdate(songId, { translations: trans });
+            } catch (trErr) {
+              console.warn("Translation failed during segment heal:", trErr);
+            }
+          }
+        }
+      }
+    }
+
     res.json(segments);
   } catch (error: any) {
     res.status(500).json({ message: error.message });

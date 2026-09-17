@@ -547,6 +547,20 @@ const DashboardPage = () => {
             const data = await res.json();
             setSegments(data);
           }
+
+          // If currentSong translations are missing or empty, fetch latest song data
+          if (!currentSong.translations || !currentSong.translations.english || !currentSong.translations.hindi) {
+            const songsRes = await fetch(`${API_BASE}/api/admin`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (songsRes.ok) {
+              const allSongsData = await songsRes.json();
+              const found = allSongsData.find((s: any) => s._id === currentSong._id);
+              if (found && found.translations) {
+                setCurrentQueue(prev => prev.map((item, idx) => idx === currentSongIndex ? { ...item, translations: found.translations } : item));
+              }
+            }
+          }
         } catch (err) { console.error(err); }
       };
       fetchSegments();
@@ -1140,6 +1154,7 @@ const DashboardPage = () => {
     setCurrentTime(0);
     setIsPlaying(true);
     setHideVideo(false);
+    setShowInteractiveLyrics(true);
   };
 
   const handleQuickAddSongToPlaylist = async (songId: string, playlistId: string) => {
@@ -3756,9 +3771,51 @@ const DashboardPage = () => {
                           );
                         })
                       ) : (
-                        <div style={{ opacity: 0.4, textAlign: 'center', marginTop: '60px' }}>
-                          <Music size={40} style={{ marginBottom: '16px', margin: '0 auto' }} />
-                          <p>Lyrics will appear here when synced.</p>
+                        <div style={{ opacity: 0.85, textAlign: 'center', margin: '40px auto', padding: '24px', maxWidth: '440px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                          <Music size={36} color="#20BEFF" style={{ marginBottom: '12px', margin: '0 auto' }} />
+                          <h4 style={{ fontSize: '15px', fontWeight: 'bold', margin: '0 0 6px 0', color: '#fff' }}>No synchronized lyrics found for this track yet</h4>
+                          <p style={{ fontSize: '12px', opacity: 0.6, margin: '0 0 16px 0' }}>
+                            Lingofy AI can automatically extract or generate timed lyrics and 4-language translations for this track.
+                          </p>
+                          {currentSong?._id && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const token = localStorage.getItem('token');
+                                  const res = await fetch(`${API_BASE}/api/admin/segments/${currentSong._id}`, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                  });
+                                  if (res.ok) {
+                                    const data = await res.json();
+                                    if (data && data.length > 0) {
+                                      setSegments(data);
+                                      alert("✨ Lyrics and translations synchronized successfully!");
+                                    } else {
+                                      alert("Could not extract subtitles for this URL. You can paste manual lyrics when importing!");
+                                    }
+                                  }
+                                } catch (e) {
+                                  console.error(e);
+                                }
+                              }}
+                              className="btn-hover"
+                              style={{
+                                background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
+                                color: '#000',
+                                border: 'none',
+                                padding: '8px 18px',
+                                borderRadius: '10px',
+                                fontWeight: 'bold',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              <Sparkles size={14} /> Auto-Sync AI Lyrics Now
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

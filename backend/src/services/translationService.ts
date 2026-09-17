@@ -30,6 +30,59 @@ async function fallbackTranslate(text: string, sourceLang: string, targetLangCod
   return text;
 }
 
+export function decodeHtmlEntities(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#x2F;/g, '/')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .trim();
+}
+
+export async function generateLyricsForSong(
+  title: string,
+  artist: string,
+  language: string
+): Promise<string[]> {
+  if (!process.env.GROQ_API_KEY) return [];
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const prompt = `Provide the sequential lyric lines for the song "${title}" by "${artist}" in its original language (${language}).
+Return between 12 to 24 sequential lyric lines.
+Return strictly a JSON object with a single key "lines" which is an array of strings. Each string must be a single lyric line.
+Example:
+{
+  "lines": ["Line 1", "Line 2", "Line 3"]
+}`;
+
+    const completion = await groq.chat.completions.create({
+      model: 'openai/gpt-oss-120b',
+      messages: [
+        { role: 'system', content: 'You are an accurate music lyric database. Output valid JSON only with exact lyrics.' },
+        { role: 'user', content: prompt }
+      ],
+      response_format: { type: 'json_object' },
+      max_tokens: 2500,
+      temperature: 0.2
+    });
+
+    const content = completion.choices[0]?.message?.content || '{}';
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed.lines) && parsed.lines.length > 0) {
+      return parsed.lines.map((l: any) => decodeHtmlEntities(String(l).trim())).filter(Boolean);
+    }
+  } catch (err: any) {
+    console.warn("AI lyric generation fallback warning:", err.message);
+  }
+  return [];
+}
+
 export async function translateLyricsWithAI(
   segments: { segmentOrder: number; text: string }[],
   sourceLanguage: string
