@@ -1665,20 +1665,30 @@ const LessonsPage = () => {
               onClick={toggleLearningMode}
               className="btn-hover"
               style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: '#fff',
-                padding: '8px 16px',
-                borderRadius: '20px',
+                background: 'rgba(32, 190, 255, 0.12)',
+                border: '1px solid #20BEFF',
+                color: '#20BEFF',
+                padding: '10px 20px',
+                borderRadius: '16px',
                 fontSize: '13px',
-                fontWeight: '600',
+                fontWeight: '700',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(32, 190, 255, 0.25)',
+                transition: 'all 0.2s ease'
               }}
             >
-              {currentUser?.learningMode === 'traditional' ? 'Switch to Music Mode' : 'Switch to Traditional Mode'}
+              {currentUser?.learningMode === 'traditional' ? (
+                <>
+                  <Music size={16} color="#20BEFF" /> Switch to Music Mode
+                </>
+              ) : (
+                <>
+                  <BookOpen size={16} color="#20BEFF" /> Switch to Traditional Mode
+                </>
+              )}
             </button>
           </div>
         )}
