@@ -3077,8 +3077,31 @@ const DashboardPage = () => {
       <main className={`main-content custom-scrollbar ${isResizing ? 'resizing' : ''}`} style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', flex: 1, marginLeft: `var(--sidebar-width, ${effectiveWidth}px)`, padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: isResizing ? 'none' : 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative' }}>
         
         {/* Top Header Bar */}
-        <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'flex-end', marginBottom: '32px', alignItems: 'center', position: 'relative', zIndex: 10 }}>
+        <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'flex-end', marginBottom: '32px', alignItems: 'center', gap: '16px', position: 'relative', zIndex: 10 }}>
           
+          {/* Mode Indicator Badge */}
+          <div 
+            id="tour-mode-toggle"
+            onClick={() => setActiveTab('profile')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(32, 190, 255, 0.08)',
+              border: '1px solid rgba(32, 190, 255, 0.25)',
+              borderRadius: '20px',
+              padding: '8px 16px',
+              fontSize: '12px',
+              fontWeight: '700',
+              color: '#20BEFF',
+              cursor: 'pointer'
+            }}
+            title="Click to view Learning Mode settings in Profile"
+          >
+            <Sparkles size={14} color="#20BEFF" />
+            <span>{currentUser?.learningMode === 'traditional' ? 'Traditional Mode' : 'Music Mode'}</span>
+          </div>
+
           <div style={{ position: 'relative' }}>
             <button 
               onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}

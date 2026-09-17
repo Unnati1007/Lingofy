@@ -12,7 +12,6 @@ export interface TourStep {
   title: string;
   description: string;
   position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
-  tabToOpen?: 'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes' | 'mindful';
 }
 
 const DEFAULT_TOUR_STEPS: TourStep[] = [
@@ -20,92 +19,79 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
     targetId: 'tour-sidebar',
     title: 'Navigation Control Hub & Sidebar',
     description: 'Welcome to Lingofy! This collapsible sidebar is your central command hub. Use it to seamlessly switch between Home, Lessons, Music Library, Personal Notes, Statistics, Achievements, Mindful Listening, Documentation, and Profile Settings.',
-    position: 'right',
-    tabToOpen: 'home'
+    position: 'right'
   },
   {
     targetId: 'tour-sidebar-home',
     title: 'Home Dashboard & Learning Overview',
     description: 'The Home Dashboard serves as your main hub for active learning. Here you can control live song playback, track your target language proficiency, monitor level roadmap stages, and launch instant practice quizzes.',
-    position: 'right',
-    tabToOpen: 'home'
+    position: 'right'
   },
   {
     targetId: 'tour-sidebar-lessons',
     title: 'Traditional Mode & Structured Lessons',
     description: 'Access classic text-based language learning modules categorized from Easy to Advanced. In Traditional Mode, you focus directly on structured grammar rules, vocabulary flashcards, reading comprehension, and level progression lessons without audio background music.',
-    position: 'right',
-    tabToOpen: 'home'
+    position: 'right'
   },
   {
-    targetId: 'tour-song-library',
+    targetId: 'tour-sidebar-library',
     title: 'Music Library & Custom YouTube Imports',
     description: 'Explore curated multi-genre tracks across Spanish, Hindi, Korean, and English. Create custom playlists, filter songs by language, or import up to 5 YouTube songs to automatically generate synchronized bilingual lyrics.',
-    position: 'top',
-    tabToOpen: 'library'
+    position: 'right'
   },
   {
-    targetId: 'tour-notes-hub',
+    targetId: 'tour-sidebar-notes',
     title: 'Personal Notes Hub & Bookmarks',
     description: 'Your centralized digital notebook. Access all saved vocabulary cards, synchronized lyric highlights, custom study notes, and bookmarks saved during interactive song playback for targeted revision.',
-    position: 'top',
-    tabToOpen: 'notes'
+    position: 'right'
   },
   {
-    targetId: 'tour-statistics-content',
+    targetId: 'tour-sidebar-statistics',
     title: 'Statistics & Research Comparative Analytics',
     description: 'Analyze your learning metrics, active streak heatmaps, and past quiz attempts. Features a research-grade HCI evaluation comparing your performance metrics between Traditional Mode and Music Mode with exportable statistical summaries.',
-    position: 'top',
-    tabToOpen: 'statistics'
+    position: 'right'
   },
   {
-    targetId: 'tour-achievements-content',
+    targetId: 'tour-sidebar-achievements',
     title: 'Achievements & Milestone Badges',
     description: 'Track your learning milestones, unlock proficiency badges for language roadmaps, reward streak records, and share your achievements directly with friends via WhatsApp or social media.',
-    position: 'top',
-    tabToOpen: 'achievements'
+    position: 'right'
   },
   {
-    targetId: 'tour-mindful-content',
+    targetId: 'tour-sidebar-mindful',
     title: 'Mindful Listening & Ambient Immersion',
     description: 'Immerse yourself in passive audio learning. Listen to calming natural soundscapes like ocean waves, rain, and forest ambiance paired with soft text-to-speech phrases to reinforce vocabulary effortlessly.',
-    position: 'top',
-    tabToOpen: 'mindful'
+    position: 'right'
   },
   {
     targetId: 'tour-language-card',
     title: 'Language Selection & Roadmap Tier Progression',
     description: 'Switch between target languages including Spanish, Hindi, Korean, and English. Track completed lessons across Easy, Intermediate, and Advanced tiers, and take unlock quizzes to advance your rank.',
-    position: 'bottom',
-    tabToOpen: 'home'
+    position: 'bottom'
   },
   {
     targetId: 'tour-mode-toggle',
     title: 'Traditional & Music Mode Switcher',
     description: 'Customize your learning experience anytime in your Profile. Choose between Music-Enhanced Mode with karaoke lyrics and audio practice, or Traditional Mode for quiet text-focused drills.',
-    position: 'top',
-    tabToOpen: 'profile'
+    position: 'top'
   },
   {
     targetId: 'tour-song-player',
     title: 'Music Player & Interactive Song Quiz',
     description: 'Play high-definition audio tracks, toggle synchronized bilingual karaoke lyrics, adjust playback speed, and click Practice Song to trigger a 15-question interactive quiz generated from the song text.',
-    position: 'left',
-    tabToOpen: 'home'
+    position: 'left'
   },
   {
     targetId: 'tour-song-library',
     title: 'Playlists & Custom YouTube Imports',
     description: 'Organize your favorite study songs into custom playlists and import YouTube links into your personal collection to extract AI-translated lyrics in 4 languages.',
-    position: 'top',
-    tabToOpen: 'library'
+    position: 'top'
   },
   {
     targetId: 'tour-faq-chatbot',
     title: 'AI Assistant & Help Center',
     description: 'Click this floating AI Assistant icon anytime to ask Lingofy questions, get instant app navigation assistance, or restart this guided tour whenever you need a refresher.',
-    position: 'left',
-    tabToOpen: 'home'
+    position: 'left'
   }
 ];
 
@@ -125,13 +111,13 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
 
   const currentStep = steps[currentStepIndex];
 
-  // Update highlighted element bounding rect and open tab if specified
+  // Update highlighted element bounding rect sequentially
   useEffect(() => {
     if (!isOpen || !currentStep) return;
 
-    // Trigger tab switch to open target section in app
-    if (currentStep.tabToOpen) {
-      window.dispatchEvent(new CustomEvent('lingofy-tab-change', { detail: currentStep.tabToOpen }));
+    // Switch activeTab to 'home' if step targets elements rendered on the home dashboard
+    if (['tour-language-card', 'tour-song-player', 'tour-song-library'].includes(currentStep.targetId)) {
+      window.dispatchEvent(new CustomEvent('lingofy-tab-change', { detail: 'home' }));
     }
 
     const updateRect = () => {
@@ -147,7 +133,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
 
     updateRect();
     const timer1 = setTimeout(updateRect, 150);
-    const timer2 = setTimeout(updateRect, 450);
+    const timer2 = setTimeout(updateRect, 400);
 
     window.addEventListener('resize', updateRect);
     window.addEventListener('scroll', updateRect);
