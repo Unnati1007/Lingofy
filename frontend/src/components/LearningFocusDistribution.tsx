@@ -38,23 +38,23 @@ export function LearningFocusDistribution({ history }: { history: any[] }) {
   };
 
   return (
-    <Card style={{ marginBottom: '32px' }}>
-      <CardHeader>
-        <CardTitle>Learning Focus Distribution</CardTitle>
-        <CardDescription>Breakdown of how you spend your learning time</CardDescription>
+    <Card style={{ marginBottom: '24px' }}>
+      <CardHeader style={{ padding: '20px 24px 12px 24px' }}>
+        <CardTitle style={{ fontSize: '17px' }}>Learning Focus Distribution</CardTitle>
+        <CardDescription style={{ fontSize: '12px' }}>Breakdown of how you spend your learning time</CardDescription>
       </CardHeader>
       
-      <CardContent>
+      <CardContent style={{ padding: '0 24px 18px 24px' }}>
         {total === 0 ? (
-          <div style={{ height: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
-            <p>Complete a lesson to see your distribution!</p>
+          <div style={{ height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
+            <p style={{ fontSize: '13px' }}>Complete a lesson to see your distribution!</p>
           </div>
         ) : (
           <motion.div 
             variants={containerVariants} 
             initial="hidden" 
             animate="show"
-            style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
           >
             {data.map((item, i) => {
               const isEmpty = item.count === 0;
@@ -64,30 +64,30 @@ export function LearningFocusDistribution({ history }: { history: any[] }) {
                 <React.Fragment key={i}>
                   <motion.div 
                     variants={itemVariants}
-                    whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                    whileHover={{ scale: 1.005, backgroundColor: 'rgba(255,255,255,0.04)' }}
                     style={{ 
-                      padding: '16px', 
-                      borderRadius: '16px', 
+                      padding: '10px 14px', 
+                      borderRadius: '12px', 
                       transition: 'background-color 0.2s',
                       backgroundColor: 'rgba(255,255,255,0.01)',
                       border: '1px solid rgba(255,255,255,0.02)'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {/* Refined Dot: Soft glow / ring */}
                         <div style={{ 
-                          width: '14px', 
-                          height: '14px', 
+                          width: '10px', 
+                          height: '10px', 
                           borderRadius: '50%', 
                           background: isEmpty ? 'transparent' : `radial-gradient(circle at 30% 30%, ${item.color}, #000)`,
                           border: isEmpty ? `1px solid rgba(255,255,255,0.2)` : `2px solid ${item.color}`,
-                          boxShadow: isEmpty ? 'none' : `0 0 8px ${item.color}80`,
+                          boxShadow: isEmpty ? 'none' : `0 0 6px ${item.color}80`,
                           opacity: isEmpty ? 0.3 : 1
                         }}></div>
                         
                         <span style={{ 
-                          fontSize: '15px', 
+                          fontSize: '13px', 
                           fontWeight: isEmpty ? '500' : '600', 
                           color: isEmpty ? 'rgba(255,255,255,0.5)' : '#fff' 
                         }}>
@@ -95,16 +95,18 @@ export function LearningFocusDistribution({ history }: { history: any[] }) {
                         </span>
                       </div>
                       
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ 
-                          fontSize: '13px', 
+                          fontSize: '12px', 
                           color: isEmpty ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.7)',
                           fontWeight: '500'
                         }}>
                           {item.count} {item.count === 1 ? 'quiz' : 'quizzes'}
                         </span>
                         <Badge variant={isEmpty ? 'outline' : 'default'} style={{ 
-                          minWidth: '48px', 
+                          minWidth: '42px', 
+                          padding: '1px 6px',
+                          fontSize: '11px',
                           justifyContent: 'center',
                           backgroundColor: isEmpty ? 'transparent' : `${item.color}20`,
                           color: isEmpty ? 'rgba(255,255,255,0.4)' : item.color,
@@ -121,7 +123,7 @@ export function LearningFocusDistribution({ history }: { history: any[] }) {
                       isEmpty={isEmpty} 
                     />
                   </motion.div>
-                  {i < data.length - 1 && <Separator style={{ margin: '4px 0' }} />}
+                  {i < data.length - 1 && <Separator style={{ margin: '2px 0', opacity: 0.05 }} />}
                 </React.Fragment>
               );
             })}

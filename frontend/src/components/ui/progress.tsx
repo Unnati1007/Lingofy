@@ -15,10 +15,10 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
       style={{
         position: 'relative',
         width: '100%',
-        height: '14px',
+        height: '7px',
         overflow: 'hidden',
         borderRadius: '9999px',
-        backgroundColor: isEmpty ? 'transparent' : 'rgba(255,255,255,0.05)',
+        backgroundColor: isEmpty ? 'transparent' : 'rgba(255,255,255,0.06)',
         border: isEmpty ? '1px dashed rgba(255,255,255,0.2)' : 'none',
         ...style
       }}
