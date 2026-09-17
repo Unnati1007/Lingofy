@@ -17,80 +17,80 @@ export interface TourStep {
 const DEFAULT_TOUR_STEPS: TourStep[] = [
   {
     targetId: 'tour-sidebar',
-    title: 'Navigation Control Hub',
-    description: 'Welcome to Lingofy! Use this sidebar menu to switch between all core features, learning modules, and analytics.',
+    title: 'Navigation Control Hub & Sidebar',
+    description: 'Welcome to Lingofy! This collapsible sidebar is your central command hub. Use it to seamlessly switch between Home, Lessons, Music Library, Personal Notes, Statistics, Achievements, Mindful Listening, Documentation, and Profile Settings.',
     position: 'right'
   },
   {
     targetId: 'tour-sidebar-home',
-    title: 'Home Dashboard',
-    description: 'Your main dashboard overview displaying active songs, language roadmap progress, and quick practice controls.',
+    title: 'Home Dashboard & Learning Overview',
+    description: 'The Home Dashboard serves as your main hub for active learning. Here you can control live song playback, track your target language proficiency, monitor level roadmap stages, and launch instant practice quizzes.',
     position: 'right'
   },
   {
     targetId: 'tour-sidebar-lessons',
     title: 'Traditional Mode & Structured Lessons',
-    description: 'Access classic text-based learning modules. In Traditional Mode, you focus directly on structured grammar rules, vocabulary flashcards, reading comprehension, and level progression lessons without music audio.',
+    description: 'Access classic text-based language learning modules categorized from Easy to Advanced. In Traditional Mode, you focus directly on structured grammar rules, vocabulary flashcards, reading comprehension, and level progression lessons without audio background music.',
     position: 'right'
   },
   {
     targetId: 'tour-sidebar-library',
-    title: 'Music Library',
-    description: 'Browse curated songs, manage custom playlists, or import up to 5 YouTube tracks with AI synchronized lyrics.',
+    title: 'Music Library & Custom YouTube Imports',
+    description: 'Explore curated multi-genre tracks across Spanish, Hindi, Korean, and English. Create custom playlists, filter songs by language, or import up to 5 YouTube songs to automatically generate synchronized bilingual lyrics.',
     position: 'right'
   },
   {
     targetId: 'tour-sidebar-notes',
-    title: 'Personal Notes Hub',
-    description: 'Review saved vocabulary notes, lyric highlights, and custom study bookmarks created during song sessions.',
+    title: 'Personal Notes Hub & Bookmarks',
+    description: 'Your centralized digital notebook. Access all saved vocabulary cards, synchronized lyric highlights, custom study notes, and bookmarks saved during interactive song playback for targeted revision.',
     position: 'right'
   },
   {
     targetId: 'tour-sidebar-statistics',
-    title: 'Statistics & Research Analytics',
-    description: 'Track daily study minutes, active streaks, learning heatmaps, and empirical HCI stats comparing your Traditional vs. Music Mode performance.',
+    title: 'Statistics & Research Comparative Analytics',
+    description: 'Analyze your learning metrics, active streak heatmaps, and past quiz attempts. Features a research-grade HCI evaluation comparing your performance metrics between Traditional Mode and Music Mode with exportable statistical summaries.',
     position: 'right'
   },
   {
     targetId: 'tour-sidebar-achievements',
-    title: 'Achievements & Badges',
-    description: 'Unlock milestone badges, track streak rewards, and view your learning progress achievements.',
+    title: 'Achievements & Milestone Badges',
+    description: 'Track your learning milestones, unlock proficiency badges for language roadmaps, reward streak records, and share your achievements directly with friends via WhatsApp or social media.',
     position: 'right'
   },
   {
     targetId: 'tour-sidebar-mindful',
-    title: 'Mindful Listening',
-    description: 'Relax with soothing background ambient sounds paired with soft language phrases for passive learning.',
+    title: 'Mindful Listening & Ambient Immersion',
+    description: 'Immerse yourself in passive audio learning. Listen to calming natural soundscapes like ocean waves, rain, and forest ambiance paired with soft text-to-speech phrases to reinforce vocabulary effortlessly.',
     position: 'right'
   },
   {
     targetId: 'tour-language-card',
-    title: 'Language Selection & Roadmap',
-    description: 'Select your target language (Spanish, Hindi, Korean, English), monitor roadmap proficiency, and take level quizzes.',
+    title: 'Language Selection & Roadmap Tier Progression',
+    description: 'Switch between target languages including Spanish, Hindi, Korean, and English. Track completed lessons across Easy, Intermediate, and Advanced tiers, and take unlock quizzes to advance your rank.',
     position: 'bottom'
   },
   {
     targetId: 'tour-mode-toggle',
-    title: 'Traditional & Music Mode Switch',
-    description: 'Switch anytime between Music-Enhanced Mode (songs & karaoke lyrics) and Traditional Mode (text drills & grammar) depending on your study preference.',
+    title: 'Traditional & Music Mode Switcher',
+    description: 'Customize your learning experience anytime in your Profile. Choose between Music-Enhanced Mode with karaoke lyrics and audio practice, or Traditional Mode for quiet text-focused drills.',
     position: 'top'
   },
   {
     targetId: 'tour-song-player',
-    title: 'Music Player & Song Practice Quiz',
-    description: 'Play HQ tracks, toggle synchronized bilingual lyrics, and click Practice Song to start an interactive 15-question quiz.',
+    title: 'Music Player & Interactive Song Quiz',
+    description: 'Play high-definition audio tracks, toggle synchronized bilingual karaoke lyrics, adjust playback speed, and click Practice Song to trigger a 15-question interactive quiz generated from the song text.',
     position: 'left'
   },
   {
     targetId: 'tour-song-library',
-    title: 'Playlists & Custom Track Imports',
-    description: 'Explore community playlists and import up to 5 custom YouTube tracks into your personal music collection.',
+    title: 'Playlists & Custom YouTube Imports',
+    description: 'Organize your favorite study songs into custom playlists and import YouTube links into your personal collection to extract AI-translated lyrics in 4 languages.',
     position: 'top'
   },
   {
     targetId: 'tour-faq-chatbot',
     title: 'AI Assistant & Help Center',
-    description: 'Click here anytime to ask Lingofy AI assistant questions, get instant app navigation, or restart this guided tour.',
+    description: 'Click this floating AI Assistant icon anytime to ask Lingofy questions, get instant app navigation assistance, or restart this guided tour whenever you need a refresher.',
     position: 'left'
   }
 ];
