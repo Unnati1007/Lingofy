@@ -619,9 +619,43 @@ Get all songs in the library.
 
 ---
 
-### `POST /api/admin/song` 👑
+### `GET /api/admin/quota` 🔐
 
-Add a new song to the library. Optionally fetches lyrics from YouTube automatically.
+Get the authenticated user's custom song upload quota status (5-song quota limit for regular users, unlimited for admin).
+
+**Response `200`:**
+```json
+{
+  "uploadedCount": 2,
+  "maxLimit": 5,
+  "remaining": 3,
+  "isUnlimited": false
+}
+```
+
+---
+
+### `GET /api/admin/recommendations` 🔐
+
+Get personalized song recommendations scored and ranked based on onboarding/profile preferences:
+- Matching `learningLanguage`: +60 points
+- Matching `favoriteArtists` / singers: +40 points
+- Matching `favoriteGenres`: +20 points
+
+**Response `200`:**
+```json
+{
+  "recommendations": [ ...scoredSongObjects ],
+  "quota": { "uploadedCount": 2, "maxLimit": 5, "remaining": 3, "isUnlimited": false },
+  "allSongs": [ ...allSongObjects ]
+}
+```
+
+---
+
+### `POST /api/admin/song` 🔐
+
+Add/import a new song to the library (available to both regular users and admins). Enforces a 5-song quota limit for regular users. Automatically extracts timed captions from YouTube and generates parallel 4-language Groq AI translations (English, Hindi, Spanish, Korean).
 
 **Request Body:**
 ```json
@@ -637,9 +671,9 @@ Add a new song to the library. Optionally fetches lyrics from YouTube automatica
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `title` | string | Yes | |
-| `artistName` | string | Yes | |
-| `language` | string | Yes | |
+| `title` | string | Yes | Song title |
+| `artistName` | string | Yes | Artist/singer name |
+| `language` | string | Yes | Original song language (`Hindi \| Spanish \| Korean \| English`) |
 | `audioUrl` | string | Yes | YouTube URL or direct audio URL |
 | `youtubeUrl` | string | No | If provided, fetches captions automatically |
 | `lyrics` | string[] | No | Manual fallback if YouTube captions fail |
@@ -647,12 +681,14 @@ Add a new song to the library. Optionally fetches lyrics from YouTube automatica
 **Response `201`:**
 ```json
 {
-  "message": "Song added successfully",
+  "message": "Song added and processed successfully!",
   "song": { ...songObject },
   "fetchedSegments": 45,
   "segments": [ ...lyricSegmentObjects ]
 }
 ```
+
+**Error `400`:** `{ "message": "Song upload limit reached (5 songs maximum)." }`
 
 ---
 
@@ -855,6 +891,35 @@ Mark a single notification as read.
 **Response `200`:** Updated notification object.
 
 **Error `404`:** `{ "message": "Notification not found" }`
+
+---
+
+### `POST /api/notifications/goal-status` 🔐
+
+Log or sync a daily learning goal status notification (`goal_completed` or `goal_pending`). Automatically prevents duplicate notifications for the same goal within the same day.
+
+**Request Body:**
+```json
+{
+  "title": "Daily Goal Completed",
+  "message": "Congratulations! You achieved your 15 minutes daily learning goal today.",
+  "type": "goal_completed"
+}
+```
+
+| Field | Type | Required | Values |
+|---|---|---|---|
+| `title` | string | Yes | Notification title |
+| `message` | string | Yes | Notification body text |
+| `type` | string | No | `goal_completed \| goal_pending \| general` |
+
+**Response `201`:**
+```json
+{
+  "message": "Notification created",
+  "notification": { ...notificationObject }
+}
+```
 
 ---
 
