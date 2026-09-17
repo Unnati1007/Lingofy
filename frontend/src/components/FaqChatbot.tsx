@@ -89,7 +89,7 @@ interface FaqChatbotProps {
  bottomOffset?: number;
 }
 
-export const FaqChatbot: React.FC<FaqChatbotProps> = ({ bottomOffset = 100 }) => {
+export const FaqChatbot: React.FC<FaqChatbotProps> = ({ bottomOffset = 24 }) => {
  const [isOpen, setIsOpen] = useState(false);
  const [showTour, setShowTour] = useState(false);
  const [messages, setMessages] = useState<Message[]>([
