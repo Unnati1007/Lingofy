@@ -481,6 +481,8 @@ const DashboardPage = () => {
  setCurrentUser({ ...currentUser, learningMode: data.mode });
  if (data.mode === 'traditional' && (activeTab === 'home' || activeTab === 'library')) {
  setActiveTab('statistics');
+ } else if (data.mode === 'music' && activeTab === 'statistics') {
+ setActiveTab('home');
  }
  }
  } catch (err) {
@@ -1408,14 +1410,12 @@ const DashboardPage = () => {
  return matchesSearch && matchesLang;
  });
 
- const userUploadedSongs = useMemo(() => {
- return songs.filter(s => {
+ const userUploadedSongs = songs.filter(s => {
  if (!s) return false;
  const sUploadedBy = typeof s.uploadedBy === 'object' ? s.uploadedBy?._id : s.uploadedBy;
  const currentUserId = currentUser?._id || currentUser?.id;
  return s.isUserUploaded === true || Boolean(sUploadedBy && currentUserId && String(sUploadedBy) === String(currentUserId));
  });
- }, [songs, currentUser]);
 
  const effectiveQuotaCount = Math.max(uploadQuota.uploadedCount || 0, userUploadedSongs.length);
 
@@ -3215,24 +3215,26 @@ const DashboardPage = () => {
  
  {/* Mode Indicator Badge */}
  <div 
- id="tour-mode-toggle"
- onClick={() => setActiveTab('profile')}
+ id="header-mode-toggle"
+ onClick={toggleLearningMode}
+ className="btn-hover"
  style={{
  display: 'flex',
  alignItems: 'center',
  gap: '8px',
- background: 'rgba(32, 190, 255, 0.08)',
- border: '1px solid rgba(32, 190, 255, 0.25)',
+ background: currentUser?.learningMode === 'traditional' ? 'rgba(168, 85, 247, 0.12)' : 'rgba(32, 190, 255, 0.08)',
+ border: currentUser?.learningMode === 'traditional' ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid rgba(32, 190, 255, 0.25)',
  borderRadius: '20px',
  padding: '8px 16px',
  fontSize: '12px',
  fontWeight: '700',
- color: '#20BEFF',
- cursor: 'pointer'
+ color: currentUser?.learningMode === 'traditional' ? '#a855f7' : '#20BEFF',
+ cursor: 'pointer',
+ transition: 'all 0.2s ease'
  }}
- title="Click to view Learning Mode settings in Profile"
+ title="Click to toggle between Music Mode and Traditional Mode"
  >
- <Sparkles size={14} color="#20BEFF" />
+ <Sparkles size={14} color={currentUser?.learningMode === 'traditional' ? '#a855f7' : '#20BEFF'} />
  <span>{currentUser?.learningMode === 'traditional' ? 'Traditional Mode' : 'Music Mode'}</span>
  </div>
 
@@ -5354,3 +5356,4 @@ const SongItem = ({ song, active, onClick }: any) => (
 );
 
 export default DashboardPage;
+
