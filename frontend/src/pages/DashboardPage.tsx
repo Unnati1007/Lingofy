@@ -35,7 +35,11 @@ import {
   ChevronDown,
   Sparkles,
   Upload,
-  Filter
+  Filter,
+  User,
+  Target,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LearningFocusDistribution } from '../components/LearningFocusDistribution';
@@ -97,6 +101,8 @@ const DashboardPage = () => {
   // Achievements & Session
   const [sessionTime, setSessionTime] = useState(0);
   const [showGoalMetPopup, setShowGoalMetPopup] = useState(false);
+  const [showGoalIncompleteToast, setShowGoalIncompleteToast] = useState(false);
+  const [hasNotifiedIncomplete, setHasNotifiedIncomplete] = useState(false);
   const [goalAlreadyMet, setGoalAlreadyMet] = useState(false);
   const [shareBadgeModal, setShareBadgeModal] = useState<any>(null);
   const [showCompleteProfilePopup, setShowCompleteProfilePopup] = useState(false);
@@ -251,25 +257,69 @@ const DashboardPage = () => {
   }, [navigate]);
 
   useEffect(() => {
-    // Session Timer logic
+    // Session Timer logic & Goal notifications
     const timer = setInterval(() => {
       setSessionTime(prev => {
         const newTime = prev + 1;
-        // Check if goal is met
-        if (profileForm.dailyGoal && !goalAlreadyMet) {
-          const goalSeconds = parseInt(profileForm.dailyGoal) * 60;
-          if (newTime >= goalSeconds) {
-            setShowGoalMetPopup(true);
-            setGoalAlreadyMet(true);
-            // Auto hide after 5 seconds
-            setTimeout(() => setShowGoalMetPopup(false), 5000);
+        const goalMinutes = parseInt(profileForm.dailyGoal || '15');
+        const goalSeconds = goalMinutes * 60;
+
+        // 1. Goal Completed Trigger
+        if (profileForm.dailyGoal && !goalAlreadyMet && newTime >= goalSeconds) {
+          setShowGoalMetPopup(true);
+          setGoalAlreadyMet(true);
+          setShowGoalIncompleteToast(false);
+          setTimeout(() => setShowGoalMetPopup(false), 5000);
+
+          // Save goal completed notification to backend
+          const token = localStorage.getItem('token');
+          if (token) {
+            fetch(`${API_BASE}/api/notifications/goal-status`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({
+                title: 'Daily Goal Completed',
+                message: `Congratulations! You achieved your ${goalMinutes} minutes daily learning goal today. Keep up the streak!`,
+                type: 'goal_completed'
+              })
+            }).then(res => res.json()).then(data => {
+              if (data.notification) {
+                setNotifications(nPrev => [data.notification, ...nPrev.filter((n: any) => n._id !== data.notification._id)]);
+              }
+            }).catch(console.error);
           }
         }
+
+        // 2. Goal Incomplete Reminder Trigger (after 45s of active session if goal is pending)
+        if (newTime === 45 && !goalAlreadyMet && !hasNotifiedIncomplete) {
+          setHasNotifiedIncomplete(true);
+          setShowGoalIncompleteToast(true);
+          setTimeout(() => setShowGoalIncompleteToast(false), 6000);
+
+          // Save goal incomplete notification reminder to backend
+          const token = localStorage.getItem('token');
+          if (token) {
+            fetch(`${API_BASE}/api/notifications/goal-status`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({
+                title: 'Daily Goal Incomplete',
+                message: `You haven't completed your ${goalMinutes} minutes learning goal today. ${Math.max(1, goalMinutes - Math.floor(newTime / 60))}m remaining!`,
+                type: 'goal_pending'
+              })
+            }).then(res => res.json()).then(data => {
+              if (data.notification) {
+                setNotifications(nPrev => [data.notification, ...nPrev.filter((n: any) => n._id !== data.notification._id)]);
+              }
+            }).catch(console.error);
+          }
+        }
+
         return newTime;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [profileForm.dailyGoal, goalAlreadyMet]);
+  }, [profileForm.dailyGoal, goalAlreadyMet, hasNotifiedIncomplete]);
 
   useEffect(() => {
     if (learningLanguageKey) {
@@ -2422,7 +2472,7 @@ const DashboardPage = () => {
             gap: '14px' 
           }}>
             <div style={{ fontSize: '13px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              👤 Personal Information
+              <User size={15} color="#20BEFF" /> Personal Information
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
@@ -2519,7 +2569,7 @@ const DashboardPage = () => {
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ fontSize: '13px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🎯 Language & Learning Goals
+                <Target size={15} color="#20BEFF" /> Language & Learning Goals
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
@@ -2896,61 +2946,139 @@ const DashboardPage = () => {
                 position: 'absolute',
                 top: '54px',
                 right: '0',
-                width: '320px',
+                width: '340px',
                 background: '#121214',
                 border: '1px solid #27272a',
-                borderRadius: '16px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.8)',
+                borderRadius: '20px',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.85)',
                 overflow: 'hidden',
                 zIndex: 100
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid #27272a' }}>
-                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>Notifications</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 18px', borderBottom: '1px solid #27272a' }}>
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Bell size={16} color="#20BEFF" /> Notifications
+                  </h4>
                   {notifications.filter((n: any) => !n.isRead).length > 0 && (
                     <button 
                       onClick={handleMarkAllNotificationsAsRead}
-                      style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
+                      style={{ background: 'none', border: 'none', color: '#20BEFF', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
                     >
                       Mark all read
                     </button>
                   )}
                 </div>
+
+                {/* Live Daily Goal Status Banner */}
+                <div style={{
+                  margin: '12px 14px',
+                  padding: '12px 14px',
+                  borderRadius: '14px',
+                  background: goalAlreadyMet 
+                    ? 'rgba(16, 185, 129, 0.08)' 
+                    : 'rgba(245, 158, 11, 0.08)',
+                  border: `1px solid ${goalAlreadyMet ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {goalAlreadyMet ? (
+                        <Check size={16} color="#10b981" />
+                      ) : (
+                        <Clock size={16} color="#f59e0b" />
+                      )}
+                      <span style={{ 
+                        fontSize: '13px', 
+                        fontWeight: 'bold', 
+                        color: goalAlreadyMet ? '#10b981' : '#f59e0b' 
+                      }}>
+                        {goalAlreadyMet ? 'Daily Goal Completed' : 'Daily Goal Incomplete'}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '11px', opacity: 0.6, fontWeight: 'bold' }}>
+                      {Math.floor(sessionTime / 60)} / {profileForm.dailyGoal || '15'}m
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${Math.min(100, (sessionTime / (parseInt(profileForm.dailyGoal || '15') * 60)) * 100)}%`,
+                      height: '100%',
+                      background: goalAlreadyMet ? '#10b981' : 'linear-gradient(90deg, #f59e0b 0%, #20BEFF 100%)',
+                      borderRadius: '3px',
+                      transition: 'width 0.3s ease'
+                    }} />
+                  </div>
+
+                  <p style={{ fontSize: '11px', margin: 0, opacity: 0.75, lineHeight: '1.4' }}>
+                    {goalAlreadyMet 
+                      ? `You achieved your ${profileForm.dailyGoal || '15'}m target today! Streak maintained.` 
+                      : `${Math.max(1, parseInt(profileForm.dailyGoal || '15') - Math.floor(sessionTime / 60))}m remaining today. Complete a lesson or song to hit your goal!`}
+                  </p>
+                </div>
                 
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
                   {notifications.length === 0 ? (
-                    <div style={{ padding: '32px', textAlign: 'center', opacity: 0.5, fontSize: '13px' }}>
-                      No new notifications
+                    <div style={{ padding: '28px 16px', textAlign: 'center', opacity: 0.5, fontSize: '13px' }}>
+                      No other notifications
                     </div>
                   ) : (
-                    notifications.map((notif: any) => (
-                      <div 
-                        key={notif._id}
-                        onClick={() => {
-                          if (!notif.isRead) handleMarkNotificationAsRead(notif._id);
-                          if (notif.title?.includes('Badge')) {
-                            setActiveTab('achievements');
-                            setShowNotificationsDropdown(false);
-                          }
-                        }}
-                        style={{
-                          padding: '16px',
-                          borderBottom: '1px solid rgba(255,255,255,0.02)',
-                          background: notif.isRead ? 'transparent' : 'rgba(168, 85, 247, 0.05)',
-                          cursor: 'pointer',
-                          transition: 'background 0.2s',
-                          position: 'relative'
-                        }}
-                      >
-                        {!notif.isRead && <div style={{ position: 'absolute', left: '8px', top: '24px', width: '6px', height: '6px', borderRadius: '50%', background: '#a855f7' }}></div>}
-                        <div style={{ paddingLeft: notif.isRead ? '0' : '12px' }}>
-                          <h5 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: notif.isRead ? 'normal' : 'bold' }}>{notif.title}</h5>
-                          <p style={{ margin: 0, fontSize: '12px', opacity: 0.6, lineHeight: '1.4' }}>{notif.message}</p>
-                          <span style={{ display: 'block', marginTop: '8px', fontSize: '10px', opacity: 0.4 }}>
-                            {new Date(notif.createdAt).toLocaleDateString()}
-                          </span>
+                    notifications.map((notif: any) => {
+                      const isGoalCompleted = notif.title?.includes('Completed') || notif.type === 'goal_completed';
+                      const isGoalPending = notif.title?.includes('Incomplete') || notif.title?.includes('Pending') || notif.type === 'goal_pending';
+
+                      return (
+                        <div 
+                          key={notif._id}
+                          onClick={() => {
+                            if (!notif.isRead) handleMarkNotificationAsRead(notif._id);
+                            if (notif.title?.includes('Badge')) {
+                              setActiveTab('achievements');
+                              setShowNotificationsDropdown(false);
+                            }
+                          }}
+                          style={{
+                            padding: '14px 16px',
+                            borderBottom: '1px solid rgba(255,255,255,0.03)',
+                            background: notif.isRead ? 'transparent' : 'rgba(32, 190, 255, 0.04)',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                            display: 'flex',
+                            gap: '12px',
+                            alignItems: 'flex-start'
+                          }}
+                        >
+                          <div style={{ marginTop: '2px', flexShrink: 0 }}>
+                            {isGoalCompleted ? (
+                              <Check size={16} color="#10b981" />
+                            ) : isGoalPending ? (
+                              <Clock size={16} color="#f59e0b" />
+                            ) : notif.title?.includes('Badge') ? (
+                              <Award size={16} color="#facc15" />
+                            ) : (
+                              <Sparkles size={16} color="#20BEFF" />
+                            )}
+                          </div>
+                          
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                              <h5 style={{ margin: '0 0 2px 0', fontSize: '13px', fontWeight: notif.isRead ? '600' : '800', color: notif.isRead ? '#fff' : '#20BEFF' }}>
+                                {notif.title}
+                              </h5>
+                              {!notif.isRead && (
+                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#20BEFF', flexShrink: 0 }} />
+                              )}
+                            </div>
+                            <p style={{ margin: 0, fontSize: '12px', opacity: 0.65, lineHeight: '1.4' }}>{notif.message}</p>
+                            <span style={{ display: 'block', marginTop: '6px', fontSize: '10px', opacity: 0.35 }}>
+                              {new Date(notif.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -4130,7 +4258,7 @@ const DashboardPage = () => {
         </div>
       )}
 
-      {/* Goal Met Popup Toast */}
+      {/* Goal Met & Goal Incomplete Toast Popups */}
       <AnimatePresence>
         {showGoalMetPopup && (
           <motion.div 
@@ -4139,15 +4267,46 @@ const DashboardPage = () => {
             exit={{ opacity: 0, y: -50, scale: 0.9 }}
             style={{
               position: 'fixed', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
-              background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', padding: '16px 24px', borderRadius: '16px',
-              display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 20px 40px rgba(32,190,255,0.35)', color: '#000', fontWeight: 'bold'
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '16px 24px', borderRadius: '16px',
+              display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 20px 40px rgba(16,185,129,0.35)', color: '#fff', fontWeight: 'bold'
             }}
           >
-            <div style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '50%', padding: '8px' }}><Check size={24} color="#000" /></div>
-            <div>
-              <div style={{ fontSize: '16px' }}>Daily Goal Met! 🎉</div>
-              <div style={{ fontSize: '12px', opacity: 0.8, fontWeight: 'normal' }}>You spent {profileForm.dailyGoal} minutes learning today.</div>
+            <div style={{ background: 'rgba(255,255,255,0.25)', borderRadius: '50%', padding: '8px' }}>
+              <Check size={22} color="#fff" />
             </div>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: '800' }}>Daily Goal Completed!</div>
+              <div style={{ fontSize: '12px', opacity: 0.9, fontWeight: '500' }}>You completed your {profileForm.dailyGoal || 15} minutes learning goal today.</div>
+            </div>
+          </motion.div>
+        )}
+
+        {showGoalIncompleteToast && !goalAlreadyMet && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            style={{
+              position: 'fixed', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', padding: '16px 24px', borderRadius: '16px',
+              display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 20px 40px rgba(245,158,11,0.35)', color: '#000', fontWeight: 'bold'
+            }}
+          >
+            <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: '50%', padding: '8px' }}>
+              <Clock size={22} color="#000" />
+            </div>
+            <div style={{ minWidth: '220px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '800' }}>Daily Goal Incomplete</div>
+              <div style={{ fontSize: '12px', opacity: 0.9, fontWeight: '600' }}>
+                {Math.max(1, parseInt(profileForm.dailyGoal || '15') - Math.floor(sessionTime / 60))} minutes remaining to complete today's target.
+              </div>
+            </div>
+            <button
+              onClick={() => setShowGoalIncompleteToast(false)}
+              style={{ background: 'rgba(0,0,0,0.2)', border: 'none', color: '#000', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px' }}
+            >
+              <X size={14} />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

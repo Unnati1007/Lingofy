@@ -39,6 +39,43 @@ export const markAllAsRead = async (req: any, res: Response): Promise<void> => {
   }
 };
 
+export const createGoalNotification = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { title, message, type } = req.body;
+    if (!title || !message) {
+      res.status(400).json({ message: "Title and message are required" });
+      return;
+    }
+
+    // Avoid multiple duplicate notifications for the same goal within the same day
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const existing = await Notification.findOne({
+      userId: req.user._id,
+      title,
+      createdAt: { $gte: startOfDay }
+    });
+
+    if (existing) {
+      res.json({ message: "Notification already logged today", notification: existing });
+      return;
+    }
+
+    const notification = await Notification.create({
+      userId: req.user._id,
+      title,
+      message,
+      type: type || "goal",
+      isRead: false
+    });
+
+    res.status(201).json({ message: "Notification created", notification });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const sendNotification = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, title, message, sendEmail } = req.body;
