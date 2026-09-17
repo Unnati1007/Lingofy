@@ -4560,9 +4560,9 @@ const DashboardPage = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ 
                   fontSize: '12px', 
-                  background: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? 'rgba(168, 85, 247, 0.15)' : 'rgba(239, 68, 68, 0.15)', 
-                  border: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
-                  color: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? '#c084fc' : '#ef4444', 
+                  background: uploadQuota.remaining > 0 ? 'rgba(168, 85, 247, 0.15)' : 'rgba(239, 68, 68, 0.15)', 
+                  border: uploadQuota.remaining > 0 ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+                  color: uploadQuota.remaining > 0 ? '#c084fc' : '#ef4444', 
                   padding: '6px 14px', 
                   borderRadius: '12px', 
                   fontWeight: '700',
@@ -4571,7 +4571,7 @@ const DashboardPage = () => {
                   gap: '6px'
                 }}>
                   <Upload size={13} />
-                  Quota: {uploadQuota.uploadedCount} / {uploadQuota.isUnlimited ? '∞' : `${uploadQuota.maxLimit} slots used`}
+                  Quota: {uploadQuota.uploadedCount} / 5 slots used
                 </span>
               </div>
             </div>

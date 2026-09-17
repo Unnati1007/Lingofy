@@ -14,20 +14,9 @@ const MAX_USER_SONG_UPLOADS = 5;
 export const getUploadQuota = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?._id;
-    const role = req.user?.role;
 
     if (!userId) {
       res.status(401).json({ message: "User not authenticated" });
-      return;
-    }
-
-    if (role === 'admin') {
-      res.status(200).json({
-        uploadedCount: 0,
-        maxLimit: 9999,
-        remaining: 9999,
-        isUnlimited: true
-      });
       return;
     }
 
@@ -87,9 +76,9 @@ export const getPersonalizedRecommendations = async (req: AuthRequest, res: Resp
 
     const recommendations = scoredSongs.slice(0, 8).map(s => s.song);
 
-    // Get quota if user is authenticated
-    let quota = { uploadedCount: 0, maxLimit: MAX_USER_SONG_UPLOADS, remaining: MAX_USER_SONG_UPLOADS, isUnlimited: req.user?.role === 'admin' };
-    if (userId && req.user?.role !== 'admin') {
+    // Get quota if user is authenticated (Strict limit: 5 custom song uploads for all)
+    let quota = { uploadedCount: 0, maxLimit: MAX_USER_SONG_UPLOADS, remaining: MAX_USER_SONG_UPLOADS, isUnlimited: false };
+    if (userId) {
       const count = await Song.countDocuments({ uploadedBy: userId });
       quota = {
         uploadedCount: count,
