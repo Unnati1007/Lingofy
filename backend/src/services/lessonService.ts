@@ -7,11 +7,10 @@ async function callGroq(prompt: string): Promise<string> {
 
   const models = [
     process.env.GROQ_MODEL,
-    "llama-3.3-70b-versatile",
     "llama-3.1-8b-instant",
+    "llama-3.3-70b-versatile",
     "llama3-70b-8192",
-    "mixtral-8x7b-32768",
-    "openai/gpt-oss-120b"
+    "mixtral-8x7b-32768"
   ].filter(Boolean) as string[];
 
   let lastError: any = null;
