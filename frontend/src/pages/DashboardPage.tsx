@@ -31,7 +31,8 @@ import {
   Check,
   Bell,
   Headphones,
-  Bookmark
+  Bookmark,
+  ChevronDown
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LearningFocusDistribution } from '../components/LearningFocusDistribution';
@@ -65,6 +66,7 @@ const DashboardPage = () => {
   const [preferences, setPreferences] = useState<any>(null);
   const [syncOffset, setSyncOffset] = useState<number>(0);
   const [translationLang, setTranslationLang] = useState<'none'|'en'|'hi'|'es'|'ko'>('none');
+  const [showInteractiveLyrics, setShowInteractiveLyrics] = useState(false);
   const [playbackMode, setPlaybackMode] = useState<string>('100');
   const [loading, setLoading] = useState(true);
   const [roadmapProgress, setRoadmapProgress] = useState<any>(null);
@@ -2423,7 +2425,24 @@ const DashboardPage = () => {
                     <p style={{ opacity: 0.6, margin: '0 0 12px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentSong.artistName || currentSong.artist}</p>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
                        <div style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '10px' }}>HQ AUDIO</div>
-                       <div style={{ background: 'rgba(32, 190, 255, 0.15)', color: '#20BEFF', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>LYRICS</div>
+                       <div 
+                         onClick={() => setShowInteractiveLyrics(prev => !prev)}
+                         className="btn-hover"
+                         title="Toggle Interactive Lyrics"
+                         style={{ 
+                           background: showInteractiveLyrics ? 'rgba(32, 190, 255, 0.25)' : 'rgba(32, 190, 255, 0.15)', 
+                           color: '#20BEFF', 
+                           padding: '4px 8px', 
+                           borderRadius: '4px', 
+                           fontSize: '10px', 
+                           fontWeight: 'bold',
+                           cursor: 'pointer',
+                           border: showInteractiveLyrics ? '1px solid rgba(32, 190, 255, 0.4)' : '1px solid transparent',
+                           transition: 'all 0.2s'
+                         }}
+                       >
+                         LYRICS
+                       </div>
                        {currentSong?._id && (
                          <button 
                            onClick={() => {
@@ -2575,157 +2594,220 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* Bottom Row: Immersive Interactive Lyrics */}
-            <div 
-              className="lyrics-card-custom"
-              style={{ 
-                background: 'rgba(255,255,255,0.03)', 
-                borderRadius: '24px', 
-                padding: '32px', 
-                border: '1px solid rgba(255,255,255,0.05)', 
-                display: 'flex', 
-                flexDirection: 'column',
-                height: '620px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Globe size={20} color="#20BEFF" />
-                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Interactive Lyrics</h3>
-                </div>
-                <span style={{ fontSize: '12px', opacity: 0.5 }}>
-                  {translationLang === 'none' ? 'Original Only' : `Parallel: ${translationLang === 'en' ? 'English' : translationLang === 'hi' ? 'Hindi' : translationLang === 'ko' ? 'Korean' : 'Spanish'}`}
-                </span>
-              </div>
-              
-              {/* Header labels for parallel columns */}
-              {translationLang !== 'none' && (
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1fr 1fr', 
-                  gap: '40px', 
-                  paddingBottom: '12px', 
-                  borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  marginBottom: '20px',
-                  opacity: 0.6,
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px'
-                }}>
-                  <div>Original Lyrics</div>
-                  <div>Translation ({translationLang === 'en' ? 'English' : translationLang === 'hi' ? 'Hindi' : translationLang === 'ko' ? 'Korean' : 'Spanish'})</div>
-                </div>
-              )}
-
-              <div style={{ 
-                flex: 1, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '24px', 
-                overflowY: 'auto', 
-                paddingRight: '12px'
-              }}>
-                {segments.length > 0 ? (
-                  segments.map((line: any, idx: number) => {
-                    let translationText = "";
-                    if (translationLang === 'en') {
-                      if (currentSong?.language?.toLowerCase() === 'english') {
-                        translationText = line.text;
-                      } else {
-                        const obj = currentSong?.translations?.english?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.english?.[idx];
-                        translationText = obj?.text || "";
-                      }
-                    } else if (translationLang === 'hi') {
-                      if (currentSong?.language?.toLowerCase() === 'hindi') {
-                        translationText = line.text;
-                      } else {
-                        const obj = currentSong?.translations?.hindi?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.hindi?.[idx];
-                        translationText = obj?.text || "";
-                      }
-                    } else if (translationLang === 'es') {
-                      if (currentSong?.language?.toLowerCase() === 'spanish') {
-                        translationText = line.text;
-                      } else {
-                        const obj = currentSong?.translations?.spanish?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.spanish?.[idx];
-                        translationText = obj?.text || "";
-                      }
-                    } else if (translationLang === 'ko') {
-                      if (currentSong?.language?.toLowerCase() === 'korean') {
-                        translationText = line.text;
-                      } else {
-                        const obj = currentSong?.translations?.korean?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.korean?.[idx];
-                        translationText = obj?.text || "";
-                      }
-                    }
-                    const isActive = idx === activeIndex;
-
-                    return (
-                      <div 
-                        id={`line-${idx}`}
-                        key={idx} 
-                        onClick={() => {
-                          if (playerRef.current && playerRef.current.seekTo) {
-                            playerRef.current.seekTo(line.startTime, true);
-                            setCurrentTime(line.startTime);
-                          }
-                        }}
-                        style={{ 
-                          display: 'grid',
-                          gridTemplateColumns: translationLang === 'none' ? '1fr' : '1fr 1fr',
-                          gap: '40px',
-                          opacity: isActive ? 1 : 0.35, 
-                          transition: 'all 0.3s ease',
-                          transform: isActive ? 'scale(1.015)' : 'scale(1)',
-                          transformOrigin: 'left',
-                          padding: '6px 12px',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          background: isActive ? 'rgba(255,255,255,0.03)' : 'transparent'
-                        }}
-                        onMouseOver={(e) => {
-                          if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                        }}
-                        onMouseOut={(e) => {
-                          if (!isActive) e.currentTarget.style.background = 'transparent';
-                        }}
-                      >
-                        {/* Original Lyric Column */}
-                        <p style={{ 
-                          fontSize: '19px', 
-                          fontWeight: '600', 
-                          lineHeight: '1.6',
-                          color: isActive ? '#20BEFF' : '#ffffff',
-                          margin: 0,
-                          transition: 'color 0.3s'
-                        }}>
-                          {line.text}
-                        </p>
-
-                        {/* Translation Lyric Column */}
-                        {translationLang !== 'none' && (
-                          <p style={{ 
-                            fontSize: '19px', 
-                            fontWeight: '600', 
-                            lineHeight: '1.6',
-                            color: isActive ? '#facc15' : 'rgba(255,255,255,0.45)',
-                            margin: 0,
-                            transition: 'color 0.3s'
-                          }}>
-                            {translationText || '...'}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div style={{ opacity: 0.4, textAlign: 'center', marginTop: '60px' }}>
-                    <Music size={40} style={{ marginBottom: '16px', margin: '0 auto' }} />
-                    <p>Lyrics will appear here when synced.</p>
-                  </div>
-                )}
-              </div>
+            {/* Toggle Button for Interactive Lyrics */}
+            <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 8px 0' }}>
+              <button
+                onClick={() => setShowInteractiveLyrics(prev => !prev)}
+                className="btn-hover"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '12px 26px',
+                  borderRadius: '16px',
+                  border: showInteractiveLyrics ? '1px solid rgba(32, 190, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.12)',
+                  background: showInteractiveLyrics 
+                    ? 'linear-gradient(135deg, rgba(32, 190, 255, 0.18) 0%, rgba(0, 153, 230, 0.08) 100%)' 
+                    : 'rgba(255, 255, 255, 0.04)',
+                  color: showInteractiveLyrics ? '#20BEFF' : '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: showInteractiveLyrics ? '0 0 20px rgba(32, 190, 255, 0.2)' : '0 4px 12px rgba(0,0,0,0.2)',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <Globe size={18} color={showInteractiveLyrics ? '#20BEFF' : '#ffffff'} />
+                <span>{showInteractiveLyrics ? 'Hide Interactive Lyrics' : 'Show Interactive Lyrics'}</span>
+                <ChevronDown size={16} style={{ transform: showInteractiveLyrics ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
+              </button>
             </div>
+
+            {/* Bottom Row: Immersive Interactive Lyrics (Hidden by default) */}
+            <AnimatePresence>
+              {showInteractiveLyrics && (
+                <motion.div
+                  key="interactive-lyrics-card"
+                  initial={{ opacity: 0, height: 0, y: -16 }}
+                  animate={{ opacity: 1, height: 'auto', y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -16 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div 
+                    className="lyrics-card-custom"
+                    style={{ 
+                      background: 'rgba(255,255,255,0.03)', 
+                      borderRadius: '24px', 
+                      padding: '32px', 
+                      border: '1px solid rgba(255,255,255,0.05)', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      height: '620px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Globe size={20} color="#20BEFF" />
+                        <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Interactive Lyrics</h3>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <span style={{ fontSize: '12px', opacity: 0.5 }}>
+                          {translationLang === 'none' ? 'Original Only' : `Parallel: ${translationLang === 'en' ? 'English' : translationLang === 'hi' ? 'Hindi' : translationLang === 'ko' ? 'Korean' : 'Spanish'}`}
+                        </span>
+                        <button
+                          onClick={() => setShowInteractiveLyrics(false)}
+                          style={{
+                            background: 'rgba(255,255,255,0.06)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#fff',
+                            borderRadius: '8px',
+                            padding: '4px 10px',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <X size={14} /> Close
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Header labels for parallel columns */}
+                    {translationLang !== 'none' && (
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: '1fr 1fr', 
+                        gap: '40px', 
+                        paddingBottom: '12px', 
+                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                        marginBottom: '20px',
+                        opacity: 0.6,
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px'
+                      }}>
+                        <div>Original Lyrics</div>
+                        <div>Translation ({translationLang === 'en' ? 'English' : translationLang === 'hi' ? 'Hindi' : translationLang === 'ko' ? 'Korean' : 'Spanish'})</div>
+                      </div>
+                    )}
+
+                    <div style={{ 
+                      flex: 1, 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '24px', 
+                      overflowY: 'auto', 
+                      paddingRight: '12px'
+                    }}>
+                      {segments.length > 0 ? (
+                        segments.map((line: any, idx: number) => {
+                          let translationText = "";
+                          if (translationLang === 'en') {
+                            if (currentSong?.language?.toLowerCase() === 'english') {
+                              translationText = line.text;
+                            } else {
+                              const obj = currentSong?.translations?.english?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.english?.[idx];
+                              translationText = obj?.text || "";
+                            }
+                          } else if (translationLang === 'hi') {
+                            if (currentSong?.language?.toLowerCase() === 'hindi') {
+                              translationText = line.text;
+                            } else {
+                              const obj = currentSong?.translations?.hindi?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.hindi?.[idx];
+                              translationText = obj?.text || "";
+                            }
+                          } else if (translationLang === 'es') {
+                            if (currentSong?.language?.toLowerCase() === 'spanish') {
+                              translationText = line.text;
+                            } else {
+                              const obj = currentSong?.translations?.spanish?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.spanish?.[idx];
+                              translationText = obj?.text || "";
+                            }
+                          } else if (translationLang === 'ko') {
+                            if (currentSong?.language?.toLowerCase() === 'korean') {
+                              translationText = line.text;
+                            } else {
+                              const obj = currentSong?.translations?.korean?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.korean?.[idx];
+                              translationText = obj?.text || "";
+                            }
+                          }
+                          const isActive = idx === activeIndex;
+
+                          return (
+                            <div 
+                              id={`line-${idx}`}
+                              key={idx} 
+                              onClick={() => {
+                                if (playerRef.current && playerRef.current.seekTo) {
+                                  playerRef.current.seekTo(line.startTime, true);
+                                  setCurrentTime(line.startTime);
+                                }
+                              }}
+                              style={{ 
+                                display: 'grid',
+                                gridTemplateColumns: translationLang === 'none' ? '1fr' : '1fr 1fr',
+                                gap: '40px',
+                                opacity: isActive ? 1 : 0.35, 
+                                transition: 'all 0.3s ease',
+                                transform: isActive ? 'scale(1.015)' : 'scale(1)',
+                                transformOrigin: 'left',
+                                padding: '6px 12px',
+                                borderRadius: '12px',
+                                cursor: 'pointer',
+                                background: isActive ? 'rgba(255,255,255,0.03)' : 'transparent'
+                              }}
+                              onMouseOver={(e) => {
+                                if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                              }}
+                              onMouseOut={(e) => {
+                                if (!isActive) e.currentTarget.style.background = 'transparent';
+                              }}
+                            >
+                              {/* Original Lyric Column */}
+                              <p style={{ 
+                                fontSize: '19px', 
+                                fontWeight: '600', 
+                                lineHeight: '1.6',
+                                color: isActive ? '#20BEFF' : '#ffffff',
+                                margin: 0,
+                                transition: 'color 0.3s'
+                              }}>
+                                {line.text}
+                              </p>
+
+                              {/* Translation Lyric Column */}
+                              {translationLang !== 'none' && (
+                                <p style={{ 
+                                  fontSize: '19px', 
+                                  fontWeight: '600', 
+                                  lineHeight: '1.6',
+                                  color: isActive ? '#facc15' : 'rgba(255,255,255,0.45)',
+                                  margin: 0,
+                                  transition: 'color 0.3s'
+                                }}>
+                                  {translationText || '...'}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div style={{ opacity: 0.4, textAlign: 'center', marginTop: '60px' }}>
+                          <Music size={40} style={{ marginBottom: '16px', margin: '0 auto' }} />
+                          <p>Lyrics will appear here when synced.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             {/* Immersive Responsive styling tag */}
             <style>{`
