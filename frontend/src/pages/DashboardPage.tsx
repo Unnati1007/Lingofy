@@ -278,7 +278,8 @@ const DashboardPage = () => {
  });
  if (notifRes.ok) {
  const data = await notifRes.json();
- setNotifications(data);
+  const cleanData = Array.isArray(data) ? data.filter((n: any) => !n.title?.includes("Incomplete") && n.type !== "goal_pending") : [];
+  setNotifications(cleanData);
  }
  } catch (err) { console.error(err); } finally { setLoading(false); }
  };
@@ -340,29 +341,7 @@ const DashboardPage = () => {
  }
  }
 
- // 2. Goal Incomplete Reminder Trigger (silent, no annoying popup)
- if (newTime === 45 && !goalAlreadyMet && !hasNotifiedIncomplete) {
- setHasNotifiedIncomplete(true);
- // Do not display intrusive toast popup automatically
-
- // Save goal incomplete notification reminder to backend
- const token = localStorage.getItem('token');
- if (token) {
- fetch(`${API_BASE}/api/notifications/goal-status`, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
- body: JSON.stringify({
- title: 'Daily Goal Incomplete',
- message: `You haven't completed your ${goalMinutes} minutes learning goal today. ${Math.max(1, goalMinutes - Math.floor(newTime / 60))}m remaining!`,
- type: 'goal_pending'
- })
- }).then(res => res.json()).then(data => {
- if (data.notification) {
- setNotifications(nPrev => [data.notification, ...nPrev.filter((n: any) => n._id !== data.notification._id)]);
- }
- }).catch(console.error);
- }
- }
+  // 2. Goal Incomplete Reminder Trigger disabled
 
  return newTime;
  });
@@ -3305,7 +3284,7 @@ const DashboardPage = () => {
  fontWeight: 'bold', 
  color: goalAlreadyMet ? '#10b981' : '#f59e0b' 
  }}>
- {goalAlreadyMet ? 'Daily Goal Completed' : 'Daily Goal Incomplete'}
+ {goalAlreadyMet ? 'Daily Goal Completed' : 'Daily Learning Progress'}
  </span>
  </div>
  <span style={{ fontSize: '11px', opacity: 0.6, fontWeight: 'bold' }}>
@@ -4634,35 +4613,6 @@ const DashboardPage = () => {
  <div style={{ fontSize: '15px', fontWeight: '800' }}>Daily Goal Completed!</div>
  <div style={{ fontSize: '12px', opacity: 0.9, fontWeight: '500' }}>You completed your {profileForm.dailyGoal || 15} minutes learning goal today.</div>
  </div>
- </motion.div>
- )}
-
- {showGoalIncompleteToast && !goalAlreadyMet && (
- <motion.div 
- initial={{ opacity: 0, y: -50, scale: 0.9 }}
- animate={{ opacity: 1, y: 0, scale: 1 }}
- exit={{ opacity: 0, y: -50, scale: 0.9 }}
- style={{
- position: 'fixed', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
- background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', padding: '16px 24px', borderRadius: '16px',
- display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 20px 40px rgba(245,158,11,0.35)', color: '#000', fontWeight: 'bold'
- }}
- >
- <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: '50%', padding: '8px' }}>
- <Clock size={22} color="#000" />
- </div>
- <div style={{ minWidth: '220px' }}>
- <div style={{ fontSize: '15px', fontWeight: '800' }}>Daily Goal Incomplete</div>
- <div style={{ fontSize: '12px', opacity: 0.9, fontWeight: '600' }}>
- {Math.max(1, parseInt(profileForm.dailyGoal || '15') - Math.floor(sessionTime / 60))} minutes remaining to complete today's target.
- </div>
- </div>
- <button
- onClick={() => setShowGoalIncompleteToast(false)}
- style={{ background: 'rgba(0,0,0,0.2)', border: 'none', color: '#000', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px' }}
- >
- <X size={14} />
- </button>
  </motion.div>
  )}
  </AnimatePresence>
