@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, type Variants } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Headphones, ArrowLeft } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Headphones, ArrowLeft, BookOpen } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { useNavigate } from 'react-router-dom';
+import { SongPracticeModal } from '../components/SongPracticeModal';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -166,11 +167,13 @@ export function MindfulListeningPage() {
     show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut', staggerChildren: 0.2 } }
   };
 
+  const [showPracticeModal, setShowPracticeModal] = useState(false);
+
   return (
     <div style={{ padding: '24px 40px', height: '100vh', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000000', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* Header with Back Button */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', maxWidth: '1200px', width: '100%', margin: '0 auto 16px auto' }}>
+      {/* Header with Back Button and Practice Song */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', maxWidth: '1200px', width: '100%', margin: '0 auto 16px auto' }}>
         <button 
           onClick={() => navigate(-1)}
           style={{ 
@@ -193,6 +196,30 @@ export function MindfulListeningPage() {
           <ArrowLeft size={18} />
           Back
         </button>
+
+        {activeTrack && (
+          <button
+            onClick={() => setShowPracticeModal(true)}
+            style={{
+              background: 'rgba(32, 190, 255, 0.15)',
+              border: '1px solid rgba(32, 190, 255, 0.3)',
+              color: '#20BEFF',
+              borderRadius: '12px',
+              padding: '10px 18px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              fontWeight: '700',
+              transition: 'all 0.2s',
+              boxShadow: '0 0 15px rgba(32, 190, 255, 0.15)'
+            }}
+          >
+            <BookOpen size={18} />
+            Practice Song Quiz
+          </button>
+        )}
       </div>
 
       <motion.div 
@@ -393,6 +420,21 @@ export function MindfulListeningPage() {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Song Practice Modal */}
+      {activeTrack && (
+        <SongPracticeModal
+          isOpen={showPracticeModal}
+          onClose={() => setShowPracticeModal(false)}
+          song={{
+            _id: activeTrack._id,
+            title: activeTrack.title,
+            artistName: activeTrack.theme || 'Mindful Listening Track',
+            language: activeTrack.language
+          }}
+          defaultLanguage={activeTrack.language}
+        />
+      )}
     </div>
   );
 }

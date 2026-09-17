@@ -11,7 +11,10 @@ import {
   RotateCcw, 
   ChevronRight, 
   Loader2,
-  BookOpen
+  BookOpen,
+  Globe,
+  Award,
+  Music
 } from 'lucide-react';
 
 interface Question {
@@ -33,23 +36,30 @@ interface SongPracticeModalProps {
     title: string;
     artistName?: string;
     albumArtUrl?: string;
+    image?: string;
     language?: string;
   } | null;
   defaultLanguage?: string;
-  onQuizCompleted?: (score: number, total: number) => void;
 }
+
+const AVAILABLE_LANGUAGES = [
+  { code: 'spanish', name: 'Spanish', flag: '🇪🇸', desc: 'Spanish lyrics & pronunciation' },
+  { code: 'hindi', name: 'Hindi', flag: '🇮🇳', desc: 'Devanagari script & pronunciation' },
+  { code: 'korean', name: 'Korean', flag: '🇰🇷', desc: 'Hangul script & lyric phrases' },
+  { code: 'english', name: 'English', flag: '🇬🇧', desc: 'Lyrics, vocabulary & idioms' },
+  { code: 'french', name: 'French', flag: '🇫🇷', desc: 'French lyric translation' },
+  { code: 'german', name: 'German', flag: '🇩🇪', desc: 'German lyric phrases' },
+];
 
 export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
   isOpen,
   onClose,
   song,
-  defaultLanguage = 'hindi',
-  onQuizCompleted
+  defaultLanguage = 'spanish'
 }) => {
+  const [step, setStep] = useState<'select_language' | 'quiz' | 'completed'>('select_language');
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    ['hindi', 'spanish', 'korean'].includes((defaultLanguage || '').toLowerCase())
-      ? (defaultLanguage || 'hindi').toLowerCase()
-      : 'hindi'
+    (defaultLanguage || 'spanish').toLowerCase()
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -57,39 +67,33 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
-  const [isCompleted, setIsCompleted] = useState<boolean>(false);
-  const [attemptId, setAttemptId] = useState<string | null>(null);
-  const [userAnswers, setUserAnswers] = useState<any[]>([]);
-  const [startTime, setStartTime] = useState<number>(Date.now());
-  const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && song) {
-      loadSongQuiz(selectedLanguage);
-    } else {
-      resetState();
+      setStep('select_language');
+      setQuestions([]);
+      setCurrentIndex(0);
+      setSelectedOption(null);
+      setIsAnswered(false);
+      setScore(0);
+      setError(null);
     }
   }, [isOpen, song]);
 
-  const resetState = () => {
+  if (!isOpen || !song) return null;
+
+  const coverArt = song.albumArtUrl || song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop';
+
+  const startPracticeQuiz = async (lang: string) => {
+    setSelectedLanguage(lang);
+    setLoading(true);
+    setError(null);
     setQuestions([]);
     setCurrentIndex(0);
     setSelectedOption(null);
     setIsAnswered(false);
     setScore(0);
-    setIsCompleted(false);
-    setAttemptId(null);
-    setUserAnswers([]);
-    setError(null);
-  };
-
-  const loadSongQuiz = async (lang: string) => {
-    if (!song) return;
-    setLoading(true);
-    setError(null);
-    resetState();
-    setSelectedLanguage(lang);
 
     try {
       const token = localStorage.getItem('token');
@@ -106,14 +110,13 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
 
       if (res.data && res.data.questions && res.data.questions.length > 0) {
         setQuestions(res.data.questions);
-        setAttemptId(res.data.attemptId);
-        setStartTime(Date.now());
+        setStep('quiz');
       } else {
-        setError("Could not generate questions for this song yet. Please try another language or song.");
+        setError("Could not generate questions for this song. Please try another language.");
       }
     } catch (err: any) {
-      console.error("Error generating song quiz:", err);
-      setError(err?.response?.data?.message || "Failed to generate song practice quiz.");
+      console.error("Error generating song practice quiz:", err);
+      setError(err?.response?.data?.message || "Failed to generate 15-question song practice quiz.");
     } finally {
       setLoading(false);
     }
@@ -126,8 +129,10 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
     if (selectedLanguage === 'hindi') utterance.lang = 'hi-IN';
     else if (selectedLanguage === 'spanish') utterance.lang = 'es-ES';
     else if (selectedLanguage === 'korean') utterance.lang = 'ko-KR';
+    else if (selectedLanguage === 'french') utterance.lang = 'fr-FR';
+    else if (selectedLanguage === 'german') utterance.lang = 'de-DE';
     else utterance.lang = 'en-US';
-    utterance.rate = 0.9;
+    utterance.rate = 0.85;
     window.speechSynthesis.speak(utterance);
   };
 
@@ -142,15 +147,6 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
     if (isCorrect) {
       setScore(prev => prev + 1);
     }
-
-    const newAnswer = {
-      questionId: currentQ.id,
-      answer: option,
-      isCorrect,
-      timeSpentSeconds: Math.max(1, Math.round((Date.now() - startTime) / 1000))
-    };
-
-    setUserAnswers(prev => [...prev, newAnswer]);
   };
 
   const handleNext = () => {
@@ -158,45 +154,10 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
       setCurrentIndex(prev => prev + 1);
       setSelectedOption(null);
       setIsAnswered(false);
-      setStartTime(Date.now());
     } else {
-      finishQuiz();
+      setStep('completed');
     }
   };
-
-  const finishQuiz = async () => {
-    setIsCompleted(true);
-    setSubmitting(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      if (attemptId) {
-        await axios.post(
-          `${API_BASE}/api/lessons/submit`,
-          {
-            attemptId,
-            language: selectedLanguage,
-            level: 'dynamic',
-            questions,
-            userAnswers,
-            totalTimeSpentSeconds: Math.round((Date.now() - startTime) / 1000)
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-      }
-      if (onQuizCompleted) {
-        onQuizCompleted(score + (selectedOption === questions[currentIndex]?.correctAnswer ? 1 : 0), questions.length);
-      }
-    } catch (err) {
-      console.error("Failed to submit practice attempt:", err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (!isOpen || !song) return null;
 
   const currentQ = questions[currentIndex];
   const progressPct = questions.length > 0 ? ((currentIndex + (isAnswered ? 1 : 0)) / questions.length) * 100 : 0;
@@ -217,12 +178,13 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
       padding: '16px'
     }}>
       <motion.div
+        className="song-practice-modal-card"
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
         style={{
           width: '100%',
-          maxWidth: '620px',
+          maxWidth: '640px',
           background: 'linear-gradient(180deg, #18181b 0%, #0c0c0e 100%)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           borderRadius: '24px',
@@ -243,24 +205,18 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
           background: 'rgba(255, 255, 255, 0.02)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {song.albumArtUrl ? (
-              <img 
-                src={song.albumArtUrl} 
-                alt={song.title} 
-                style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} 
-              />
-            ) : (
-              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(32, 190, 255, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#20BEFF' }}>
-                <BookOpen size={20} />
-              </div>
-            )}
+            <img 
+              src={coverArt} 
+              alt={song.title} 
+              style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} 
+            />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '15px', fontWeight: '700', color: '#fff' }}>{song.title}</span>
                 <span style={{ 
                   fontSize: '10px', 
                   fontWeight: '700', 
-                  padding: '2px 6px', 
+                  padding: '2px 8px', 
                   borderRadius: '6px', 
                   background: 'rgba(32, 190, 255, 0.15)', 
                   color: '#20BEFF',
@@ -271,7 +227,7 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                 </span>
               </div>
               <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', margin: 0 }}>
-                {song.artistName || 'Audio Track'} • 10 Questions
+                {song.artistName || 'Audio Track'} • 15 Questions Practice Quiz
               </p>
             </div>
           </div>
@@ -296,42 +252,8 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
           </button>
         </div>
 
-        {/* Language Tabs */}
-        {!isCompleted && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 24px',
-            background: 'rgba(0, 0, 0, 0.2)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
-          }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)', fontWeight: '600' }}>LANGUAGE:</span>
-            {(['hindi', 'spanish', 'korean'] as const).map(lang => (
-              <button
-                key={lang}
-                disabled={loading}
-                onClick={() => loadSongQuiz(lang)}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: '20px',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                  border: selectedLanguage === lang ? '1px solid #20BEFF' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: selectedLanguage === lang ? 'rgba(32, 190, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)',
-                  color: selectedLanguage === lang ? '#20BEFF' : 'rgba(255, 255, 255, 0.6)',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  textTransform: 'capitalize'
-                }}
-              >
-                {lang === 'hindi' ? '🇮🇳 Hindi' : lang === 'spanish' ? '🇪🇸 Spanish' : '🇰🇷 Korean'}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Progress Bar */}
-        {!loading && !error && !isCompleted && questions.length > 0 && (
+        {/* Progress Bar (During Quiz) */}
+        {step === 'quiz' && !loading && questions.length > 0 && (
           <div style={{ width: '100%', height: '4px', background: 'rgba(255, 255, 255, 0.08)' }}>
             <motion.div
               style={{
@@ -347,69 +269,168 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
 
         {/* Body Content */}
         <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+          
           {loading ? (
+            /* Loading State */
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: '16px' }}>
-              <Loader2 size={36} className="animate-spin" style={{ color: '#20BEFF' }} />
+              <Loader2 size={40} className="animate-spin" style={{ color: '#20BEFF' }} />
               <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: '15px', fontWeight: '600', color: '#fff', marginBottom: '4px' }}>
-                  Creating 10-Question Song Practice Quiz...
+                <p style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
+                  Generating 15-Question Practice Quiz...
                 </p>
-                <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>
-                  Extracting lyrics, vocabulary & pronunciation from "{song.title}"
+                <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', maxWidth: '360px' }}>
+                  Creating a mix of pronunciation, lyric phrases, fill-in-the-blanks, and vocabulary for <strong>"{song.title}"</strong> in {selectedLanguage.toUpperCase()}.
                 </p>
               </div>
             </div>
-          ) : error ? (
-            <div style={{ textAlign: 'center', padding: '40px 10px' }}>
-              <XCircle size={44} style={{ color: '#ef4444', margin: '0 auto 12px auto' }} />
-              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>Practice Quiz Notice</h3>
-              <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)', maxWidth: '380px', margin: '0 auto 20px auto' }}>{error}</p>
+          ) : step === 'select_language' ? (
+            /* STEP 1: Language Selection Screen */
+            <div>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <div style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  padding: '4px 12px', 
+                  borderRadius: '20px', 
+                  background: 'rgba(32, 190, 255, 0.1)', 
+                  color: '#20BEFF', 
+                  fontSize: '12px', 
+                  fontWeight: '600',
+                  marginBottom: '10px'
+                }}>
+                  <Globe size={14} /> Practice Song Quiz
+                </div>
+                <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#fff', margin: '0 0 6px 0' }}>
+                  In which language do you want to practice this song?
+                </h2>
+                <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)', margin: 0 }}>
+                  Select your target language to generate a 15-question mix quiz based on <strong>"{song.title}"</strong>.
+                </p>
+              </div>
+
+              {/* Language Cards Grid */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1fr 1fr', 
+                gap: '12px', 
+                marginBottom: '20px' 
+              }}>
+                {AVAILABLE_LANGUAGES.map((lang) => {
+                  const isSelected = selectedLanguage === lang.code;
+                  return (
+                    <div
+                      key={lang.code}
+                      onClick={() => setSelectedLanguage(lang.code)}
+                      style={{
+                        padding: '16px',
+                        borderRadius: '16px',
+                        background: isSelected 
+                          ? 'linear-gradient(135deg, rgba(32, 190, 255, 0.18) 0%, rgba(0, 153, 230, 0.08) 100%)' 
+                          : 'rgba(255, 255, 255, 0.03)',
+                        border: isSelected 
+                          ? '2px solid #20BEFF' 
+                          : '1px solid rgba(255, 255, 255, 0.08)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '22px' }}>{lang.flag}</span>
+                          <span style={{ fontSize: '15px', fontWeight: '700', color: isSelected ? '#20BEFF' : '#fff' }}>
+                            {lang.name}
+                          </span>
+                        </div>
+                        {isSelected && <CheckCircle2 size={18} color="#20BEFF" />}
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', lineHeight: '1.3' }}>
+                        {lang.desc}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Notice Banner: Pure Practice Mode */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px dashed rgba(255, 255, 255, 0.12)',
+                borderRadius: '14px',
+                padding: '12px 16px',
+                marginBottom: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <Sparkles size={20} color="#20BEFF" style={{ flexShrink: 0 }} />
+                <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', margin: 0, lineHeight: '1.4' }}>
+                  <strong>Practice Mode:</strong> Scores are purely for self-assessment. No XP, badges, or profile leaderboards are modified.
+                </p>
+              </div>
+
+              {error && (
+                <div style={{ color: '#ef4444', fontSize: '13px', textAlign: 'center', marginBottom: '16px' }}>
+                  {error}
+                </div>
+              )}
+
+              {/* Start Quiz Action */}
               <button
-                onClick={() => loadSongQuiz(selectedLanguage)}
+                onClick={() => startPracticeQuiz(selectedLanguage)}
                 style={{
-                  padding: '10px 20px',
-                  borderRadius: '12px',
-                  background: '#20BEFF',
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                   color: '#000',
-                  fontWeight: '700',
-                  fontSize: '13px',
+                  fontWeight: '800',
+                  fontSize: '15px',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 20px rgba(32, 190, 255, 0.3)'
                 }}
               >
-                Retry Practice
+                Start 15-Question Practice Quiz <ChevronRight size={18} />
               </button>
             </div>
-          ) : isCompleted ? (
-            /* Completed Screen */
-            <div style={{ textAlign: 'center', padding: '24px 8px' }}>
+          ) : step === 'completed' ? (
+            /* STEP 3: Completed Screen */
+            <div style={{ textAlign: 'center', padding: '20px 8px' }}>
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 style={{
-                  width: '72px',
-                  height: '72px',
+                  width: '76px',
+                  height: '76px',
                   borderRadius: '50%',
-                  background: score >= 7 ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)',
-                  border: score >= 7 ? '2px solid #22c55e' : '2px solid #eab308',
+                  background: score >= 10 ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                  border: score >= 10 ? '2px solid #22c55e' : '2px solid #eab308',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   margin: '0 auto 16px auto',
-                  color: score >= 7 ? '#22c55e' : '#eab308'
+                  color: score >= 10 ? '#22c55e' : '#eab308'
                 }}
               >
-                <Sparkles size={36} />
+                <Sparkles size={38} />
               </motion.div>
 
               <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#fff', marginBottom: '6px' }}>
-                Song Practice Complete! 🎵
+                Song Practice Completed! 🎵
               </h2>
               <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)', marginBottom: '24px' }}>
-                You practiced {questions.length} vocabulary & lyric questions from <strong>{song.title}</strong>
+                You completed 15 mix questions from <strong>"{song.title}"</strong> in {selectedLanguage.toUpperCase()}!
               </p>
 
-              {/* Score card */}
+              {/* Score breakdown */}
               <div style={{
                 background: 'rgba(255, 255, 255, 0.04)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -418,28 +439,33 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '16px',
-                maxWidth: '360px',
-                margin: '0 auto 28px auto'
+                maxWidth: '380px',
+                margin: '0 auto 24px auto'
               }}>
                 <div>
                   <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Score</span>
-                  <div style={{ fontSize: '28px', fontWeight: '800', color: '#20BEFF' }}>
+                  <div style={{ fontSize: '30px', fontWeight: '800', color: '#20BEFF' }}>
                     {score} / {questions.length}
                   </div>
                 </div>
                 <div>
                   <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Accuracy</span>
-                  <div style={{ fontSize: '28px', fontWeight: '800', color: score >= 7 ? '#22c55e' : '#eab308' }}>
+                  <div style={{ fontSize: '30px', fontWeight: '800', color: score >= 10 ? '#22c55e' : '#eab308' }}>
                     {Math.round((score / (questions.length || 1)) * 100)}%
                   </div>
                 </div>
               </div>
 
+              {/* Practice Only Disclaimer */}
+              <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.4)', marginBottom: '24px' }}>
+                💡 <em>Self-assessment practice mode. Scores & badges are not added to profile.</em>
+              </p>
+
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                 <button
-                  onClick={() => loadSongQuiz(selectedLanguage)}
+                  onClick={() => startPracticeQuiz(selectedLanguage)}
                   style={{
-                    padding: '12px 24px',
+                    padding: '12px 20px',
                     borderRadius: '12px',
                     background: 'rgba(255, 255, 255, 0.08)',
                     color: '#fff',
@@ -452,20 +478,37 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                     gap: '8px'
                   }}
                 >
-                  <RotateCcw size={16} /> Practice Again
+                  <RotateCcw size={16} /> Re-play Quiz
+                </button>
+                <button
+                  onClick={() => setStep('select_language')}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    background: 'rgba(32, 190, 255, 0.15)',
+                    color: '#20BEFF',
+                    border: '1px solid rgba(32, 190, 255, 0.3)',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <Globe size={16} /> Other Language
                 </button>
                 <button
                   onClick={onClose}
                   style={{
-                    padding: '12px 28px',
+                    padding: '12px 24px',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #20BEFF, #0099e6)',
                     color: '#000',
                     border: 'none',
                     fontWeight: '700',
                     fontSize: '13px',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(32, 190, 255, 0.3)'
+                    cursor: 'pointer'
                   }}
                 >
                   Done
@@ -473,29 +516,31 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
               </div>
             </div>
           ) : currentQ ? (
-            /* Active Question Screen */
+            /* STEP 2: Active 15 Question Screen */
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
+                transition={{ duration: 0.2 }}
               >
-                {/* Question Info / Header */}
+                {/* Question Info / Tag */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <span style={{ fontSize: '12px', fontWeight: '700', color: 'rgba(255, 255, 255, 0.5)' }}>
                     QUESTION {currentIndex + 1} OF {questions.length}
                   </span>
                   <span style={{
                     fontSize: '11px',
-                    fontWeight: '600',
-                    padding: '2px 8px',
+                    fontWeight: '700',
+                    padding: '3px 10px',
                     borderRadius: '12px',
                     background: 'rgba(168, 85, 247, 0.15)',
-                    color: '#c084fc'
+                    color: '#c084fc',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}>
-                    {currentQ.type.replace('_', ' ').toUpperCase()}
+                    {currentQ.type ? currentQ.type.replace('_', ' ') : 'MIX QUESTION'}
                   </span>
                 </div>
 
@@ -504,7 +549,7 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                   {currentQ.questionText}
                 </h3>
 
-                {/* Target Word / Sentence / Audio Preview */}
+                {/* Target Snippet / Audio Button */}
                 {currentQ.targetWord && (
                   <div style={{
                     padding: '16px 20px',
@@ -518,7 +563,7 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                   }}>
                     <div>
                       <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Lyric Snippet
+                        Song Lyric Snippet ({selectedLanguage.toUpperCase()})
                       </span>
                       <div style={{ fontSize: '20px', fontWeight: '800', color: '#20BEFF', marginTop: '2px' }}>
                         {currentQ.targetWord}
@@ -530,18 +575,19 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                         background: 'rgba(32, 190, 255, 0.15)',
                         border: 'none',
                         borderRadius: '50%',
-                        width: '38px',
-                        height: '38px',
+                        width: '42px',
+                        height: '42px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#20BEFF',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        boxShadow: '0 0 12px rgba(32, 190, 255, 0.2)'
                       }}
-                      title="Listen pronunciation"
+                      title="Listen to pronunciation"
                     >
-                      <Volume2 size={18} />
+                      <Volume2 size={20} />
                     </button>
                   </div>
                 )}
@@ -638,8 +684,8 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
           ) : null}
         </div>
 
-        {/* Footer */}
-        {!loading && !error && !isCompleted && isAnswered && (
+        {/* Footer Navigation */}
+        {step === 'quiz' && !loading && isAnswered && (
           <div style={{
             padding: '16px 24px',
             borderTop: '1px solid rgba(255, 255, 255, 0.08)',
@@ -649,16 +695,15 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
           }}>
             <button
               onClick={handleNext}
-              disabled={submitting}
               style={{
                 padding: '12px 26px',
                 borderRadius: '12px',
                 background: 'linear-gradient(135deg, #20BEFF, #0099e6)',
                 color: '#000',
                 border: 'none',
-                fontWeight: '700',
+                fontWeight: '800',
                 fontSize: '14px',
-                cursor: submitting ? 'not-allowed' : 'pointer',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',

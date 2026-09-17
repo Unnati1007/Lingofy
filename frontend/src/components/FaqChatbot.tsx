@@ -12,9 +12,11 @@ import {
   ListMusic, 
   Flame, 
   ChevronRight,
-  Bot
+  Bot,
+  Compass
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { GuidedTourOverlay } from './GuidedTourOverlay';
 
 interface Message {
   id: string;
@@ -27,68 +29,78 @@ interface Message {
 
 const FAQ_DATABASE: Record<string, { answer: string; link?: { label: string; url: string }; followUps?: { label: string; actionKey: string }[] }> = {
   flow: {
-    answer: "🚀 **Lingofy Step-by-Step User Flow:**\n\n1. **Create Account & Personalize**: Choose your native & target languages (Hindi, Spanish, Korean) + music tastes.\n2. **Complete Profile**: Set your daily goal (15–30 mins) and learning pace.\n3. **Listen to Songs**: Play songs in the Music Library with real-time synchronized bilingual lyrics.\n4. **Create Playlists**: Group your favorite tracks to study together.\n5. **Add Custom Songs**: Import up to 5 of your favorite YouTube/Audio tracks with automated AI lyrics & translation sync!\n6. **Practice Quizzes**: Take 10-question Song Practice quizzes, Level progression tests, and Spaced Retention Flashbacks!",
-    link: { label: "Explore Music Library", url: "/dashboard" },
+    answer: "🚀 **Lingofy Step-by-Step User Flow:**\n\n1. **Choose Languages**: Pick your native & target languages (Spanish, Hindi, Korean, etc.).\n2. **Set Daily Goal**: Pick your daily practice target (e.g. 15 mins).\n3. **Listen to Songs**: Play tracks with real-time synchronized bilingual lyrics.\n4. **Song Practice Quiz**: Click 'Practice Song' to play a 15-question mix quiz on pronunciation, lyrics & vocabulary.\n5. **Personal Notes & Stats**: Review notes in Notes Hub and track your daily active streak!",
+    link: { label: "Explore Dashboard", url: "/dashboard" },
     followUps: [
-      { label: "🎵 Custom Song Limits", actionKey: "song_limit" },
-      { label: "🎧 Music vs Traditional Mode", actionKey: "modes" }
+      { label: "🎯 Start Guided Tour", actionKey: "tour" },
+      { label: "📖 Practice Song Quiz", actionKey: "practice_song" },
+      { label: "🎵 Custom Songs & Limits", actionKey: "song_limit" }
+    ]
+  },
+  practice_song: {
+    answer: "📖 **15-Question Song Practice Quiz:**\n\n- Click **'Practice Song'** on any playing track.\n- Choose your target language.\n- Play a **15-question quiz** covering:\n  • Pronunciation (with native TTS audio)\n  • Full lyric translations\n  • Fill-in-the-blank missing words\n  • Key vocabulary & song context\n- *Self-assessment mode: Scores do NOT affect XP or leaderboards!*",
+    link: { label: "Go to Music Player", url: "/dashboard" },
+    followUps: [
+      { label: "🎯 Start Guided Tour", actionKey: "tour" },
+      { label: "🚀 Overall Flow", actionKey: "flow" }
     ]
   },
   song_limit: {
-    answer: "🎵 **Importing Custom Songs & Quota:**\n\n- **Limit**: Each user can import up to **5 custom songs** into their private library.\n- **Existing Songs**: You can listen to and add **unlimited existing songs** from the catalog to your playlists.\n- **Auto Lyrics & Sync**: When you add a YouTube song link, Lingofy automatically retrieves the transcript and generates AI translations in Hindi, Spanish, and Korean!",
-    link: { label: "Import a Song", url: "/dashboard" },
+    answer: "🎵 **Importing Custom Songs & Quota:**\n\n- **Personal Imports**: You can import up to **5 custom YouTube / Audio tracks** with automated transcript & 4-language AI translation sync!\n- **Community Catalog**: You can listen to and add **unlimited existing songs** to your playlists without consuming quota!",
+    link: { label: "Import Custom Track", url: "/dashboard" },
     followUps: [
-      { label: "🚀 Overall App Flow", actionKey: "flow" },
-      { label: "🎧 Learning Modes", actionKey: "modes" }
+      { label: "📖 Practice Song Quiz", actionKey: "practice_song" },
+      { label: "🎯 Start Guided Tour", actionKey: "tour" }
     ]
   },
   modes: {
-    answer: "🎧 **Music Mode vs Traditional Mode:**\n\n- 🎵 **Music Mode (Immersion)**: Teaches vocabulary, pronunciation, and colloquial phrases straight from song lyrics and rhythm. Ideal for natural retention and enjoyment!\n- 📚 **Traditional Mode (Grammar & Structure)**: Focuses on structured foundational vocabulary, grammar rules, tense building, and formal speaking drills.\n\n*You can switch your mode anytime in your Profile Settings!*",
-    link: { label: "Open Lessons", url: "/lessons" },
+    answer: "🎧 **Learning Modes:**\n\n- 🎵 **Music Mode**: Teaches vocabulary, pronunciation, and colloquial phrases straight from song lyrics and rhythm.\n- 📚 **Traditional Mode**: Focuses on structured foundational grammar, tense building, and sentence drills.\n\n*Switch modes anytime in Profile Settings!*",
+    link: { label: "View Lessons", url: "/lessons" },
     followUps: [
       { label: "📈 Quiz Levels", actionKey: "levels" },
-      { label: "🧠 Retention Test", actionKey: "retention" }
+      { label: "🧠 Memory Retention", actionKey: "retention" }
     ]
   },
   levels: {
-    answer: "📈 **Quiz Levels & Practice Types:**\n\n1. **Easy (Level 1)**: Basic words, numbers, greetings, and common items.\n2. **Intermediate (Level 2)**: Conversational sentences, verbs, and daily phrases.\n3. **Hard (Level 3)**: Complex idioms, compound tenses, and advanced comprehension.\n4. **Pronunciation**: Voice speaking drills with real-time speech evaluation.\n5. **Focus Areas**: Targeted vocabulary like Food, Family, Travel, Emotions.\n6. **Song Practice**: 10-question mixed quiz generated straight from the song you're listening to!",
+    answer: "📈 **Quiz Levels & Drills:**\n\n1. **Easy (Level 1)**: Basic words & greetings.\n2. **Intermediate (Level 2)**: Sentences & daily verbs.\n3. **Hard (Level 3)**: Complex idioms & tenses.\n4. **Pronunciation**: Voice speaking drills with real-time speech evaluation.\n5. **Song Practice**: 15-question song quiz directly from the track you're listening to!",
     link: { label: "View All Levels", url: "/lessons" },
     followUps: [
-      { label: "🧠 How Retention Works", actionKey: "retention" },
-      { label: "🎯 Daily Goals", actionKey: "goals" }
+      { label: "📖 Practice Song Quiz", actionKey: "practice_song" },
+      { label: "🧠 Memory Retention", actionKey: "retention" }
     ]
   },
   retention: {
-    answer: "🧠 **Memory Retention Testing (Flashback Quizzes):**\n\n- When you return to Lingofy after hours or days, Lingofy automatically calculates your **Session Gap**.\n- It generates a **Memory Retention Quiz** containing words and phrases you previously learned to test your spaced repetition recall.\n- Your **Retention Score %** and memory strength curve are tracked in your Analytics to make sure you never forget vocabulary!",
+    answer: "🧠 **Spaced Memory Retention Testing:**\n\n- When returning to Lingofy, the app checks your **Session Gap**.\n- Generates a **Memory Retention Quiz** to test previously learned vocabulary.\n- Displays your retention strength % so you never forget words!",
     link: { label: "Check Analytics", url: "/dashboard" },
     followUps: [
-      { label: "🚀 Getting Started Flow", actionKey: "flow" },
-      { label: "📈 Quiz Levels", actionKey: "levels" }
+      { label: "🎯 Start Guided Tour", actionKey: "tour" },
+      { label: "🚀 User Flow", actionKey: "flow" }
     ]
   },
   goals: {
-    answer: "🎯 **Daily Goals & Streaks:**\n\n- Set a daily study target (e.g. 15 mins or 3 quizzes per day) in your profile.\n- Complete lessons and song practices to increase your active daily streak 🔥.\n- Earn special badges like *Easy Explorer*, *Intermediate Scholar*, and *Language Star* as you progress!",
-    link: { label: "Go to Profile Settings", url: "/profile" },
+    answer: "🎯 **Daily Goals & Streaks:**\n\n- Set a daily target (15–30 mins/day) in your Profile.\n- Complete lessons and song practice quizzes to grow your daily streak 🔥.\n- Earn badges like *Easy Explorer*, *Scholar*, and *Language Star*!",
+    link: { label: "Profile Settings", url: "/profile" },
     followUps: [
       { label: "🚀 User Flow", actionKey: "flow" },
-      { label: "🎵 Custom Songs", actionKey: "song_limit" }
+      { label: "🎯 Start Guided Tour", actionKey: "tour" }
     ]
   }
 };
 
 export const FaqChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       sender: 'bot',
-      text: "👋 Hi! Welcome to **Lingofy**! I am your quick FAQ guide. How can I assist you today? Select a topic below or type your question!",
+      text: "👋 Hi! Welcome to **Lingofy**! I am your quick FAQ guide. Would you like to start an interactive screen tour or ask a question?",
       options: [
+        { label: "🎯 Start Interactive Screen Tour", actionKey: "tour" },
+        { label: "📖 How Song Practice Quiz Works", actionKey: "practice_song" },
         { label: "🚀 How Lingofy Works (Flow)", actionKey: "flow" },
-        { label: "🎵 Add Songs & 5 Song Limit", actionKey: "song_limit" },
+        { label: "🎵 Custom Songs & 5 Song Limit", actionKey: "song_limit" },
         { label: "🎧 Music vs Traditional Mode", actionKey: "modes" },
-        { label: "📈 Quiz Levels & Badges", actionKey: "levels" },
-        { label: "🧠 Retention Memory Tests", actionKey: "retention" },
         { label: "🎯 Daily Goals & Streaks", actionKey: "goals" }
       ],
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -103,9 +115,20 @@ export const FaqChatbot: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
 
+  const triggerTour = () => {
+    setIsOpen(false);
+    setShowTour(true);
+  };
+
   const handleSendQuery = (textToSend?: string) => {
     const query = (textToSend || inputValue).trim();
     if (!query) return;
+
+    if (query.toLowerCase().includes('tour') || query.toLowerCase().includes('guide') || query.toLowerCase().includes('walkthrough')) {
+      triggerTour();
+      setInputValue('');
+      return;
+    }
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -117,34 +140,32 @@ export const FaqChatbot: React.FC = () => {
     setMessages(prev => [...prev, userMsg]);
     if (!textToSend) setInputValue('');
 
-    // Answer logic
     setTimeout(() => {
       const qLower = query.toLowerCase();
       let matchedKey = 'flow';
 
-      if (qLower.includes('song') || qLower.includes('limit') || qLower.includes('add') || qLower.includes('upload') || qLower.includes('youtube') || qLower.includes('import') || qLower.includes('5')) {
+      if (qLower.includes('practice') || qLower.includes('quiz') || qLower.includes('song quiz') || qLower.includes('15')) {
+        matchedKey = 'practice_song';
+      } else if (qLower.includes('song') || qLower.includes('limit') || qLower.includes('upload') || qLower.includes('import') || qLower.includes('youtube')) {
         matchedKey = 'song_limit';
-      } else if (qLower.includes('mode') || qLower.includes('traditional') || qLower.includes('music mode') || qLower.includes('difference')) {
+      } else if (qLower.includes('mode') || qLower.includes('traditional') || qLower.includes('music mode')) {
         matchedKey = 'modes';
-      } else if (qLower.includes('level') || qLower.includes('easy') || qLower.includes('medium') || qLower.includes('hard') || qLower.includes('quiz') || qLower.includes('practice') || qLower.includes('pronunciation')) {
+      } else if (qLower.includes('level') || qLower.includes('easy') || qLower.includes('hard') || qLower.includes('pronunciation')) {
         matchedKey = 'levels';
-      } else if (qLower.includes('retention') || qLower.includes('memory') || qLower.includes('gap') || qLower.includes('recall') || qLower.includes('score')) {
+      } else if (qLower.includes('retention') || qLower.includes('memory') || qLower.includes('recall')) {
         matchedKey = 'retention';
-      } else if (qLower.includes('goal') || qLower.includes('streak') || qLower.includes('badge') || qLower.includes('profile') || qLower.includes('point')) {
+      } else if (qLower.includes('goal') || qLower.includes('streak') || qLower.includes('badge')) {
         matchedKey = 'goals';
-      } else if (qLower.includes('flow') || qLower.includes('start') || qLower.includes('how') || qLower.includes('guide') || qLower.includes('work') || qLower.includes('account')) {
-        matchedKey = 'flow';
       } else {
-        // Fallback response with navigation options
         const botFallbackMsg: Message = {
           id: (Date.now() + 1).toString(),
           sender: 'bot',
-          text: `Here is what you can do on Lingofy:\n\n- **Listen & Learn**: Play songs with interactive lyrics.\n- **Import Tracks**: Add up to 5 custom songs.\n- **Quizzes**: Practice with 10-question Song drills, Level tests, and Spaced Retention checks.\n\nChoose any category below to learn more!`,
+          text: `Here are the main features on Lingofy:\n\n- **Interactive Screen Tour**: Learn how to use all panels step-by-step.\n- **Song Practice Quiz**: 15-question quiz generated directly from songs.\n- **Custom Tracks**: Add up to 5 YouTube tracks with AI lyrics.\n\nSelect an option below to learn more!`,
           options: [
+            { label: "🎯 Start Interactive Screen Tour", actionKey: "tour" },
+            { label: "📖 Practice Song Quiz", actionKey: "practice_song" },
             { label: "🚀 Step-by-Step Flow", actionKey: "flow" },
-            { label: "🎵 Song Quota & Imports", actionKey: "song_limit" },
-            { label: "🎧 Music vs Traditional", actionKey: "modes" },
-            { label: "🧠 Retention Flashbacks", actionKey: "retention" }
+            { label: "🎵 Custom Songs Limit", actionKey: "song_limit" }
           ],
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
@@ -167,6 +188,11 @@ export const FaqChatbot: React.FC = () => {
   };
 
   const handleOptionClick = (actionKey: string) => {
+    if (actionKey === 'tour') {
+      triggerTour();
+      return;
+    }
+
     const info = FAQ_DATABASE[actionKey];
     if (!info) return;
 
@@ -174,10 +200,11 @@ export const FaqChatbot: React.FC = () => {
       id: Date.now().toString(),
       sender: 'user',
       text: actionKey === 'flow' ? "How does Lingofy work?" :
+            actionKey === 'practice_song' ? "How does 15-question Song Practice Quiz work?" :
             actionKey === 'song_limit' ? "How many custom songs can I add?" :
             actionKey === 'modes' ? "What is the difference between learning modes?" :
-            actionKey === 'levels' ? "What are the quiz levels and difficulty?" :
-            actionKey === 'retention' ? "How does memory retention testing work?" :
+            actionKey === 'levels' ? "What are the quiz levels?" :
+            actionKey === 'retention' ? "How does memory retention work?" :
             "How do daily goals and streaks work?",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
@@ -199,6 +226,12 @@ export const FaqChatbot: React.FC = () => {
 
   return (
     <>
+      {/* Interactive Screen Tour Overlay */}
+      <GuidedTourOverlay 
+        isOpen={showTour} 
+        onClose={() => setShowTour(false)} 
+      />
+
       {/* Floating Toggle Button */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
         <motion.button
@@ -209,12 +242,12 @@ export const FaqChatbot: React.FC = () => {
             setHasNewPrompt(false);
           }}
           style={{
-            width: '56px',
-            height: '56px',
+            width: '58px',
+            height: '58px',
             borderRadius: '50%',
             background: 'linear-gradient(135deg, #20BEFF 0%, #a855f7 100%)',
-            border: '2px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 30px rgba(32, 190, 255, 0.4), 0 0 15px rgba(168, 85, 247, 0.3)',
+            border: '2px solid rgba(255, 255, 255, 0.25)',
+            boxShadow: '0 8px 30px rgba(32, 190, 255, 0.45), 0 0 20px rgba(168, 85, 247, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -222,11 +255,11 @@ export const FaqChatbot: React.FC = () => {
             cursor: 'pointer',
             position: 'relative'
           }}
-          title="Lingofy Assistant & FAQs"
+          title="Lingofy Tour & FAQs"
         >
-          {isOpen ? <X size={24} /> : <Bot size={26} />}
+          {isOpen ? <X size={26} /> : <Bot size={28} />}
 
-          {/* Pulse notification indicator */}
+          {/* Pulse notification dot */}
           {!isOpen && hasNewPrompt && (
             <span style={{
               position: 'absolute',
@@ -247,22 +280,23 @@ export const FaqChatbot: React.FC = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            className="faq-chatbot-window"
             initial={{ opacity: 0, scale: 0.9, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 30 }}
             transition={{ duration: 0.2 }}
             style={{
               position: 'fixed',
-              bottom: '90px',
+              bottom: '92px',
               right: '24px',
-              width: '380px',
+              width: '390px',
               maxWidth: 'calc(100vw - 32px)',
-              height: '540px',
+              height: '560px',
               maxHeight: 'calc(100vh - 120px)',
               background: 'linear-gradient(180deg, #18181b 0%, #09090b 100%)',
               border: '1px solid rgba(255, 255, 255, 0.12)',
               borderRadius: '24px',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(32, 190, 255, 0.15)',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(32, 190, 255, 0.15)',
               display: 'flex',
               flexDirection: 'column',
               zIndex: 9999,
@@ -272,7 +306,7 @@ export const FaqChatbot: React.FC = () => {
             {/* Header */}
             <div style={{
               padding: '16px 20px',
-              background: 'linear-gradient(90deg, rgba(32, 190, 255, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
+              background: 'linear-gradient(90deg, rgba(32, 190, 255, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%)',
               borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               alignItems: 'center',
@@ -280,8 +314,8 @@ export const FaqChatbot: React.FC = () => {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '38px',
+                  height: '38px',
                   borderRadius: '12px',
                   background: 'linear-gradient(135deg, #20BEFF, #a855f7)',
                   display: 'flex',
@@ -289,15 +323,15 @@ export const FaqChatbot: React.FC = () => {
                   justifyContent: 'center',
                   color: '#fff'
                 }}>
-                  <Bot size={20} />
+                  <Bot size={22} />
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>Lingofy Guide</span>
+                    <span style={{ fontSize: '15px', fontWeight: '700', color: '#fff' }}>Lingofy Guide</span>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }}></span>
                   </div>
                   <p style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', margin: 0 }}>
-                    Instant Help & User Flow Guide
+                    FAQs & Interactive Tour Guide
                   </p>
                 </div>
               </div>
@@ -305,15 +339,47 @@ export const FaqChatbot: React.FC = () => {
               <button
                 onClick={() => setIsOpen(false)}
                 style={{
-                  background: 'transparent',
+                  background: 'rgba(255, 255, 255, 0.06)',
                   border: 'none',
-                  color: 'rgba(255, 255, 255, 0.5)',
+                  color: 'rgba(255, 255, 255, 0.6)',
                   cursor: 'pointer',
-                  padding: '4px',
-                  borderRadius: '6px'
+                  padding: '6px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                <X size={18} />
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Quick Tour Banner */}
+            <div style={{
+              padding: '10px 16px',
+              background: 'rgba(32, 190, 255, 0.08)',
+              borderBottom: '1px solid rgba(32, 190, 255, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#20BEFF', fontWeight: '600' }}>
+                <Compass size={16} /> New to Lingofy?
+              </div>
+              <button
+                onClick={triggerTour}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  background: '#20BEFF',
+                  color: '#000',
+                  fontWeight: '800',
+                  fontSize: '11px',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Start Guided Tour 🚀
               </button>
             </div>
 
@@ -352,7 +418,7 @@ export const FaqChatbot: React.FC = () => {
                   }}>
                     {msg.text}
 
-                    {/* Direct link in response */}
+                    {/* Link button */}
                     {msg.link && (
                       <div style={{ marginTop: '10px' }}>
                         <button
@@ -363,7 +429,7 @@ export const FaqChatbot: React.FC = () => {
                           style={{
                             padding: '6px 14px',
                             borderRadius: '8px',
-                            background: '#20BEFF20',
+                            background: 'rgba(32, 190, 255, 0.15)',
                             border: '1px solid #20BEFF',
                             color: '#20BEFF',
                             fontSize: '12px',
@@ -396,24 +462,16 @@ export const FaqChatbot: React.FC = () => {
                           style={{
                             padding: '6px 12px',
                             borderRadius: '20px',
-                            background: 'rgba(255, 255, 255, 0.04)',
-                            border: '1px solid rgba(255, 255, 255, 0.12)',
-                            color: '#fff',
+                            background: opt.actionKey === 'tour' ? 'rgba(32, 190, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                            border: opt.actionKey === 'tour' ? '1px solid #20BEFF' : '1px solid rgba(255, 255, 255, 0.12)',
+                            color: opt.actionKey === 'tour' ? '#20BEFF' : '#fff',
                             fontSize: '11px',
-                            fontWeight: '600',
+                            fontWeight: '700',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px'
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.borderColor = '#20BEFF';
-                            e.currentTarget.style.background = 'rgba(32, 190, 255, 0.1)';
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
                           }}
                         >
                           {opt.label}
@@ -441,7 +499,7 @@ export const FaqChatbot: React.FC = () => {
             }}>
               <input
                 type="text"
-                placeholder="Ask about songs, limits, levels..."
+                placeholder="Ask a question or type 'tour'..."
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
                 onKeyDown={e => {

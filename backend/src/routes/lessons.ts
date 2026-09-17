@@ -100,9 +100,7 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
       return res.status(400).json({ message: "Song ID is required" });
     }
 
-    if (!['hindi', 'spanish', 'korean'].includes(language)) {
-      return res.status(400).json({ message: "Invalid or missing language" });
-    }
+    const langKey = (language || 'spanish').toLowerCase();
 
     const song = await Song.findById(songId);
     if (!song) {
@@ -111,17 +109,19 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
 
     const segments = await LyricSegment.find({ songId }).sort({ segmentOrder: 1 });
     
-    // Map lyrics with translations
-    const targetTranslations = language === 'hindi' ? song.translations?.hindi : language === 'spanish' ? song.translations?.spanish : song.translations?.korean;
+    // Map lyrics with translations dynamically
+    const targetTranslations = song.translations?.[langKey as keyof typeof song.translations] || song.translations?.spanish || song.translations?.hindi || song.translations?.korean;
     const lyricsWithTranslations = segments.map(seg => {
-      const translationObj = targetTranslations?.find((t: any) => t.order === seg.segmentOrder);
+      const translationObj = Array.isArray(targetTranslations) 
+        ? targetTranslations.find((t: any) => t.order === seg.segmentOrder)
+        : null;
       return {
         english: seg.text,
-        translation: translationObj ? translationObj.text : ""
+        translation: translationObj ? translationObj.text : seg.text
       };
     }).filter(item => item.english);
 
-    const lessonData = await generateSongLesson(language, song.title, song.artistName || '', lyricsWithTranslations);
+    const lessonData = await generateSongLesson(langKey, song.title, song.artistName || '', lyricsWithTranslations);
     
     // Ensure all questions have a correctAnswer to satisfy Mongoose validation
     const sanitizedQuestions = lessonData.questions.map((q: any) => ({
@@ -132,7 +132,7 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
     // Create in_progress attempt
     const attempt = await LessonAttempt.create({
       userId: req.user._id,
-      language,
+      language: langKey,
       level: 'dynamic',
       questions: sanitizedQuestions,
       status: 'in_progress',

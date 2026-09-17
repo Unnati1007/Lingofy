@@ -9,6 +9,7 @@ import {
 import PronunciationSettingsModal from '../components/learning/PronunciationSettingsModal';
 import ToughWordModal from '../components/notes/ToughWordModal';
 import { useResizableSidebar } from '../hooks/useResizableSidebar';
+import { FaqChatbot } from '../components/FaqChatbot';
 
 type ViewState = 'setup' | 'loading' | 'quiz' | 'hci_form' | 'results';
 type Language = 'hindi' | 'spanish' | 'korean';
@@ -1773,11 +1774,13 @@ const LessonsPage = () => {
           .sidebar-resize-handle { display: none !important; }
           .mobile-close-btn { display: flex !important; }
           main { padding: 24px !important; padding-bottom: 100px !important; padding-top: 80px !important; margin-left: 0 !important; }
-        }
         @media (max-width: 900px) {
           .lessons-main-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
+
+      {/* FAQ Assistant & Guided Screen Tour */}
+      <FaqChatbot />
     </div>
   );
 };

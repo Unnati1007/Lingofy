@@ -51,6 +51,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { LearningFocusDistribution } from '../components/LearningFocusDistribution';
 import NotesHub from '../components/notes/NotesHub';
 import { useResizableSidebar } from '../hooks/useResizableSidebar';
+import { SongPracticeModal } from '../components/SongPracticeModal';
+import { FaqChatbot } from '../components/FaqChatbot';
 
 const SONGS_DATA = [
   { id: 1, title: 'STRUCT', artist: 'UdieNnx', duration: 234, image: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop' },
@@ -5045,6 +5047,17 @@ const DashboardPage = () => {
           </div>
         </div>
       )}
+
+      {/* Song Practice Quiz Modal */}
+      <SongPracticeModal 
+        isOpen={showQuizModal} 
+        onClose={() => setShowQuizModal(false)} 
+        song={currentSong} 
+        defaultLanguage={learningLanguageKey} 
+      />
+
+      {/* FAQ Assistant & Interactive Screen Guided Tour */}
+      <FaqChatbot />
 
       <style>{`
         :root { --sidebar-width: ${effectiveWidth}px; }

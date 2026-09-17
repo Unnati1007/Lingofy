@@ -283,118 +283,189 @@ JSON Schema:
 };
 
 export const generateSongLesson = async (
-  language: 'hindi' | 'spanish' | 'korean',
+  language: string,
   songTitle: string,
   songArtist: string,
   lyricsWithTranslations: { english: string; translation: string }[]
 ) => {
   const randomSeed = Math.floor(Math.random() * 100000);
+  const langKey = (language || 'spanish').toLowerCase();
   
   // Format the lyrics context for the prompt
-  const lyricsContext = lyricsWithTranslations
-    .map((l, i) => `Line ${i + 1}: English: "${l.english}" | ${language === 'hindi' ? 'Hindi' : language === 'spanish' ? 'Spanish' : 'Korean'}: "${l.translation}"`)
-    .join("\n");
+  const lyricsContext = lyricsWithTranslations.length > 0
+    ? lyricsWithTranslations
+        .map((l, i) => `Line ${i + 1}: Original/English: "${l.english}" | Target Translation: "${l.translation || l.english}"`)
+        .join("\n")
+    : `Song: "${songTitle}" by "${songArtist}"`;
 
   const prompt = `
 You are a language tutor for Lingofy, a music-based language learning app.
-A user just finished listening to the song "${songTitle}" by "${songArtist}".
-Your job is to teach the user ${language} vocabulary and phrases using the words and lines from this song.
+A user is listening to the song "${songTitle}" by "${songArtist}".
+Your job is to generate an interactive 15-QUESTION PRACTICE QUIZ for the user to practice ${langKey} using the words, phrases, and lyrics from this song.
 
 Session ID (guarantees unique questions): ${randomSeed}
-Language being taught: ${language}
+Target Language being practiced: ${langKey}
 Song Title: "${songTitle}"
 Song Artist: "${songArtist}"
 
-Lyrics and Translations from the song:
+Lyrics and Translations:
 ${lyricsContext}
 
-ABSOLUTE RULES — READ CAREFULLY:
-
-1. Every single question must be directly related to the vocabulary, words, phrases, or sentences from the provided lyrics.
-2. ALL questionText must be written in ENGLISH ONLY. Never write the question itself in Hindi or Spanish.
-3. Generate exactly 10 questions. 
-   - EXACTLY 4 questions MUST be of type 'listen_translate'.
-   - EXACTLY 2 questions MUST be of type 'translate_word', where the 'targetWord' is a FULL LINE or PHRASE (5-8 words long) directly from the song lyrics, and the user must choose the correct English translation from the 'options'.
-   - The remaining 4 questions should be randomly distributed among 'translate_word' (single word), 'multiple_choice', 'fill_blank', and 'match_meaning'.
-
-4. Question structure depends on type:
-
-   listen_translate:
-   - questionText: "Listen to the audio and select the correct translation:"
-   - targetWord: a 3-4 word phrase from the song in ${language} (this will be read aloud by TTS)
+CRITICAL REQUIREMENT — GENERATE EXACTLY 15 QUESTIONS WITH THIS MIX:
+1. 4 'listen_translate' or 'pronunciation' questions:
+   - questionText: "Listen to the pronunciation and select the correct translation:" or "How is this phrase from '${songTitle}' pronounced/translated?"
+   - targetWord: a 3-5 word phrase or line from the song in ${langKey} (for TTS pronunciation)
    - options: 4 English meanings
    - correctAnswer: correct English meaning
 
-   translate_word (when used for a FULL PHRASE):
-   - questionText: "What is the English translation for this phrase?"
-   - targetWord: a 5-8 word full phrase from the song in ${language}
-   - options: 4 English phrases
-   - correctAnswer: correct English meaning
+2. 4 'translate_word' (Full Phrase) questions:
+   - questionText: "What is the English translation for this lyric line from '${songTitle}'?"
+   - targetWord: a line from the song in ${langKey}
+   - options: 4 English translations
+   - correctAnswer: correct English translation
 
-   translate_word:
-   - questionText: "What is the ${language} word/phrase for '[English word/phrase]'?" (make sure the English word/phrase is from the lyrics)
-   - targetWord: the English word/phrase (shown large on screen)
-   - options: 4 ${language} words/phrases (one is correct translation, others are plausible distractors in ${language})
-   - correctAnswer: the correct ${language} translation
-   
-   multiple_choice:
-   - questionText: "What does '[${language} word/phrase]' mean in English?" (make sure the ${language} word/phrase is from the translations)
-   - options: 4 English meanings
-   - correctAnswer: correct English meaning
-   
-   fill_blank:
-   - questionText: "Fill in the blank to complete the ${language} sentence from the song:"
-   - sentence shown: the ${language} sentence from the song translations with a ___ gap replacing a key word.
-   - always include the English translation in parentheses after, e.g. "Sentence with ___ (English translation of the full sentence)"
-   - options: 4 ${language} words that could fill the blank (one is the correct word from the song)
-   - correctAnswer: the correct ${language} word
-   
-   match_meaning:
-   - questionText: "What does this ${language} word/phrase mean?"
-   - targetWord: the ${language} word/phrase (shown large)
+3. 4 'fill_blank' questions:
+   - questionText: "Fill in the missing word from this song line:"
+   - sentence: "${langKey} line with ___ replacement (English translation in parentheses)"
+   - options: 4 ${langKey} words from the song context
+   - correctAnswer: the correct ${langKey} word
+
+4. 3 'match_meaning' / 'multiple_choice' questions:
+   - questionText: "What does this key vocabulary word from '${songTitle}' mean?"
+   - targetWord: key word in ${langKey}
    - options: 4 English meanings
    - correctAnswer: correct English meaning
 
-5. Each question must test a DIFFERENT word or phrase — no repeats.
+ABSOLUTE RULES:
+- ALL questionText must be in ENGLISH ONLY.
+- Each question must test a DIFFERENT word/phrase from the song.
+- For Hindi: use Devanagari script for options with romanized pronunciation in explanation e.g. "भूखा (bhookha)".
+- For Korean: use Hangul script with romanized pronunciation in explanation.
+- For Spanish/French/German: use proper accents.
+- For English target: test vocabulary/idioms from the song lyrics with clear English definitions.
+- correctAnswer must EXACTLY match one of the 4 options.
 
-6. For Hindi questions:
-   - Use Devanagari script for Hindi words in options/answers.
-   - Add romanized pronunciation in explanation.
-   - Example option: "भूखा (bhookha)"
-
-7. For Korean questions:
-   - Use Hangul script for Korean words in options/answers.
-   - Add romanized pronunciation in explanation.
-
-8. For Spanish questions:
-   - Use proper Spanish with accents (á é í ó ú ñ ¿ ¡).
-
-9. Make questions educational:
-   - Focus on verbs, adjectives, common nouns, and phrases that appear in the song lyrics.
-   
-10. correctAnswer must EXACTLY match one of the 4 options (same spelling, script, and capitalization).
-
-Respond with ONLY raw JSON — zero markdown, zero backticks, zero text outside the JSON object.
+Respond ONLY with raw JSON — zero markdown code block wrappers, zero extra text.
 
 JSON Schema:
 {
-  "lessonTitle": "Song Quiz: ${songTitle}",
-  "language": "${language}",
+  "lessonTitle": "Song Practice: ${songTitle}",
+  "language": "${langKey}",
   "questions": [
     {
       "id": 1,
-      "type": "translate_word | multiple_choice | fill_blank | match_meaning | listen_translate",
-      "questionText": "ALWAYS IN ENGLISH",
-      "targetWord": "word shown large on screen (English for translate_word, ${language} for match_meaning and listen_translate)",
-      "sentence": "full sentence with ___ for fill_blank type only",
-      "options": ["option1", "option2", "option3", "option4"],
-      "correctAnswer": "must exactly match one option",
-      "explanation": "1 sentence in English explaining the answer + pronunciation tip for Hindi/Korean"
+      "type": "listen_translate | translate_word | fill_blank | match_meaning | pronunciation",
+      "questionText": "Question text in English",
+      "targetWord": "target word or line from song",
+      "sentence": "line with gap for fill_blank only",
+      "options": ["option 1", "option 2", "option 3", "option 4"],
+      "correctAnswer": "exact match of one option",
+      "explanation": "Brief explanation of the answer and pronunciation tips"
     }
   ]
 }
 `;
 
-  const result = await generateWithRetry(prompt);
-  return result;
+  // Fallback builder if Groq returns < 15 questions or fails
+  const createFallbackQuestions = (): any[] => {
+    const fallbackQs: any[] = [];
+    const validLyrics = lyricsWithTranslations.filter(l => l.english && l.english.trim());
+
+    // Generate 15 distinct questions based on song details & available lyrics
+    for (let i = 1; i <= 15; i++) {
+      const lyricItem = validLyrics[(i - 1) % (validLyrics.length || 1)] || { english: songTitle, translation: songTitle };
+      const qType = i % 4 === 1 ? 'listen_translate' : i % 4 === 2 ? 'translate_word' : i % 4 === 3 ? 'fill_blank' : 'match_meaning';
+      
+      const targetText = lyricItem.translation || lyricItem.english;
+      const engText = lyricItem.english || lyricItem.translation;
+
+      if (qType === 'listen_translate') {
+        fallbackQs.push({
+          id: i,
+          type: 'listen_translate',
+          questionText: `Listen to this phrase from "${songTitle}" and select its translation:`,
+          targetWord: targetText,
+          options: [engText, "Singing with rhythm", "Forever in harmony", "Dance to the beats"],
+          correctAnswer: engText,
+          explanation: `This phrase is heard in "${songTitle}" by ${songArtist}.`
+        });
+      } else if (qType === 'translate_word') {
+        fallbackQs.push({
+          id: i,
+          type: 'translate_word',
+          questionText: `What is the correct translation for this line from "${songTitle}"?`,
+          targetWord: targetText,
+          options: [engText, "Heartbeat in motion", "Night under the stars", "A quiet melody"],
+          correctAnswer: engText,
+          explanation: `In the song "${songTitle}", "${targetText}" translates to "${engText}".`
+        });
+      } else if (qType === 'fill_blank') {
+        const words = targetText.split(' ');
+        const missingWord = words[Math.floor(words.length / 2)] || words[0] || 'music';
+        const maskedSentence = targetText.replace(missingWord, '___');
+        fallbackQs.push({
+          id: i,
+          type: 'fill_blank',
+          questionText: `Fill in the missing word from this line in "${songTitle}":`,
+          sentence: `${maskedSentence} (${engText})`,
+          options: [missingWord, "harmony", "rhythm", "tempo"],
+          correctAnswer: missingWord,
+          explanation: `The complete lyric is: "${targetText}".`
+        });
+      } else {
+        fallbackQs.push({
+          id: i,
+          type: 'match_meaning',
+          questionText: `What is the meaning of this key song phrase?`,
+          targetWord: targetText,
+          options: [engText, "Silent echo", "Bright light", "Flowing stream"],
+          correctAnswer: engText,
+          explanation: `This phrase is key to understanding the lyrics of "${songTitle}".`
+        });
+      }
+    }
+    return fallbackQs;
+  };
+
+  try {
+    const resData = await generateWithRetry(prompt);
+    if (resData && Array.isArray(resData.questions) && resData.questions.length >= 10) {
+      // Ensure IDs are 1..N and question count reaches 15 if needed
+      let qList = resData.questions.map((q: any, idx: number) => ({
+        ...q,
+        id: idx + 1
+      }));
+
+      // Top up to 15 questions if needed
+      if (qList.length < 15) {
+        const fallbacks = createFallbackQuestions();
+        while (qList.length < 15) {
+          const nextIndex = qList.length;
+          const fb = fallbacks[nextIndex];
+          fb.id = nextIndex + 1;
+          qList.push(fb);
+        }
+      }
+
+      return {
+        lessonTitle: resData.lessonTitle || `Song Practice: ${songTitle}`,
+        language: langKey,
+        questions: qList.slice(0, 15)
+      };
+    } else {
+      return {
+        lessonTitle: `Song Practice: ${songTitle}`,
+        language: langKey,
+        questions: createFallbackQuestions()
+      };
+    }
+  } catch (err) {
+    console.warn("Song quiz generation fallback triggered:", err);
+    return {
+      lessonTitle: `Song Practice: ${songTitle}`,
+      language: langKey,
+      questions: createFallbackQuestions()
+    };
+  }
 };
+

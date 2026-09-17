@@ -325,3 +325,82 @@ a {
   transition: none !important;
   user-select: none !important;
 }
+
+/* ==========================================================================
+   GLOBAL MOBILE RESPONSIVENESS SYSTEM (Lingofy Mobile & Tablet Support)
+   ========================================================================== */
+
+/* Universal Responsive Image & Media Handling */
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Base Responsive Typography & Containers */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .auth-container {
+    padding: 20px 16px;
+  }
+
+  .auth-card {
+    padding: 24px 20px !important;
+    border-radius: 20px !important;
+  }
+
+  .logo-text {
+    font-size: 26px !important;
+  }
+
+  .logo-container img {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+/* Responsive Grid Adapters */
+@media (max-width: 640px) {
+  /* Dynamic 2-column grids collapse to 1-column on mobile */
+  .grid-responsive-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Lyric Card parallel view adjusts on mobile */
+  .lyrics-card-custom {
+    padding: 16px !important;
+    height: auto !important;
+    max-height: 520px;
+  }
+
+  /* Practice Modal adjustments */
+  .song-practice-modal-card {
+    padding: 18px !important;
+    border-radius: 20px !important;
+  }
+}
+
+/* Chatbot & Guided Tour Mobile Adjustments */
+@media (max-width: 480px) {
+  /* Chatbot window adapts to narrow mobile screens */
+  .faq-chatbot-window {
+    width: calc(100vw - 24px) !important;
+    right: 12px !important;
+    bottom: 84px !important;
+    height: calc(100vh - 110px) !important;
+  }
+
+  /* Tour Modal scales on narrow mobile screens */
+  .guided-tour-modal-card {
+    padding: 16px !important;
+    max-width: 94vw !important;
+  }
+
+  /* Button Touch Targets */
+  .btn {
+    padding: 12px 16px !important;
+  }
+}
+
