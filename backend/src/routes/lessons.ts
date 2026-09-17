@@ -11,6 +11,8 @@ import Notification from "../models/user/Notification";
 import nodemailer from "nodemailer";
 import User from "../models/user/User";
 
+import mongoose from "mongoose";
+
 const router = express.Router();
 
 // POST /api/lessons/generate
@@ -94,23 +96,32 @@ router.post("/generate", protect, async (req: AuthRequest, res: Response) => {
 // POST /api/lessons/generate-from-song
 router.post("/generate-from-song", protect, async (req: AuthRequest, res: Response) => {
   try {
-    const { songId, language } = req.body;
-
-    if (!songId) {
-      return res.status(400).json({ message: "Song ID is required" });
-    }
+    const { songId, language, songTitle: reqTitle, artistName: reqArtist } = req.body;
 
     const langKey = (language || 'spanish').toLowerCase();
 
-    const song = await Song.findById(songId);
-    if (!song) {
-      return res.status(404).json({ message: "Song not found" });
+    let song: any = null;
+    if (songId && mongoose.Types.ObjectId.isValid(songId)) {
+      song = await Song.findById(songId);
+    }
+    if (!song && songId) {
+      song = await Song.findOne({ title: { $regex: new RegExp(`^${songId}$`, 'i') } });
     }
 
-    const segments = await LyricSegment.find({ songId }).sort({ segmentOrder: 1 });
-    
+    let segments: any[] = [];
+    if (song) {
+      segments = await LyricSegment.find({ songId: song._id }).sort({ segmentOrder: 1 });
+    }
+
+    const title = song ? song.title : (reqTitle || "Song Practice");
+    const artist = song ? (song.artistName || "Artist") : (reqArtist || "Artist");
+
     // Map lyrics with translations dynamically
-    const targetTranslations = song.translations?.[langKey as keyof typeof song.translations] || song.translations?.spanish || song.translations?.hindi || song.translations?.korean;
+    const targetTranslations = song?.translations?.[langKey as keyof typeof song.translations] 
+      || song?.translations?.spanish 
+      || song?.translations?.hindi 
+      || song?.translations?.korean;
+
     const lyricsWithTranslations = segments.map(seg => {
       const translationObj = Array.isArray(targetTranslations) 
         ? targetTranslations.find((t: any) => t.order === seg.segmentOrder)
@@ -121,7 +132,7 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
       };
     }).filter(item => item.english);
 
-    const lessonData = await generateSongLesson(langKey, song.title, song.artistName || '', lyricsWithTranslations);
+    const lessonData = await generateSongLesson(langKey, title, artist, lyricsWithTranslations);
     
     // Ensure all questions have a correctAnswer to satisfy Mongoose validation
     const sanitizedQuestions = lessonData.questions.map((q: any) => ({

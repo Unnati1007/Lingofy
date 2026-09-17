@@ -12,9 +12,7 @@ import {
   ChevronRight, 
   Loader2,
   BookOpen,
-  Globe,
-  Award,
-  Music
+  Globe
 } from 'lucide-react';
 
 interface Question {
@@ -46,9 +44,7 @@ const AVAILABLE_LANGUAGES = [
   { code: 'spanish', name: 'Spanish', flag: '🇪🇸', desc: 'Spanish lyrics & pronunciation' },
   { code: 'hindi', name: 'Hindi', flag: '🇮🇳', desc: 'Devanagari script & pronunciation' },
   { code: 'korean', name: 'Korean', flag: '🇰🇷', desc: 'Hangul script & lyric phrases' },
-  { code: 'english', name: 'English', flag: '🇬🇧', desc: 'Lyrics, vocabulary & idioms' },
-  { code: 'french', name: 'French', flag: '🇫🇷', desc: 'French lyric translation' },
-  { code: 'german', name: 'German', flag: '🇩🇪', desc: 'German lyric phrases' },
+  { code: 'english', name: 'English', flag: '🇬🇧', desc: 'Lyrics, vocabulary & idioms' }
 ];
 
 export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
@@ -59,7 +55,9 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
 }) => {
   const [step, setStep] = useState<'select_language' | 'quiz' | 'completed'>('select_language');
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    (defaultLanguage || 'spanish').toLowerCase()
+    ['spanish', 'hindi', 'korean', 'english'].includes((defaultLanguage || '').toLowerCase())
+      ? (defaultLanguage || 'spanish').toLowerCase()
+      : 'spanish'
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -101,7 +99,9 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
         `${API_BASE}/api/lessons/generate-from-song`,
         {
           songId: song._id,
-          language: lang
+          language: lang,
+          songTitle: song.title,
+          artistName: song.artistName
         },
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -129,8 +129,6 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
     if (selectedLanguage === 'hindi') utterance.lang = 'hi-IN';
     else if (selectedLanguage === 'spanish') utterance.lang = 'es-ES';
     else if (selectedLanguage === 'korean') utterance.lang = 'ko-KR';
-    else if (selectedLanguage === 'french') utterance.lang = 'fr-FR';
-    else if (selectedLanguage === 'german') utterance.lang = 'de-DE';
     else utterance.lang = 'en-US';
     utterance.rate = 0.85;
     window.speechSynthesis.speak(utterance);
@@ -284,7 +282,7 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
               </div>
             </div>
           ) : step === 'select_language' ? (
-            /* STEP 1: Language Selection Screen */
+            /* STEP 1: Language Selection Screen (Strictly 4 Core Languages) */
             <div>
               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <div style={{ 
@@ -305,15 +303,15 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                   In which language do you want to practice this song?
                 </h2>
                 <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)', margin: 0 }}>
-                  Select your target language to generate a 15-question mix quiz based on <strong>"{song.title}"</strong>.
+                  Click a language to generate your 15-question mix quiz based on <strong>"{song.title}"</strong>.
                 </p>
               </div>
 
-              {/* Language Cards Grid */}
+              {/* Language Cards Grid (2x2 Grid for 4 Core Languages) */}
               <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: '1fr 1fr', 
-                gap: '12px', 
+                gap: '14px', 
                 marginBottom: '20px' 
               }}>
                 {AVAILABLE_LANGUAGES.map((lang) => {
@@ -321,9 +319,9 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                   return (
                     <div
                       key={lang.code}
-                      onClick={() => setSelectedLanguage(lang.code)}
+                      onClick={() => startPracticeQuiz(lang.code)}
                       style={{
-                        padding: '16px',
+                        padding: '18px 16px',
                         borderRadius: '16px',
                         background: isSelected 
                           ? 'linear-gradient(135deg, rgba(32, 190, 255, 0.18) 0%, rgba(0, 153, 230, 0.08) 100%)' 
@@ -337,15 +335,27 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                         flexDirection: 'column',
                         gap: '6px'
                       }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = 'rgba(32, 190, 255, 0.4)';
+                          e.currentTarget.style.background = 'rgba(32, 190, 255, 0.06)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                        }
+                      }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '22px' }}>{lang.flag}</span>
+                          <span style={{ fontSize: '24px' }}>{lang.flag}</span>
                           <span style={{ fontSize: '15px', fontWeight: '700', color: isSelected ? '#20BEFF' : '#fff' }}>
                             {lang.name}
                           </span>
                         </div>
-                        {isSelected && <CheckCircle2 size={18} color="#20BEFF" />}
+                        <ChevronRight size={16} color={isSelected ? '#20BEFF' : 'rgba(255,255,255,0.4)'} />
                       </div>
                       <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', lineHeight: '1.3' }}>
                         {lang.desc}
@@ -361,7 +371,7 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                 border: '1px dashed rgba(255, 255, 255, 0.12)',
                 borderRadius: '14px',
                 padding: '12px 16px',
-                marginBottom: '24px',
+                marginBottom: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px'
@@ -377,29 +387,6 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
                   {error}
                 </div>
               )}
-
-              {/* Start Quiz Action */}
-              <button
-                onClick={() => startPracticeQuiz(selectedLanguage)}
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
-                  color: '#000',
-                  fontWeight: '800',
-                  fontSize: '15px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 20px rgba(32, 190, 255, 0.3)'
-                }}
-              >
-                Start 15-Question Practice Quiz <ChevronRight size={18} />
-              </button>
             </div>
           ) : step === 'completed' ? (
             /* STEP 3: Completed Screen */
