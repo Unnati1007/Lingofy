@@ -12,6 +12,7 @@ export interface TourStep {
   title: string;
   description: string;
   position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  tabToOpen?: 'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes' | 'mindful';
 }
 
 const DEFAULT_TOUR_STEPS: TourStep[] = [
@@ -19,79 +20,92 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
     targetId: 'tour-sidebar',
     title: 'Navigation Control Hub & Sidebar',
     description: 'Welcome to Lingofy! This collapsible sidebar is your central command hub. Use it to seamlessly switch between Home, Lessons, Music Library, Personal Notes, Statistics, Achievements, Mindful Listening, Documentation, and Profile Settings.',
-    position: 'right'
+    position: 'right',
+    tabToOpen: 'home'
   },
   {
     targetId: 'tour-sidebar-home',
     title: 'Home Dashboard & Learning Overview',
     description: 'The Home Dashboard serves as your main hub for active learning. Here you can control live song playback, track your target language proficiency, monitor level roadmap stages, and launch instant practice quizzes.',
-    position: 'right'
+    position: 'right',
+    tabToOpen: 'home'
   },
   {
     targetId: 'tour-sidebar-lessons',
     title: 'Traditional Mode & Structured Lessons',
     description: 'Access classic text-based language learning modules categorized from Easy to Advanced. In Traditional Mode, you focus directly on structured grammar rules, vocabulary flashcards, reading comprehension, and level progression lessons without audio background music.',
-    position: 'right'
+    position: 'right',
+    tabToOpen: 'home'
   },
   {
-    targetId: 'tour-sidebar-library',
+    targetId: 'tour-song-library',
     title: 'Music Library & Custom YouTube Imports',
     description: 'Explore curated multi-genre tracks across Spanish, Hindi, Korean, and English. Create custom playlists, filter songs by language, or import up to 5 YouTube songs to automatically generate synchronized bilingual lyrics.',
-    position: 'right'
+    position: 'top',
+    tabToOpen: 'library'
   },
   {
-    targetId: 'tour-sidebar-notes',
+    targetId: 'tour-notes-hub',
     title: 'Personal Notes Hub & Bookmarks',
     description: 'Your centralized digital notebook. Access all saved vocabulary cards, synchronized lyric highlights, custom study notes, and bookmarks saved during interactive song playback for targeted revision.',
-    position: 'right'
+    position: 'top',
+    tabToOpen: 'notes'
   },
   {
-    targetId: 'tour-sidebar-statistics',
+    targetId: 'tour-statistics-content',
     title: 'Statistics & Research Comparative Analytics',
     description: 'Analyze your learning metrics, active streak heatmaps, and past quiz attempts. Features a research-grade HCI evaluation comparing your performance metrics between Traditional Mode and Music Mode with exportable statistical summaries.',
-    position: 'right'
+    position: 'top',
+    tabToOpen: 'statistics'
   },
   {
-    targetId: 'tour-sidebar-achievements',
+    targetId: 'tour-achievements-content',
     title: 'Achievements & Milestone Badges',
     description: 'Track your learning milestones, unlock proficiency badges for language roadmaps, reward streak records, and share your achievements directly with friends via WhatsApp or social media.',
-    position: 'right'
+    position: 'top',
+    tabToOpen: 'achievements'
   },
   {
-    targetId: 'tour-sidebar-mindful',
+    targetId: 'tour-mindful-content',
     title: 'Mindful Listening & Ambient Immersion',
     description: 'Immerse yourself in passive audio learning. Listen to calming natural soundscapes like ocean waves, rain, and forest ambiance paired with soft text-to-speech phrases to reinforce vocabulary effortlessly.',
-    position: 'right'
+    position: 'top',
+    tabToOpen: 'mindful'
   },
   {
     targetId: 'tour-language-card',
     title: 'Language Selection & Roadmap Tier Progression',
     description: 'Switch between target languages including Spanish, Hindi, Korean, and English. Track completed lessons across Easy, Intermediate, and Advanced tiers, and take unlock quizzes to advance your rank.',
-    position: 'bottom'
+    position: 'bottom',
+    tabToOpen: 'home'
   },
   {
     targetId: 'tour-mode-toggle',
     title: 'Traditional & Music Mode Switcher',
     description: 'Customize your learning experience anytime in your Profile. Choose between Music-Enhanced Mode with karaoke lyrics and audio practice, or Traditional Mode for quiet text-focused drills.',
-    position: 'top'
+    position: 'top',
+    tabToOpen: 'profile'
   },
   {
     targetId: 'tour-song-player',
     title: 'Music Player & Interactive Song Quiz',
     description: 'Play high-definition audio tracks, toggle synchronized bilingual karaoke lyrics, adjust playback speed, and click Practice Song to trigger a 15-question interactive quiz generated from the song text.',
-    position: 'left'
+    position: 'left',
+    tabToOpen: 'home'
   },
   {
     targetId: 'tour-song-library',
     title: 'Playlists & Custom YouTube Imports',
     description: 'Organize your favorite study songs into custom playlists and import YouTube links into your personal collection to extract AI-translated lyrics in 4 languages.',
-    position: 'top'
+    position: 'top',
+    tabToOpen: 'library'
   },
   {
     targetId: 'tour-faq-chatbot',
     title: 'AI Assistant & Help Center',
     description: 'Click this floating AI Assistant icon anytime to ask Lingofy questions, get instant app navigation assistance, or restart this guided tour whenever you need a refresher.',
-    position: 'left'
+    position: 'left',
+    tabToOpen: 'home'
   }
 ];
 
@@ -111,14 +125,18 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
 
   const currentStep = steps[currentStepIndex];
 
-  // Update highlighted element bounding rect
+  // Update highlighted element bounding rect and open tab if specified
   useEffect(() => {
     if (!isOpen || !currentStep) return;
+
+    // Trigger tab switch to open target section in app
+    if (currentStep.tabToOpen) {
+      window.dispatchEvent(new CustomEvent('lingofy-tab-change', { detail: currentStep.tabToOpen }));
+    }
 
     const updateRect = () => {
       const el = document.getElementById(currentStep.targetId);
       if (el) {
-        // Scroll element into view if needed
         el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         const rect = el.getBoundingClientRect();
         setTargetRect(rect);
@@ -128,16 +146,17 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
     };
 
     updateRect();
+    const timer1 = setTimeout(updateRect, 150);
+    const timer2 = setTimeout(updateRect, 450);
+
     window.addEventListener('resize', updateRect);
     window.addEventListener('scroll', updateRect);
-
-    // Timeout check in case element renders slightly delayed
-    const timer = setTimeout(updateRect, 300);
 
     return () => {
       window.removeEventListener('resize', updateRect);
       window.removeEventListener('scroll', updateRect);
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
     };
   }, [isOpen, currentStepIndex, currentStep]);
 
@@ -164,6 +183,8 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
 
   // Calculate tooltip popover positioning relative to target element
   const getPopoverStyle = () => {
+    const popoverWidth = 430;
+
     if (!targetRect) {
       return {
         position: 'fixed' as const,
@@ -175,8 +196,6 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
     }
 
     const margin = 18;
-    const popoverWidth = 360;
-
     let top = 0;
     let left = 0;
 
@@ -184,18 +203,18 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
 
     if (pos === 'right') {
       left = targetRect.right + margin;
-      top = Math.max(20, targetRect.top + targetRect.height / 2 - 100);
+      top = Math.max(20, targetRect.top + targetRect.height / 2 - 120);
       if (left + popoverWidth > window.innerWidth) {
         left = targetRect.left - popoverWidth - margin;
       }
     } else if (pos === 'left') {
       left = targetRect.left - popoverWidth - margin;
-      top = Math.max(20, targetRect.top + targetRect.height / 2 - 100);
+      top = Math.max(20, targetRect.top + targetRect.height / 2 - 120);
       if (left < 10) {
         left = targetRect.right + margin;
       }
     } else if (pos === 'top') {
-      top = targetRect.top - 200 - margin;
+      top = targetRect.top - 240 - margin;
       left = Math.max(20, Math.min(window.innerWidth - popoverWidth - 20, targetRect.left + targetRect.width / 2 - popoverWidth / 2));
       if (top < 10) {
         top = targetRect.bottom + margin;
@@ -204,13 +223,13 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
       // Bottom default
       top = targetRect.bottom + margin;
       left = Math.max(20, Math.min(window.innerWidth - popoverWidth - 20, targetRect.left + targetRect.width / 2 - popoverWidth / 2));
-      if (top + 220 > window.innerHeight) {
-        top = Math.max(20, targetRect.top - 220);
+      if (top + 260 > window.innerHeight) {
+        top = Math.max(20, targetRect.top - 260);
       }
     }
 
     // Clamp within screen boundaries so popover and buttons are never cut off
-    const popoverHeight = 250;
+    const popoverHeight = 280;
     const maxTop = Math.max(20, window.innerHeight - popoverHeight - 20);
     const maxLeft = Math.max(20, window.innerWidth - popoverWidth - 20);
 
@@ -300,23 +319,24 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
           transition={{ duration: 0.25 }}
           style={{
             ...getPopoverStyle(),
-            width: '360px',
+            width: '430px',
             background: 'linear-gradient(180deg, #1e1e24 0%, #0f0f12 100%)',
-            border: '1px solid rgba(32, 190, 255, 0.3)',
-            borderRadius: '20px',
-            boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.9), 0 0 25px rgba(32, 190, 255, 0.25)',
-            padding: '20px',
+            border: '1px solid rgba(32, 190, 255, 0.35)',
+            borderRadius: '24px',
+            boxShadow: '0 25px 50px -10px rgba(0, 0, 0, 0.95), 0 0 30px rgba(32, 190, 255, 0.25)',
+            padding: '24px',
             color: '#fff',
-            fontFamily: 'Inter, sans-serif'
+            fontFamily: 'Inter, sans-serif',
+            boxSizing: 'border-box'
           }}
         >
           {/* Tooltip Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{
-                fontSize: '10px',
+                fontSize: '11px',
                 fontWeight: '800',
-                padding: '3px 10px',
+                padding: '4px 12px',
                 borderRadius: '12px',
                 background: 'rgba(32, 190, 255, 0.18)',
                 color: '#20BEFF',
@@ -330,16 +350,17 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
             <button
               onClick={handleComplete}
               style={{
-                background: 'rgba(255, 255, 255, 0.06)',
+                background: 'rgba(255, 255, 255, 0.08)',
                 border: 'none',
                 borderRadius: '50%',
-                width: '28px',
-                height: '28px',
+                width: '30px',
+                height: '30px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'rgba(255, 255, 255, 0.6)',
-                cursor: 'pointer'
+                color: 'rgba(255, 255, 255, 0.7)',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
               title="Skip Tour"
             >
@@ -348,60 +369,70 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
           </div>
 
           {/* Title */}
-          <h3 style={{ fontSize: '17px', fontWeight: '800', color: '#fff', marginBottom: '8px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#fff', marginBottom: '10px', lineHeight: 1.3 }}>
             {currentStep.title}
           </h3>
 
           {/* Description */}
-          <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.75)', margin: '0 0 20px 0', lineHeight: '1.5' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.8)', margin: '0 0 20px 0', lineHeight: 1.55 }}>
             {currentStep.description}
           </p>
 
-          {/* Step Dots Progress */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: '4px' }}>
-              {steps.map((_, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    width: idx === currentStepIndex ? '14px' : '5px',
-                    height: '5px',
-                    borderRadius: '3px',
-                    background: idx === currentStepIndex ? '#20BEFF' : 'rgba(255, 255, 255, 0.2)',
-                    transition: 'all 0.3s'
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
-                onClick={handleComplete}
+          {/* Dedicated Step Progress Dots Row */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '5px',
+            marginBottom: '20px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            padding: '8px 12px',
+            borderRadius: '100px',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            {steps.map((_, idx) => (
+              <div
+                key={idx}
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: '10px',
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  color: 'rgba(255, 255, 255, 0.75)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  fontWeight: '700',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  width: idx === currentStepIndex ? '16px' : '6px',
+                  height: '6px',
+                  borderRadius: '3px',
+                  background: idx === currentStepIndex ? '#20BEFF' : 'rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.3s'
                 }}
-              >
-                Skip Tour
-              </button>
+              />
+            ))}
+          </div>
 
+          {/* Action Buttons Row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <button
+              onClick={handleComplete}
+              style={{
+                padding: '9px 16px',
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.06)',
+                color: 'rgba(255, 255, 255, 0.75)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                fontWeight: '700',
+                fontSize: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Skip Tour
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {currentStepIndex > 0 && (
                 <button
                   onClick={handleBack}
                   style={{
-                    padding: '8px 14px',
-                    borderRadius: '10px',
+                    padding: '9px 16px',
+                    borderRadius: '12px',
                     background: 'rgba(255, 255, 255, 0.08)',
                     color: '#fff',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    border: '1px solid rgba(255, 255, 255, 0.14)',
                     fontWeight: '600',
                     fontSize: '12px',
                     cursor: 'pointer',
@@ -417,9 +448,9 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
               <button
                 onClick={handleNext}
                 style={{
-                  padding: '8px 18px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #20BEFF, #0099e6)',
+                  padding: '9px 20px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
                   color: '#000',
                   border: 'none',
                   fontWeight: '800',
@@ -428,7 +459,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  boxShadow: '0 4px 12px rgba(32, 190, 255, 0.35)'
+                  boxShadow: '0 4px 14px rgba(32, 190, 255, 0.4)'
                 }}
               >
                 {currentStepIndex === steps.length - 1 ? (

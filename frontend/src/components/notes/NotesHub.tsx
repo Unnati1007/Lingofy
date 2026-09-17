@@ -259,7 +259,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
     : 0;
 
   return (
-    <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div id="tour-notes-hub" style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Hero Stats Banner */}
       <div
         style={{

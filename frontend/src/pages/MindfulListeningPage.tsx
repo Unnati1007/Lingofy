@@ -178,7 +178,7 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
   const [showPracticeModal, setShowPracticeModal] = useState(false);
 
   return (
-    <div style={{ 
+    <div id="tour-mindful-content" style={{ 
       padding: isEmbedded ? '0' : '24px 40px', 
       height: isEmbedded ? 'auto' : '100vh', 
       minHeight: isEmbedded ? 'calc(100vh - 140px)' : '100vh',

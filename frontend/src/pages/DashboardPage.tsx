@@ -768,7 +768,7 @@ const DashboardPage = () => {
       : '0.0';
 
     return (
-      <div style={{ width: '100%', maxWidth: '1200px' }}>
+      <div id="tour-statistics-content" style={{ width: '100%', maxWidth: '1200px' }}>
         <div style={{ marginBottom: '32px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold', margin: '0 0 8px 0' }}>Your Learning Analytics</h1>
           <p style={{ opacity: 0.6, margin: 0 }}>Review your performance, track your score trends, and inspect your past quiz attempts.</p>
@@ -2501,7 +2501,7 @@ const DashboardPage = () => {
     });
 
     return (
-      <div style={{ padding: '32px', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+      <div id="tour-achievements-content" style={{ padding: '32px', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
         <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px' }}>Achievements</h2>
         <p style={{ opacity: 0.6, fontSize: '15px', marginBottom: '32px' }}>Track your language milestones and share your progress with friends.</p>
 
