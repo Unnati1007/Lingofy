@@ -120,10 +120,21 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
  }
  );
 
- if (res.data && res.data.questions && res.data.questions.length > 0) {
- setQuestions(res.data.questions);
- setStep('quiz');
- } else {
+    if (res.data && res.data.questions && res.data.questions.length > 0) {
+      const shuffledQuestions = res.data.questions.map((q: any) => {
+        if (q.options && Array.isArray(q.options) && q.options.length > 1) {
+          const opts = [...q.options];
+          for (let i = opts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [opts[i], opts[j]] = [opts[j], opts[i]];
+          }
+          return { ...q, options: opts };
+        }
+        return q;
+      });
+      setQuestions(shuffledQuestions);
+      setStep('quiz');
+    } else {
  setError("Could not generate questions for this song. Please try another language.");
  }
  } catch (err: any) {

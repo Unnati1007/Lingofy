@@ -44,6 +44,15 @@ async function callGroq(prompt: string): Promise<string> {
   throw lastError || new Error("All Groq models failed.");
 }
 
+export function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 async function generateWithRetry(prompt: string) {
   const sanitizeData = (data: any) => {
     if (data.questions && Array.isArray(data.questions)) {
@@ -53,6 +62,9 @@ async function generateWithRetry(prompt: string) {
         }
         if (!q.correctAnswer || typeof q.correctAnswer !== 'string' || q.correctAnswer.trim() === '') {
           q.correctAnswer = q.options[0];
+        }
+        if (q.options && Array.isArray(q.options) && q.options.length > 1) {
+          q.options = shuffleArray(q.options);
         }
       });
     }
@@ -350,7 +362,7 @@ export function createFallbackGeneralLesson(language: string, levelStr: string =
     type: q.type || 'translate_word',
     questionText: q.questionText || `What is the meaning of ${q.targetWord}?`,
     targetWord: q.targetWord,
-    options: q.options,
+    options: shuffleArray(q.options),
     correctAnswer: q.correctAnswer,
     explanation: q.explanation
   }));
@@ -556,7 +568,7 @@ JSON Structure:
           type: 'pronunciation',
           questionText: `Pronounce this phrase from "${cleanTitle}" into your mic:`,
           targetWord: lineItem.target,
-          options: [lineItem.english, "Dancing in the rain", "Waiting for sunrise", "Singing sweet melodies"],
+          options: shuffleArray([lineItem.english, "Dancing in the rain", "Waiting for sunrise", "Singing sweet melodies"]),
           correctAnswer: lineItem.english,
           explanation: `Practice pronouncing "${lineItem.target}" (${lineItem.english}).`
         });
@@ -566,12 +578,12 @@ JSON Structure:
           type: 'translate_line',
           questionText: `What is the full English translation of this line from "${cleanTitle}"?`,
           targetWord: lineItem.target,
-          options: [
+          options: shuffleArray([
             lineItem.english,
             "The stars are shining bright in the sky",
             "Together we can dance all night long",
             "Time flies away like gentle wind"
-          ],
+          ]),
           correctAnswer: lineItem.english,
           explanation: `In "${cleanTitle}", "${lineItem.target}" translates to "${lineItem.english}".`
         });
@@ -582,7 +594,7 @@ JSON Structure:
           questionText: `What does the single word "${wordItem.word}" mean in this song context?`,
           targetWord: wordItem.word,
           sentence: lineItem.target,
-          options: [wordItem.meaning, "Sadness and grief", "Fast rhythm tempo", "High mountain peak"],
+          options: shuffleArray([wordItem.meaning, "Sadness and grief", "Fast rhythm tempo", "High mountain peak"]),
           correctAnswer: wordItem.meaning,
           explanation: `"${wordItem.word}" means "${wordItem.meaning}" in "${cleanTitle}".`
         });
@@ -592,7 +604,7 @@ JSON Structure:
           type: 'listen_word',
           questionText: `Listen to the audio snippet from "${cleanTitle}" and select what you hear:`,
           targetWord: lineItem.target,
-          options: [lineItem.english, "A fast drum rhythm", "Whispering breeze", "Endless journey"],
+          options: shuffleArray([lineItem.english, "A fast drum rhythm", "Whispering breeze", "Endless journey"]),
           correctAnswer: lineItem.english,
           explanation: `Listen closely to how "${lineItem.target}" is sung by ${songArtist}.`
         });
@@ -620,7 +632,7 @@ JSON Structure:
         return {
           ...q,
           id: idx + 1,
-          options: validOpts
+          options: shuffleArray(validOpts)
         };
       });
 
@@ -637,7 +649,7 @@ JSON Structure:
       return {
         lessonTitle: resData.lessonTitle || `Song Practice: ${cleanTitle}`,
         language: langKey,
-        questions: qList.slice(0, 15)
+        questions: qList.slice(0, 15).map((q: any) => ({ ...q, options: shuffleArray(q.options || []) }))
       };
     } else {
       return {
