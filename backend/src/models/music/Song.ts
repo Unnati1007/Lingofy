@@ -11,6 +11,9 @@ export interface ISong extends Document {
   instrumentalUrl?: string;
   bpm?: number;
   difficultyLevel: "beginner" | "intermediate" | "advanced";
+  uploadedBy?: mongoose.Types.ObjectId;
+  isUserUploaded?: boolean;
+  coverImage?: string;
   translations?: {
     english?: { order: number; text: string }[];
     hindi?: { order: number; text: string }[];
@@ -74,6 +77,19 @@ const SongSchema: Schema<ISong> = new Schema(
       type: String,
       enum: ["beginner", "intermediate", "advanced"],
       default: "beginner"
+    },
+    uploadedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: false
+    },
+    isUserUploaded: {
+      type: Boolean,
+      default: false
+    },
+    coverImage: {
+      type: String,
+      required: false
     },
     translations: {
       english: [{

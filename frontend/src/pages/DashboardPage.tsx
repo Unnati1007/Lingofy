@@ -32,7 +32,10 @@ import {
   Bell,
   Headphones,
   Bookmark,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
+  Upload,
+  Filter
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LearningFocusDistribution } from '../components/LearningFocusDistribution';
@@ -129,6 +132,28 @@ const DashboardPage = () => {
   const [playlistSearchQuery, setPlaylistSearchQuery] = useState('');
   const [currentQueue, setCurrentQueue] = useState<any[]>([]);
   const [queueName, setQueueName] = useState('Song Library');
+
+  // Personalized Library & Song Import States
+  const [personalizedRecommendations, setPersonalizedRecommendations] = useState<any[]>([]);
+  const [uploadQuota, setUploadQuota] = useState<{ uploadedCount: number; maxLimit: number; remaining: number; isUnlimited: boolean }>({
+    uploadedCount: 0,
+    maxLimit: 5,
+    remaining: 5,
+    isUnlimited: false
+  });
+  const [librarySubTab, setLibrarySubTab] = useState<'recommended' | 'playlists' | 'explore' | 'uploads'>('recommended');
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importForm, setImportForm] = useState({
+    title: '',
+    artist: '',
+    language: 'Spanish',
+    url: '',
+    lyrics: ''
+  });
+  const [isImporting, setIsImporting] = useState(false);
+  const [importStatusText, setImportStatusText] = useState('');
+  const [addToPlaylistModalSong, setAddToPlaylistModalSong] = useState<any>(null);
+  const [communityLanguageFilter, setCommunityLanguageFilter] = useState<'all' | 'spanish' | 'hindi' | 'korean' | 'english'>('all');
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -1025,6 +1050,116 @@ const DashboardPage = () => {
     }
   };
 
+  const fetchRecommendationsAndQuota = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const res = await fetch(`${API_BASE}/api/admin/recommendations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPersonalizedRecommendations(data.recommendations || []);
+        if (data.quota) setUploadQuota(data.quota);
+        if (data.allSongs && data.allSongs.length > 0) {
+          setSongs(data.allSongs);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching recommendations & quota:", err);
+    }
+  };
+
+  const handlePlaySingleSong = (song: any) => {
+    setCurrentQueue([song]);
+    setQueueName(song.title);
+    setCurrentSongIndex(0);
+    setCurrentTime(0);
+    setIsPlaying(true);
+    setHideVideo(false);
+  };
+
+  const handleQuickAddSongToPlaylist = async (songId: string, playlistId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE}/api/playlists/${playlistId}/songs`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ songId })
+      });
+      if (res.ok) {
+        alert("✓ Song added to your playlist!");
+        setAddToPlaylistModalSong(null);
+        fetchPlaylists();
+        if (selectedPlaylist?.playlist?._id === playlistId) {
+          fetchPlaylistDetails(playlistId);
+        }
+      } else {
+        const errData = await res.json();
+        alert(errData.message || 'Failed to add song to playlist');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleImportSong = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importForm.title.trim() || !importForm.artist.trim() || !importForm.url.trim()) {
+      alert("Please fill in the song title, artist, and audio/YouTube URL.");
+      return;
+    }
+    setIsImporting(true);
+    setImportStatusText("Fetching audio and extracting timed lyrics...");
+    try {
+      const token = localStorage.getItem('token');
+      const lyricsLines = importForm.lyrics.trim() ? importForm.lyrics.split('\n').map(l => l.trim()).filter(l => l.length > 0) : [];
+
+      const res = await fetch(`${API_BASE}/api/admin/song`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: importForm.title.trim(),
+          artistName: importForm.artist.trim(),
+          language: importForm.language,
+          audioUrl: importForm.url.trim(),
+          youtubeUrl: importForm.url.trim(),
+          lyrics: lyricsLines
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        if (data.isExisting) {
+          alert(`✨ ${data.message}`);
+        } else {
+          alert(`🎉 Song "${data.song?.title || importForm.title}" has been successfully imported and processed with 4-language AI translations!`);
+        }
+        setShowImportModal(false);
+        setImportForm({ title: '', artist: '', language: 'Spanish', url: '', lyrics: '' });
+        fetchRecommendationsAndQuota();
+        fetchPlaylists();
+        if (data.song) {
+          handlePlaySingleSong(data.song);
+        }
+      } else {
+        alert(data.message || "Failed to import song");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert("Network error while importing song.");
+    } finally {
+      setIsImporting(false);
+      setImportStatusText("");
+    }
+  };
+
   const handlePlayPlaylist = (playlistSongs: any[], playlistTitle: string) => {
     if (playlistSongs.length === 0) {
       alert("This playlist has no songs yet. Add some songs first!");
@@ -1050,335 +1185,937 @@ const DashboardPage = () => {
   useEffect(() => {
     if (activeTab === 'library') {
       fetchPlaylists();
+      fetchRecommendationsAndQuota();
       setSelectedPlaylist(null);
     }
   }, [activeTab]);
 
   const renderLibrary = () => {
-    const filteredSongs = playlistSearchQuery.trim() === "" 
-      ? songs 
-      : songs.filter(s => 
-          s.title.toLowerCase().includes(playlistSearchQuery.toLowerCase()) || 
-          s.artistName.toLowerCase().includes(playlistSearchQuery.toLowerCase())
-        );
+    // Filter community songs by search and language
+    const filteredSongs = songs.filter(s => {
+      const matchesSearch = playlistSearchQuery.trim() === "" || 
+        s.title.toLowerCase().includes(playlistSearchQuery.toLowerCase()) || 
+        s.artistName.toLowerCase().includes(playlistSearchQuery.toLowerCase());
+      
+      const matchesLang = communityLanguageFilter === 'all' || 
+        (s.language && s.language.toLowerCase() === communityLanguageFilter);
+
+      return matchesSearch && matchesLang;
+    });
+
+    const userUploadedSongs = songs.filter(s => s.uploadedBy === currentUser?._id || s.isUserUploaded);
 
     return (
       <div style={{ width: '100%', maxWidth: '1200px' }}>
-        <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        
+        {/* Top Header */}
+        <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
           <div>
-            <h1 style={{ fontSize: '32px', fontWeight: 'bold', margin: '0 0 8px 0' }}>Your Library</h1>
-            <p style={{ opacity: 0.6, margin: 0 }}>Create, manage, and listen to your custom playlists.</p>
-          </div>          <button 
-            onClick={() => setShowCreateModal(true)}
-            className="btn-hover"
+            <h1 style={{ fontSize: '32px', fontWeight: '800', margin: '0 0 6px 0', letterSpacing: '-0.5px' }}>Music Library</h1>
+            <p style={{ opacity: 0.65, fontSize: '14px', margin: 0 }}>
+              Discover personalized recommendations, manage playlists, and import custom tracks.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {/* Quota Badge */}
+            <div 
+              title="You can add unlimited community songs to your playlists. Custom song imports are capped at 5 slots to preserve storage."
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '9px 16px',
+                borderRadius: '14px',
+                background: 'rgba(32, 190, 255, 0.08)',
+                border: '1px solid rgba(32, 190, 255, 0.25)',
+                color: '#20BEFF',
+                fontSize: '12px',
+                fontWeight: '700'
+              }}
+            >
+              <Upload size={14} />
+              <span>Custom Imports: {uploadQuota.uploadedCount} / {uploadQuota.isUnlimited ? '∞' : uploadQuota.maxLimit}</span>
+            </div>
+
+            {/* Import Song Button */}
+            <button 
+              onClick={() => setShowImportModal(true)}
+              className="btn-hover"
+              style={{
+                background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                color: '#fff',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '14px',
+                fontWeight: 'bold',
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 8px 20px rgba(168, 85, 247, 0.3)'
+              }}
+            >
+              <Sparkles size={15} /> Import New Song
+            </button>
+
+            {/* Create Playlist Button */}
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className="btn-hover"
+              style={{
+                background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
+                color: '#000',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '14px',
+                fontWeight: 'bold',
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 8px 20px rgba(32, 190, 255, 0.3)'
+              }}
+            >
+              <Plus size={15} /> Create Playlist
+            </button>
+          </div>
+        </div>
+
+        {/* Sub-Tabs Bar */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '8px', 
+          background: 'rgba(255,255,255,0.03)', 
+          padding: '6px', 
+          borderRadius: '16px', 
+          border: '1px solid rgba(255,255,255,0.05)',
+          marginBottom: '32px',
+          overflowX: 'auto'
+        }}>
+          <button
+            onClick={() => setLibrarySubTab('recommended')}
             style={{
-              background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
-              color: '#000',
+              flex: 1,
+              minWidth: '170px',
+              padding: '10px 16px',
+              borderRadius: '12px',
               border: 'none',
-              padding: '12px 24px',
-              borderRadius: '16px',
-              fontWeight: 'bold',
+              background: librarySubTab === 'recommended' ? '#20BEFF' : 'transparent',
+              color: librarySubTab === 'recommended' ? '#000' : '#fff',
+              fontWeight: '700',
+              fontSize: '13px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
-              boxShadow: '0 10px 20px rgba(32, 190, 255, 0.2)'
+              transition: 'all 0.2s'
             }}
           >
-            <Plus size={16} /> Create Playlist
+            <Sparkles size={15} /> Recommended For You
+            {personalizedRecommendations.length > 0 && (
+              <span style={{ 
+                background: librarySubTab === 'recommended' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', 
+                padding: '2px 8px', borderRadius: '10px', fontSize: '11px' 
+              }}>
+                {personalizedRecommendations.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setLibrarySubTab('playlists')}
+            style={{
+              flex: 1,
+              minWidth: '150px',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: librarySubTab === 'playlists' ? '#20BEFF' : 'transparent',
+              color: librarySubTab === 'playlists' ? '#000' : '#fff',
+              fontWeight: '700',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <ListMusic size={15} /> My Playlists
+            <span style={{ 
+              background: librarySubTab === 'playlists' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', 
+              padding: '2px 8px', borderRadius: '10px', fontSize: '11px' 
+            }}>
+              {playlists.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setLibrarySubTab('explore')}
+            style={{
+              flex: 1,
+              minWidth: '160px',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: librarySubTab === 'explore' ? '#20BEFF' : 'transparent',
+              color: librarySubTab === 'explore' ? '#000' : '#fff',
+              fontWeight: '700',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Globe size={15} /> Community Songs
+            <span style={{ 
+              background: librarySubTab === 'explore' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', 
+              padding: '2px 8px', borderRadius: '10px', fontSize: '11px' 
+            }}>
+              {songs.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setLibrarySubTab('uploads')}
+            style={{
+              flex: 1,
+              minWidth: '160px',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: librarySubTab === 'uploads' ? '#20BEFF' : 'transparent',
+              color: librarySubTab === 'uploads' ? '#000' : '#fff',
+              fontWeight: '700',
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Upload size={15} /> My Custom Imports
+            <span style={{ 
+              background: librarySubTab === 'uploads' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', 
+              padding: '2px 8px', borderRadius: '10px', fontSize: '11px' 
+            }}>
+              {uploadQuota.uploadedCount}/5
+            </span>
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '32px', alignItems: 'start' }} className="content-grid-desktop">
-          
-          {/* Playlists Sidebar */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <ListMusic size={18} color="#20BEFF" /> My Playlists
-            </h3>
+        {/* ========================================================= */}
+        {/* SUBTAB 1: RECOMMENDED FOR YOU                             */}
+        {/* ========================================================= */}
+        {librarySubTab === 'recommended' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px 0' }}>Tailored to Your Onboarding Preferences</h3>
+                <p style={{ fontSize: '13px', opacity: 0.6, margin: 0 }}>
+                  Curated songs matching your target language ({currentUser?.learningLanguage || 'Spanish'}) and favorite artists.
+                </p>
+              </div>
+              <button
+                onClick={fetchRecommendationsAndQuota}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '6px 14px', borderRadius: '10px', fontSize: '12px', cursor: 'pointer' }}
+                className="btn-hover"
+              >
+                ↻ Refresh Suggestions
+              </button>
+            </div>
 
-            {playlistsLoading ? (
-              <div style={{ padding: '40px 0', textAlign: 'center', opacity: 0.5 }}>Loading playlists...</div>
-            ) : playlists.length === 0 ? (
-              <div style={{ padding: '40px 0', textAlign: 'center', opacity: 0.4 }}>
-                <p style={{ fontSize: '14px', marginBottom: '16px' }}>No playlists created yet.</p>
-                <button 
-                  onClick={() => setShowCreateModal(true)}
-                  style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', cursor: 'pointer' }}
-                >
-                  Create Your First
-                </button>
+            {personalizedRecommendations.length === 0 ? (
+              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '20px', padding: '40px', textAlign: 'center' }}>
+                <Music size={40} style={{ opacity: 0.4, marginBottom: '12px' }} />
+                <p style={{ opacity: 0.6 }}>No personalized recommendations yet. Explore community songs below or import your favorite song!</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}>
-                {playlists.map((playlist) => {
-                  const isSelected = selectedPlaylist?.playlist?._id === playlist._id;
-                  const isCurrentlyPlaying = queueName === playlist.title;
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                {personalizedRecommendations.map((song) => {
+                  const isCurrentPlaying = currentSong._id === song._id;
+                  const langFlag = song.language?.toLowerCase() === 'spanish' ? '🇪🇸' : song.language?.toLowerCase() === 'hindi' ? '🇮🇳' : song.language?.toLowerCase() === 'korean' ? '🇰🇷' : '🇬🇧';
 
                   return (
-                    <div 
-                      key={playlist._id} 
-                      onClick={() => fetchPlaylistDetails(playlist._id)}
-                      className="btn-hover"
+                    <div
+                      key={`rec-${song._id}`}
                       style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: isCurrentPlaying ? '1px solid #20BEFF' : '1px solid rgba(255,255,255,0.06)',
+                        borderRadius: '20px',
+                        padding: '20px',
                         display: 'flex',
-                        alignItems: 'center',
+                        flexDirection: 'column',
                         justifyContent: 'space-between',
-                        padding: '16px',
-                        borderRadius: '16px',
-                        background: isSelected ? 'rgba(32, 190, 255, 0.08)' : 'rgba(255,255,255,0.02)',
-                        border: `1px solid ${isSelected ? '#20BEFF' : 'rgba(255,255,255,0.04)'}`,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        gap: '16px',
+                        transition: 'all 0.25s',
+                        boxShadow: isCurrentPlaying ? '0 0 25px rgba(32, 190, 255, 0.2)' : 'none'
                       }}
+                      className="btn-hover"
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          borderRadius: '10px', 
-                          background: isSelected ? 'rgba(32, 190, 255, 0.15)' : 'rgba(255,255,255,0.05)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: isSelected ? '#20BEFF' : '#fff'
-                        }}>
-                          <Music size={18} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '14px', fontWeight: 'bold', color: isSelected ? '#20BEFF' : '#fff' }}>
-                            {playlist.title}
+                      <div style={{ display: 'flex', gap: '14px' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '12px', background: '#333', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
+                          <img src={song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <div style={{ position: 'absolute', bottom: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', borderRadius: '4px', fontSize: '10px', padding: '1px 4px' }}>
+                            {langFlag}
                           </div>
-                          <div style={{ fontSize: '11px', opacity: 0.4, marginTop: '2px' }}>
-                            {isCurrentlyPlaying ? 'Currently Playing' : 'Playlist'}
+                        </div>
+
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: '16px', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: isCurrentPlaying ? '#20BEFF' : '#fff' }}>
+                            {song.title}
+                          </div>
+                          <div style={{ fontSize: '13px', opacity: 0.6, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {song.artistName}
+                          </div>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(32, 190, 255, 0.1)', color: '#20BEFF', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold', marginTop: '6px' }}>
+                            <Sparkles size={10} /> {song.language} Match
                           </div>
                         </div>
                       </div>
-                      <ChevronRight size={16} opacity={isSelected ? 1 : 0.4} color={isSelected ? '#20BEFF' : '#fff'} />
+
+                      <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '14px' }}>
+                        <button
+                          onClick={() => handlePlaySingleSong(song)}
+                          style={{
+                            flex: 1,
+                            padding: '9px 12px',
+                            borderRadius: '10px',
+                            border: 'none',
+                            background: isCurrentPlaying && isPlaying ? '#20BEFF' : 'rgba(255,255,255,0.08)',
+                            color: isCurrentPlaying && isPlaying ? '#000' : '#fff',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                          className="btn-hover"
+                        >
+                          <Play size={13} fill={isCurrentPlaying && isPlaying ? '#000' : '#fff'} />
+                          {isCurrentPlaying && isPlaying ? 'Playing' : 'Play Now'}
+                        </button>
+
+                        <button
+                          onClick={() => setAddToPlaylistModalSong(song)}
+                          style={{
+                            padding: '9px 12px',
+                            borderRadius: '10px',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            background: 'transparent',
+                            color: '#fff',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          className="btn-hover"
+                          title="Add to custom playlist"
+                        >
+                          <Plus size={14} /> Playlist
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             )}
           </div>
+        )}
 
-          {/* Playlist Detail Panel */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', minHeight: '400px' }}>
-            {selectedPlaylistLoading ? (
-              <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
-                Loading playlist details...
+        {/* ========================================================= */}
+        {/* SUBTAB 2: MY PLAYLISTS                                    */}
+        {/* ========================================================= */}
+        {librarySubTab === 'playlists' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '32px', alignItems: 'start' }} className="content-grid-desktop">
+            {/* Playlists Sidebar */}
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <ListMusic size={18} color="#20BEFF" /> Playlists ({playlists.length})
+                </h3>
               </div>
-            ) : selectedPlaylist ? (
-              <div>
-                {/* Playlist Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px', marginBottom: '24px' }}>
-                  <div>
-                    <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>{selectedPlaylist.playlist.title}</h2>
-                    <p style={{ opacity: 0.5, fontSize: '13px', margin: '4px 0 0 0' }}>
-                      {selectedPlaylist.songs.length} {selectedPlaylist.songs.length === 1 ? 'song' : 'songs'} in playlist
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button 
-                      onClick={() => handlePlayPlaylist(selectedPlaylist.songs, selectedPlaylist.playlist.title)}
-                      className="btn-hover"
-                      style={{
-                        background: '#20BEFF',
-                        color: '#000',
-                        border: 'none',
-                        padding: '10px 20px',
-                        borderRadius: '12px',
-                        fontWeight: 'bold',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <Play size={14} fill="#000" /> Play Playlist
-                    </button>
-                    <button 
-                      onClick={() => handleDeletePlaylist(selectedPlaylist.playlist._id)}
-                      style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        color: '#ef4444',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        padding: '10px',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                      className="btn-hover"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
 
-                {/* Playlist Songs list */}
-                <div style={{ marginBottom: '40px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px' }}>Songs List</h3>
-                  {selectedPlaylist.songs.length === 0 ? (
-                    <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '16px', padding: '32px', textAlign: 'center', opacity: 0.5 }}>
-                      No songs in this playlist. Search and add some below!
+              {playlistsLoading ? (
+                <div style={{ padding: '40px 0', textAlign: 'center', opacity: 0.5 }}>Loading playlists...</div>
+              ) : playlists.length === 0 ? (
+                <div style={{ padding: '40px 0', textAlign: 'center', opacity: 0.4 }}>
+                  <p style={{ fontSize: '14px', marginBottom: '16px' }}>No playlists created yet.</p>
+                  <button 
+                    onClick={() => setShowCreateModal(true)}
+                    style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    Create Your First
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}>
+                  {playlists.map((playlist) => {
+                    const isSelected = selectedPlaylist?.playlist?._id === playlist._id;
+                    const isCurrentlyPlaying = queueName === playlist.title;
+
+                    return (
+                      <div 
+                        key={playlist._id} 
+                        onClick={() => fetchPlaylistDetails(playlist._id)}
+                        className="btn-hover"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '16px',
+                          borderRadius: '16px',
+                          background: isSelected ? 'rgba(32, 190, 255, 0.08)' : 'rgba(255,255,255,0.02)',
+                          border: `1px solid ${isSelected ? '#20BEFF' : 'rgba(255,255,255,0.04)'}`,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ 
+                            width: '40px', 
+                            height: '40px', 
+                            borderRadius: '10px', 
+                            background: isSelected ? 'rgba(32, 190, 255, 0.15)' : 'rgba(255,255,255,0.05)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: isSelected ? '#20BEFF' : '#fff'
+                          }}>
+                            <Music size={18} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: isSelected ? '#20BEFF' : '#fff' }}>
+                              {playlist.title}
+                            </div>
+                            <div style={{ fontSize: '11px', opacity: 0.4, marginTop: '2px' }}>
+                              {isCurrentlyPlaying ? 'Currently Playing' : `${playlist.songsCount || 0} songs`}
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronRight size={16} opacity={isSelected ? 1 : 0.4} color={isSelected ? '#20BEFF' : '#fff'} />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Playlist Detail Panel */}
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', minHeight: '400px' }}>
+              {selectedPlaylistLoading ? (
+                <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
+                  Loading playlist details...
+                </div>
+              ) : selectedPlaylist ? (
+                <div>
+                  {/* Playlist Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px', marginBottom: '24px' }}>
+                    <div>
+                      <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{selectedPlaylist.playlist.title}</h2>
+                      <p style={{ opacity: 0.5, fontSize: '13px', margin: '4px 0 0 0' }}>
+                        {selectedPlaylist.songs.length} {selectedPlaylist.songs.length === 1 ? 'song' : 'songs'} in this playlist
+                      </p>
                     </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {selectedPlaylist.songs.map((song: any, index: number) => {
-                        const isCurrentPlayingSong = currentSong._id === song._id && queueName === selectedPlaylist.playlist.title;
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button 
+                        onClick={() => handlePlayPlaylist(selectedPlaylist.songs, selectedPlaylist.playlist.title)}
+                        className="btn-hover"
+                        style={{
+                          background: '#20BEFF',
+                          color: '#000',
+                          border: 'none',
+                          padding: '10px 20px',
+                          borderRadius: '12px',
+                          fontWeight: 'bold',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Play size={14} fill="#000" /> Play Playlist
+                      </button>
+                      <button 
+                        onClick={() => handleDeletePlaylist(selectedPlaylist.playlist._id)}
+                        style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          color: '#ef4444',
+                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                          padding: '10px',
+                          borderRadius: '12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        className="btn-hover"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Playlist Songs list */}
+                  <div style={{ marginBottom: '40px' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px' }}>Playlist Songs</h3>
+                    {selectedPlaylist.songs.length === 0 ? (
+                      <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '16px', padding: '32px', textAlign: 'center', opacity: 0.5 }}>
+                        No songs in this playlist yet. Add songs from below or explore the community songs!
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {selectedPlaylist.songs.map((song: any, index: number) => {
+                          const isCurrentPlayingSong = currentSong._id === song._id && queueName === selectedPlaylist.playlist.title;
+                          return (
+                            <div 
+                              key={song._id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                background: 'rgba(255,255,255,0.01)',
+                                border: '1px solid rgba(255,255,255,0.03)',
+                                borderRadius: '14px',
+                                padding: '12px 16px'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#333', overflow: 'hidden' }}>
+                                  <img src={song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Song" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: isCurrentPlayingSong ? '#20BEFF' : '#fff' }}>
+                                    {song.title}
+                                  </div>
+                                  <div style={{ fontSize: '12px', opacity: 0.5 }}>{song.artistName}</div>
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <button 
+                                  onClick={() => handlePlaySongFromPlaylist(selectedPlaylist.songs, selectedPlaylist.playlist.title, index)}
+                                  style={{
+                                    background: isCurrentPlayingSong ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.05)',
+                                    border: 'none',
+                                    color: isCurrentPlayingSong ? '#20BEFF' : '#fff',
+                                    padding: '8px 14px',
+                                    borderRadius: '8px',
+                                    fontSize: '11px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer'
+                                  }}
+                                  className="btn-hover"
+                                >
+                                  {isCurrentPlayingSong && isPlaying ? 'Playing' : 'Play'}
+                                </button>
+                                <button 
+                                  onClick={() => handleRemoveSongFromPlaylist(song._id)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'rgba(255,255,255,0.4)',
+                                    cursor: 'pointer',
+                                    padding: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+                                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add Songs Search */}
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '28px' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '14px' }}>Quick Add Songs to this Playlist</h3>
+                    
+                    <div style={{ position: 'relative', marginBottom: '16px' }}>
+                      <Search size={16} style={{ position: 'absolute', left: '16px', top: '16px', opacity: 0.4 }} />
+                      <input 
+                        type="text" 
+                        placeholder="Search existing community songs..." 
+                        value={playlistSearchQuery}
+                        onChange={(e) => setPlaylistSearchQuery(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px 12px 44px',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.02)',
+                          color: '#fff',
+                          fontSize: '13px',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+                      {songs.filter(s => s.title.toLowerCase().includes(playlistSearchQuery.toLowerCase()) || s.artistName.toLowerCase().includes(playlistSearchQuery.toLowerCase())).slice(0, 6).map((song) => {
+                        const isAlreadyIn = selectedPlaylist.songs.some((s: any) => s._id === song._id);
                         return (
                           <div 
-                            key={song._id}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              background: 'rgba(255,255,255,0.01)',
-                              border: '1px solid rgba(255,255,255,0.03)',
-                              borderRadius: '14px',
-                              padding: '12px 16px'
+                            key={`search-add-${song._id}`} 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between', 
+                              background: 'rgba(255,255,255,0.01)', 
+                              border: '1px solid rgba(255,255,255,0.03)', 
+                              borderRadius: '10px', 
+                              padding: '8px 12px' 
                             }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#333', overflow: 'hidden' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: '#333', overflow: 'hidden' }}>
                                 <img src={song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Song" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               </div>
                               <div>
-                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: isCurrentPlayingSong ? '#20BEFF' : '#fff' }}>
-                                  {song.title}
-                                </div>
-                                <div style={{ fontSize: '12px', opacity: 0.5 }}>{song.artistName}</div>
+                                <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{song.title}</div>
+                                <div style={{ fontSize: '11px', opacity: 0.5 }}>{song.artistName}</div>
                               </div>
                             </div>
 
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <button 
-                                onClick={() => handlePlaySongFromPlaylist(selectedPlaylist.songs, selectedPlaylist.playlist.title, index)}
-                                style={{
-                                  background: isCurrentPlayingSong ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.05)',
-                                  border: 'none',
-                                  color: isCurrentPlayingSong ? '#20BEFF' : '#fff',
-                                  padding: '8px 14px',
-                                  borderRadius: '8px',
-                                  fontSize: '11px',
-                                  fontWeight: 'bold',
-                                  cursor: 'pointer'
-                                }}
-                                className="btn-hover"
-                              >
-                                {isCurrentPlayingSong && isPlaying ? 'Playing' : 'Play'}
-                              </button>
-                              <button 
-                                onClick={() => handleRemoveSongFromPlaylist(song._id)}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  color: 'rgba(255,255,255,0.4)',
-                                  cursor: 'pointer',
-                                  padding: '8px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
-                                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
+                            <button 
+                              disabled={isAlreadyIn}
+                              onClick={() => handleAddSongToPlaylist(song._id)}
+                              style={{
+                                background: isAlreadyIn ? 'rgba(255,255,255,0.05)' : 'rgba(32, 190, 255, 0.1)',
+                                border: 'none',
+                                color: isAlreadyIn ? 'rgba(255,255,255,0.3)' : '#20BEFF',
+                                padding: '5px 10px',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                cursor: isAlreadyIn ? 'not-allowed' : 'pointer'
+                              }}
+                              className="btn-hover"
+                            >
+                              {isAlreadyIn ? 'Added' : '+ Add'}
+                            </button>
                           </div>
                         );
                       })}
                     </div>
-                  )}
-                </div>
-
-                {/* Add Songs Search */}
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '32px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>Add Songs to Playlist</h3>
-                  
-                  <div style={{ position: 'relative', marginBottom: '20px' }}>
-                    <Search size={16} style={{ position: 'absolute', left: '16px', top: '16px', opacity: 0.4 }} />
-                    <input 
-                      type="text" 
-                      placeholder="Search songs by title or artist..." 
-                      value={playlistSearchQuery}
-                      onChange={(e) => setPlaylistSearchQuery(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '14px 16px 14px 44px',
-                        borderRadius: '14px',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        background: 'rgba(255,255,255,0.02)',
-                        color: '#fff',
-                        fontSize: '14px',
-                        outline: 'none'
-                      }}
-                    />
                   </div>
+                </div>
+              ) : (
+                <div style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4, textAlign: 'center' }}>
+                  <ListMusic size={40} style={{ marginBottom: '16px' }} />
+                  <h4 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 6px 0' }}>No Playlist Selected</h4>
+                  <p style={{ fontSize: '13px', maxWidth: '280px' }}>Select a playlist from the left panel to manage its songs and play them, or create a new playlist.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
-                    {filteredSongs.slice(0, 5).map((song) => {
-                      const isAlreadyIn = selectedPlaylist.songs.some((s: any) => s._id === song._id);
-                      return (
-                        <div 
-                          key={song._id} 
-                          style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'space-between', 
-                            background: 'rgba(255,255,255,0.01)', 
-                            border: '1px solid rgba(255,255,255,0.03)', 
-                            borderRadius: '12px', 
-                            padding: '10px 14px' 
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: '#333', overflow: 'hidden' }}>
-                              <img src={song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Song" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{song.title}</div>
-                              <div style={{ fontSize: '11px', opacity: 0.5 }}>{song.artistName}</div>
-                            </div>
-                          </div>
+        {/* ========================================================= */}
+        {/* SUBTAB 3: COMMUNITY SONGS (UNLIMITED ADDING)              */}
+        {/* ========================================================= */}
+        {librarySubTab === 'explore' && (
+          <div>
+            <div style={{ background: 'rgba(32, 190, 255, 0.05)', border: '1px solid rgba(32, 190, 255, 0.2)', borderRadius: '16px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Globe size={20} color="#20BEFF" />
+              <div style={{ fontSize: '13px', color: '#fff' }}>
+                <span style={{ fontWeight: 'bold', color: '#20BEFF' }}>Unlimited Community Access:</span> You can add any song from the global library to your custom playlists without using any storage quota slots!
+              </div>
+            </div>
 
-                          <button 
-                            disabled={isAlreadyIn}
-                            onClick={() => handleAddSongToPlaylist(song._id)}
-                            style={{
-                              background: isAlreadyIn ? 'rgba(255,255,255,0.05)' : 'rgba(32, 190, 255, 0.1)',
-                              border: 'none',
-                              color: isAlreadyIn ? 'rgba(255,255,255,0.3)' : '#20BEFF',
-                              padding: '6px 12px',
-                              borderRadius: '8px',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              cursor: isAlreadyIn ? 'not-allowed' : 'pointer'
-                            }}
-                            className="btn-hover"
-                          >
-                            {isAlreadyIn ? 'Added' : 'Add'}
-                          </button>
+            {/* Filter and Search Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '24px' }}>
+              {/* Language Filters */}
+              <div style={{ display: 'flex', gap: '6px', background: 'rgba(255,255,255,0.04)', padding: '4px', borderRadius: '12px' }}>
+                {[
+                  { id: 'all', label: 'All Languages' },
+                  { id: 'spanish', label: '🇪🇸 Spanish' },
+                  { id: 'hindi', label: '🇮🇳 Hindi' },
+                  { id: 'korean', label: '🇰🇷 Korean' },
+                  { id: 'english', label: '🇬🇧 English' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setCommunityLanguageFilter(tab.id as any)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: communityLanguageFilter === tab.id ? '#20BEFF' : 'transparent',
+                      color: communityLanguageFilter === tab.id ? '#000' : '#fff',
+                      fontWeight: '700',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Box */}
+              <div style={{ position: 'relative', width: '280px' }}>
+                <Search size={14} style={{ position: 'absolute', left: '12px', top: '12px', opacity: 0.4 }} />
+                <input
+                  type="text"
+                  placeholder="Search community songs..."
+                  value={playlistSearchQuery}
+                  onChange={(e) => setPlaylistSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px 10px 34px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(255,255,255,0.03)',
+                    color: '#fff',
+                    fontSize: '12px',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Songs Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '18px' }}>
+              {filteredSongs.map(song => {
+                const isCurrentPlaying = currentSong._id === song._id;
+                const langFlag = song.language?.toLowerCase() === 'spanish' ? '🇪🇸' : song.language?.toLowerCase() === 'hindi' ? '🇮🇳' : song.language?.toLowerCase() === 'korean' ? '🇰🇷' : '🇬🇧';
+
+                return (
+                  <div
+                    key={`explore-${song._id}`}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: isCurrentPlaying ? '1px solid #20BEFF' : '1px solid rgba(255,255,255,0.05)',
+                      borderRadius: '18px',
+                      padding: '18px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                      transition: 'all 0.2s'
+                    }}
+                    className="btn-hover"
+                  >
+                    <div style={{ display: 'flex', gap: '14px' }}>
+                      <div style={{ width: '56px', height: '56px', borderRadius: '10px', background: '#333', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
+                        <img src={song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', bottom: '2px', right: '2px', background: 'rgba(0,0,0,0.7)', borderRadius: '4px', fontSize: '10px', padding: '1px 3px' }}>
+                          {langFlag}
                         </div>
-                      );
-                    })}
+                      </div>
+
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: '15px', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: isCurrentPlaying ? '#20BEFF' : '#fff' }}>
+                          {song.title}
+                        </div>
+                        <div style={{ fontSize: '12px', opacity: 0.6, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {song.artistName}
+                        </div>
+                        <span style={{ fontSize: '10px', opacity: 0.4, marginTop: '4px', display: 'inline-block' }}>
+                          {song.language}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                      <button
+                        onClick={() => handlePlaySingleSong(song)}
+                        style={{
+                          flex: 1,
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: isCurrentPlaying && isPlaying ? '#20BEFF' : 'rgba(255,255,255,0.08)',
+                          color: isCurrentPlaying && isPlaying ? '#000' : '#fff',
+                          fontWeight: 'bold',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                        className="btn-hover"
+                      >
+                        <Play size={12} fill={isCurrentPlaying && isPlaying ? '#000' : '#fff'} />
+                        {isCurrentPlaying && isPlaying ? 'Playing' : 'Play'}
+                      </button>
+
+                      <button
+                        onClick={() => setAddToPlaylistModalSong(song)}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'transparent',
+                          color: '#fff',
+                          fontWeight: 'bold',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        className="btn-hover"
+                      >
+                        <Plus size={13} /> Playlist
+                      </button>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* SUBTAB 4: MY CUSTOM IMPORTS (5-SONG QUOTA)                */}
+        {/* ========================================================= */}
+        {librarySubTab === 'uploads' && (
+          <div>
+            {/* Quota Progress Card */}
+            <div style={{ 
+              background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(32, 190, 255, 0.05) 100%)', 
+              border: '1px solid rgba(168, 85, 247, 0.25)', 
+              borderRadius: '20px', 
+              padding: '24px', 
+              marginBottom: '32px' 
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 4px 0' }}>Custom Song Upload Quota</h3>
+                  <p style={{ fontSize: '13px', opacity: 0.6, margin: 0 }}>
+                    You have used {uploadQuota.uploadedCount} of {uploadQuota.isUnlimited ? 'Unlimited' : `${uploadQuota.maxLimit} available custom upload slots`}.
+                  </p>
                 </div>
+
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  disabled={uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited}
+                  className="btn-hover"
+                  style={{
+                    background: uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'rgba(255,255,255,0.1)' : '#a855f7',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '12px',
+                    fontWeight: 'bold',
+                    fontSize: '13px',
+                    cursor: uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <Sparkles size={15} /> Import New Track
+                </button>
+              </div>
+
+              {/* Progress Bar */}
+              <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+                <div 
+                  style={{ 
+                    width: `${Math.min(100, (uploadQuota.uploadedCount / uploadQuota.maxLimit) * 100)}%`, 
+                    height: '100%', 
+                    background: 'linear-gradient(90deg, #a855f7 0%, #20BEFF 100%)',
+                    borderRadius: '6px',
+                    transition: 'width 0.3s ease'
+                  }} 
+                />
+              </div>
+            </div>
+
+            {/* Uploaded Songs Grid */}
+            {userUploadedSongs.length === 0 ? (
+              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '20px', padding: '48px', textAlign: 'center' }}>
+                <Upload size={40} style={{ opacity: 0.4, marginBottom: '16px' }} />
+                <h4 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 6px 0' }}>No custom tracks uploaded yet</h4>
+                <p style={{ fontSize: '13px', opacity: 0.5, maxWidth: '400px', margin: '0 auto 20px auto' }}>
+                  Import your favorite songs from YouTube! Lingofy AI will automatically extract timed lyrics and translate them into 4 parallel languages.
+                </p>
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  className="btn-hover"
+                  style={{ background: '#a855f7', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  Import Your First Song
+                </button>
               </div>
             ) : (
-              <div style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4, textAlign: 'center' }}>
-                <ListMusic size={40} style={{ marginBottom: '16px' }} />
-                <h4 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 6px 0' }}>No Playlist Selected</h4>
-                <p style={{ fontSize: '13px', maxWidth: '280px' }}>Select a playlist from the left panel to manage its songs and play them, or create a new playlist.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '18px' }}>
+                {userUploadedSongs.map(song => (
+                  <div
+                    key={`upload-${song._id}`}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: '18px',
+                      padding: '18px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '14px'
+                    }}
+                    className="btn-hover"
+                  >
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '10px', background: '#333', overflow: 'hidden', flexShrink: 0 }}>
+                        <img src={song.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
+                        <div style={{ fontSize: '12px', opacity: 0.5 }}>{song.artistName}</div>
+                        <span style={{ fontSize: '10px', color: '#a855f7', fontWeight: 'bold', marginTop: '2px', display: 'inline-block' }}>✓ Custom Import</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => handlePlaySingleSong(song)}
+                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: '#20BEFF', color: '#000', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                        className="btn-hover"
+                      >
+                        ▶ Play
+                      </button>
+                      <button
+                        onClick={() => setAddToPlaylistModalSong(song)}
+                        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#fff', fontSize: '11px', cursor: 'pointer' }}
+                        className="btn-hover"
+                      >
+                        + Playlist
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
+        )}
 
-        </div>
       </div>
     );
   };
@@ -3473,6 +4210,284 @@ const DashboardPage = () => {
                 Complete Now
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Song Modal */}
+      {showImportModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1e1e30 0%, #0c0c14 100%)',
+            border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '28px',
+            padding: '36px', maxWidth: '520px', width: '100%',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(168, 85, 247, 0.15)', position: 'relative',
+            maxHeight: '90vh', overflowY: 'auto'
+          }}>
+            <button 
+              onClick={() => { setShowImportModal(false); setImportStatusText(''); }}
+              style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            ><X size={16} /></button>
+
+            <div style={{ display: 'inline-flex', background: 'rgba(168, 85, 247, 0.15)', padding: '14px', borderRadius: '50%', marginBottom: '16px', color: '#a855f7' }}>
+              <Upload size={28} />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: '800', margin: 0 }}>Import Custom Song</h2>
+              <span style={{ 
+                fontSize: '11px', 
+                background: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? 'rgba(168, 85, 247, 0.2)' : 'rgba(239, 68, 68, 0.2)', 
+                color: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? '#a855f7' : '#ef4444', 
+                padding: '4px 10px', 
+                borderRadius: '8px', 
+                fontWeight: 'bold' 
+              }}>
+                Quota: {uploadQuota.uploadedCount} / {uploadQuota.isUnlimited ? '∞' : `${uploadQuota.maxLimit} used`}
+              </span>
+            </div>
+
+            <p style={{ opacity: 0.6, fontSize: '13px', marginBottom: '24px', lineHeight: '1.5' }}>
+              Paste a YouTube song link. Lingofy AI will automatically extract timed subtitles and generate 4-language synced translations (English, Hindi, Spanish, Korean).
+            </p>
+
+            <form onSubmit={handleImportSong} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>YouTube / Audio URL *</label>
+                <input 
+                  type="text"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={importForm.url}
+                  onChange={(e) => setImportForm({ ...importForm, url: e.target.value })}
+                  required
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
+                    color: '#fff', fontSize: '13px', outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>Song Title *</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Despacito"
+                    value={importForm.title}
+                    onChange={(e) => setImportForm({ ...importForm, title: e.target.value })}
+                    required
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
+                      color: '#fff', fontSize: '13px', outline: 'none'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>Artist Name *</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Luis Fonsi"
+                    value={importForm.artist}
+                    onChange={(e) => setImportForm({ ...importForm, artist: e.target.value })}
+                    required
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
+                      color: '#fff', fontSize: '13px', outline: 'none'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>Original Song Language *</label>
+                <select
+                  value={importForm.language}
+                  onChange={(e) => setImportForm({ ...importForm, language: e.target.value })}
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)', background: '#181824',
+                    color: '#fff', fontSize: '13px', outline: 'none'
+                  }}
+                >
+                  <option value="Spanish">Spanish (Español)</option>
+                  <option value="Hindi">Hindi (हिंदी)</option>
+                  <option value="Korean">Korean (한국어)</option>
+                  <option value="English">English</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>Optional Manual Lyrics (if YouTube has no auto-subtitles)</label>
+                <textarea 
+                  placeholder="Paste lyric lines here (one line per sentence)..."
+                  rows={3}
+                  value={importForm.lyrics}
+                  onChange={(e) => setImportForm({ ...importForm, lyrics: e.target.value })}
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
+                    color: '#fff', fontSize: '13px', outline: 'none', resize: 'vertical'
+                  }}
+                />
+              </div>
+
+              {isImporting && (
+                <div style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Sparkles size={18} color="#a855f7" className="pulse-icon" />
+                  <span style={{ fontSize: '12px', color: '#a855f7', fontWeight: 'bold' }}>
+                    {importStatusText || "AI is processing subtitles & generating 4 translations..."}
+                  </span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowImportModal(false)}
+                  style={{
+                    flex: 1, padding: '14px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 'bold', cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isImporting || (uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited)}
+                  className="btn-hover"
+                  style={{
+                    flex: 1.5, padding: '14px', borderRadius: '14px', border: 'none',
+                    background: uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                    color: '#fff', fontWeight: 'bold', cursor: uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    boxShadow: '0 10px 25px rgba(168, 85, 247, 0.3)'
+                  }}
+                >
+                  <Sparkles size={16} /> {isImporting ? 'Processing...' : 'Import & Process with AI'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add Song To Playlist Modal */}
+      {addToPlaylistModalSong && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1e1e30 0%, #0c0c14 100%)',
+            border: '1px solid rgba(32, 190, 255, 0.3)', borderRadius: '28px',
+            padding: '36px', maxWidth: '480px', width: '100%',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(32, 190, 255, 0.15)', position: 'relative',
+            maxHeight: '85vh', overflowY: 'auto'
+          }}>
+            <button 
+              onClick={() => setAddToPlaylistModalSong(null)}
+              style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            ><X size={16} /></button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: '#333', overflow: 'hidden', flexShrink: 0 }}>
+                <img src={addToPlaylistModalSong.image || 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop'} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <span style={{ fontSize: '11px', color: '#20BEFF', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Add to Playlist
+                </span>
+                <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: '2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {addToPlaylistModalSong.title}
+                </h3>
+                <p style={{ fontSize: '13px', opacity: 0.6, margin: 0 }}>{addToPlaylistModalSong.artistName} • {addToPlaylistModalSong.language}</p>
+              </div>
+            </div>
+
+            {/* Unlimited Quota Tip */}
+            <div style={{ background: 'rgba(32, 190, 255, 0.08)', border: '1px solid rgba(32, 190, 255, 0.2)', borderRadius: '14px', padding: '12px 16px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Sparkles size={18} color="#20BEFF" />
+              <p style={{ fontSize: '12px', color: '#20BEFF', margin: 0, lineHeight: '1.4' }}>
+                <strong>No quota consumed!</strong> Adding existing community songs to your playlists is 100% free and unlimited.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 'bold', opacity: 0.8, marginBottom: '12px' }}>Choose a Playlist:</div>
+              {playlists.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <p style={{ fontSize: '13px', opacity: 0.6, marginBottom: '12px' }}>You haven't created any playlists yet.</p>
+                  <button
+                    onClick={() => {
+                      setAddToPlaylistModalSong(null);
+                      setShowCreateModal(true);
+                    }}
+                    style={{ background: '#20BEFF', color: '#000', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    + Create Playlist First
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {playlists.map((pl) => (
+                    <div
+                      key={pl._id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 16px',
+                        borderRadius: '14px',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.06)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <ListMusic size={16} color="#20BEFF" />
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{pl.title}</div>
+                          <div style={{ fontSize: '11px', opacity: 0.4 }}>{pl.songsCount || 0} songs</div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleQuickAddSongToPlaylist(addToPlaylistModalSong._id, pl._id)}
+                        className="btn-hover"
+                        style={{
+                          background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
+                          color: '#000',
+                          border: 'none',
+                          padding: '6px 14px',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        + Add
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setAddToPlaylistModalSong(null)}
+              style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '13px', cursor: 'pointer', marginTop: '12px' }}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

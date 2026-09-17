@@ -1,5 +1,13 @@
 import express from "express";
-import { addSong, getSongs, autoTranslate, getSegments, getSongSuggestions } from "../controllers/music/songController";
+import { 
+  addSong, 
+  getSongs, 
+  autoTranslate, 
+  getSegments, 
+  getSongSuggestions, 
+  getUploadQuota, 
+  getPersonalizedRecommendations 
+} from "../controllers/music/songController";
 import { protect } from "../middleware/authMiddleware";
 import { adminOnly } from "../middleware/roleMiddleware";
 import User from "../models/user/User";
@@ -7,11 +15,16 @@ import LessonAttempt from "../models/LessonAttempt";
 
 const router = express.Router();
 
-router.get("/song-suggestions", protect, adminOnly, getSongSuggestions);
-router.post("/song", protect, adminOnly, addSong);
+// User + Admin accessible routes
+router.get("/quota", protect, getUploadQuota);
+router.get("/recommendations", protect, getPersonalizedRecommendations);
+router.post("/song", protect, addSong);
 router.get("/", getSongs);
-router.post("/translate/:songId", protect, adminOnly, autoTranslate);
+router.post("/translate/:songId", protect, autoTranslate);
 router.get("/segments/:songId", getSegments);
+
+// Admin-specific routes
+router.get("/song-suggestions", protect, adminOnly, getSongSuggestions);
 
 // GET /api/admin/users - Get list of users (Admin only)
 router.get("/users", protect, adminOnly, async (req, res) => {
