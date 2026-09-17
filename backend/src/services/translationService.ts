@@ -140,51 +140,50 @@ export async function translateLyricsWithAI(
       let attempts = 0;
       let success = false;
       while (attempts < 3 && !success) {
-        try {
-          attempts++;
-          const prompt = `Translate the following ${chunk.length} lyric lines (source: ${sourceLanguage}) into English, Hindi, Spanish, and Korean.
+        attempts++;
+        const prompt = `Translate the following ${chunk.length} lyric lines (source: ${sourceLanguage}) into English, Hindi, Spanish, and Korean.
 Lines:
 ${JSON.stringify(chunk)}
 
 Return strictly a JSON object with keys "english", "hindi", "spanish", "korean", where each value is an array of exactly ${chunk.length} translated strings.`;
 
-          const models = [
-            process.env.GROQ_MODEL,
-            "llama-3.1-8b-instant",
-            "llama-3.3-70b-versatile",
-            "llama3-70b-8192",
-            "mixtral-8x7b-32768"
-          ].filter(Boolean) as string[];
+        const models = [
+          process.env.GROQ_MODEL,
+          "llama-3.1-8b-instant",
+          "llama-3.3-70b-versatile",
+          "llama3-70b-8192",
+          "mixtral-8x7b-32768"
+        ].filter(Boolean) as string[];
 
-          for (const modelToUse of models) {
-            try {
-              const completion = await groq.chat.completions.create({
-                model: modelToUse,
-                messages: [
-                  { role: 'system', content: 'You are an accurate multilingual music lyric translator. Output valid JSON only.' },
-                  { role: 'user', content: prompt }
-                ],
-                response_format: { type: 'json_object' },
-                max_tokens: 3500,
-                temperature: 0.3,
-              });
+        for (const modelToUse of models) {
+          try {
+            const completion = await groq.chat.completions.create({
+              model: modelToUse,
+              messages: [
+                { role: 'system', content: 'You are an accurate multilingual music lyric translator. Output valid JSON only.' },
+                { role: 'user', content: prompt }
+              ],
+              response_format: { type: 'json_object' },
+              max_tokens: 3500,
+              temperature: 0.3,
+            });
 
-              const content = completion.choices[0]?.message?.content || '{}';
-              const parsed = JSON.parse(content);
+            const content = completion.choices[0]?.message?.content || '{}';
+            const parsed = JSON.parse(content);
 
-              if (Array.isArray(parsed.english) && parsed.english.length === chunk.length) batchEnglish = parsed.english;
-              if (Array.isArray(parsed.hindi) && parsed.hindi.length === chunk.length) batchHindi = parsed.hindi;
-              if (Array.isArray(parsed.spanish) && parsed.spanish.length === chunk.length) batchSpanish = parsed.spanish;
-              if (Array.isArray(parsed.korean) && parsed.korean.length === chunk.length) batchKorean = parsed.korean;
-              success = true;
-              break;
-            } catch (err: any) {
-              if (err?.status === 429 || err?.message?.includes('Rate limit')) {
-                console.log('Rate limited on Groq, waiting 6 seconds before retry...');
-                await new Promise(r => setTimeout(r, 6500));
-              }
+            if (Array.isArray(parsed.english) && parsed.english.length === chunk.length) batchEnglish = parsed.english;
+            if (Array.isArray(parsed.hindi) && parsed.hindi.length === chunk.length) batchHindi = parsed.hindi;
+            if (Array.isArray(parsed.spanish) && parsed.spanish.length === chunk.length) batchSpanish = parsed.spanish;
+            if (Array.isArray(parsed.korean) && parsed.korean.length === chunk.length) batchKorean = parsed.korean;
+            success = true;
+            break;
+          } catch (err: any) {
+            if (err?.status === 429 || err?.message?.includes('Rate limit')) {
+              console.log('Rate limited on Groq, waiting 6 seconds before retry...');
+              await new Promise(r => setTimeout(r, 6500));
             }
           }
+        }
       }
     } else {
       // Parallel fallback translation if groq is missing
