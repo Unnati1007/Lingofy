@@ -379,17 +379,18 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
               <button
                 onClick={handleComplete}
                 style={{
-                  padding: '8px 12px',
+                  padding: '8px 14px',
                   borderRadius: '10px',
-                  background: 'transparent',
-                  color: 'rgba(255, 255, 255, 0.5)',
-                  border: 'none',
-                  fontWeight: '600',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  color: 'rgba(255, 255, 255, 0.75)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  fontWeight: '700',
                   fontSize: '12px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
                 }}
               >
-                Skip
+                Skip Tour
               </button>
 
               {currentStepIndex > 0 && (

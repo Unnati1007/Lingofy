@@ -827,34 +827,55 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
         </div>
 
         {/* Footer Navigation */}
-        {step === 'quiz' && !loading && isAnswered && (
+        {step === 'quiz' && !loading && (
           <div style={{
             padding: '16px 24px',
             borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             background: 'rgba(255, 255, 255, 0.02)'
           }}>
-            <button
-              onClick={handleNext}
-              style={{
-                padding: '12px 26px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #20BEFF, #0099e6)',
-                color: '#000',
-                border: 'none',
-                fontWeight: '800',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 4px 15px rgba(32, 190, 255, 0.3)'
-              }}
-            >
-              {currentIndex === questions.length - 1 ? 'Finish Practice' : 'Next Question'}
-              <ChevronRight size={16} />
-            </button>
+            {!isAnswered ? (
+              <button
+                onClick={handleNext}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  fontWeight: '700',
+                  fontSize: '13px',
+                  cursor: 'pointer'
+                }}
+              >
+                Skip Question
+              </button>
+            ) : <div />}
+
+            {isAnswered && (
+              <button
+                onClick={handleNext}
+                style={{
+                  padding: '12px 26px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #20BEFF, #0099e6)',
+                  color: '#000',
+                  border: 'none',
+                  fontWeight: '800',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 15px rgba(32, 190, 255, 0.3)'
+                }}
+              >
+                {currentIndex === questions.length - 1 ? 'Finish Practice' : 'Next Question'}
+                <ChevronRight size={16} />
+              </button>
+            )}
           </div>
         )}
       </motion.div>
