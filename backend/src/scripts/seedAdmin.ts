@@ -24,7 +24,7 @@ const seedAdmin = async () => {
       console.log("Admin user updated successfully");
     } else {
       await User.create({
-        name: "Admin",
+        name: "Alex Morgan",
         email: adminEmail,
         password: adminPassword,
         role: "admin"

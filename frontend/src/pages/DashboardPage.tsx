@@ -2712,7 +2712,7 @@ const DashboardPage = () => {
  <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Full Name</label>
  <input 
  type="text" 
- value={profileForm.name} 
+ value={(!profileForm.name || profileForm.name.toLowerCase().includes('admin')) ? 'Alex Morgan' : profileForm.name} 
  onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} 
  required 
  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', outline: 'none' }} 
@@ -2722,7 +2722,7 @@ const DashboardPage = () => {
  <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Email <span style={{opacity:0.5}}>(Read Only)</span></label>
  <input 
  type="email" 
- value={currentUser?.email === 'admin123@gmail.com' ? 'alex.morgan@gmail.com' : (currentUser?.email || 'alex.morgan@gmail.com')} 
+ value={(!currentUser?.email || currentUser?.email.toLowerCase().includes('admin')) ? 'alex.morgan@gmail.com' : currentUser.email} 
  readOnly 
  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.25)', color: 'rgba(255,255,255,0.5)', fontSize: '12px', outline: 'none', cursor: 'not-allowed' }} 
  />
