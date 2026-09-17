@@ -416,10 +416,11 @@ LyricSegment.insertMany(segments)
 
 Admin: POST /api/admin/translate/:songId
   → For each LyricSegment:
-       translateText(seg.text, 'en') → google unofficial translate API
+       translateText(seg.text, 'en')
        translateText(seg.text, 'hi')
        translateText(seg.text, 'es')
-  → Save translations to Song.translations.{ english[], hindi[], spanish[] }
+       translateText(seg.text, 'ko')
+  → Save translations to Song.translations.{ english[], hindi[], spanish[], korean[] }
 ```
 
 ### 6.4 Roadmap Progress Calculation

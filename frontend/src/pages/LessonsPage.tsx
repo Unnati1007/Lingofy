@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import PronunciationSettingsModal from '../components/learning/PronunciationSettingsModal';
 import ToughWordModal from '../components/notes/ToughWordModal';
+import { useResizableSidebar } from '../hooks/useResizableSidebar';
 
 type ViewState = 'setup' | 'loading' | 'quiz' | 'hci_form' | 'results';
 type Language = 'hindi' | 'spanish' | 'korean';
@@ -33,6 +34,17 @@ const BADGES = [
 
 const LessonsPage = () => {
   const navigate = useNavigate();
+  const {
+    sidebarWidth,
+    effectiveWidth,
+    isSidebarCollapsed,
+    isCompact,
+    isResizing,
+    startResizing,
+    toggleSidebar,
+    setIsSidebarCollapsed,
+  } = useResizableSidebar();
+
   const [view, setView] = useState<ViewState>('setup');
   const [language, setLanguage] = useState<Language | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -40,7 +52,6 @@ const LessonsPage = () => {
   const [userAnswers, setUserAnswers] = useState<any[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<string>('');
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [quizLevel, setQuizLevel] = useState<string>('easy');
   const [roadmapProgress, setRoadmapProgress] = useState<any>(null);
@@ -1579,11 +1590,34 @@ const LessonsPage = () => {
 
       {isMobileOpen && <div onClick={() => setIsMobileOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)', zIndex: 95 }} />}
 
-      <aside className={`desktop-sidebar ${isMobileOpen ? 'sidebar-open' : ''}`} style={{ width: isSidebarCollapsed ? '88px' : '280px', background: '#000', borderRight: '1px solid rgba(255,255,255,0.05)', padding: isSidebarCollapsed ? '40px 12px' : '40px 24px', display: 'flex', flexDirection: 'column', position: 'fixed', height: '100vh', zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isSidebarCollapsed ? 'center' : 'space-between', marginBottom: '48px' }}>
-          {!isSidebarCollapsed && <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><img src="/Logo-1.png" alt="Logo" style={{ width: '40px' }} /><span style={{ fontSize: '24px', fontWeight: '800' }}>Lingofy</span></div>}
-          {isSidebarCollapsed && <img src="/Logo-1.png" alt="Logo" style={{ width: '40px' }} />}
-          <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="desktop-toggle-btn" style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px', borderRadius: '8px' }}>
+      <aside 
+        className={`desktop-sidebar ${isMobileOpen ? 'sidebar-open' : ''} ${isResizing ? 'resizing' : ''}`} 
+        style={{ 
+          width: `${effectiveWidth}px`, 
+          background: '#000', 
+          borderRight: '1px solid rgba(255,255,255,0.05)', 
+          padding: isCompact ? '40px 12px' : '40px 24px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          position: 'fixed', 
+          height: '100vh', 
+          zIndex: 100 
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCompact ? 'center' : 'space-between', marginBottom: '48px', position: 'relative' }}>
+          {!isCompact && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+              <img src="/Logo-1.png" alt="Logo" style={{ width: '40px', flexShrink: 0 }} />
+              <span style={{ fontSize: '24px', fontWeight: '800', whiteSpace: 'nowrap' }}>Lingofy</span>
+            </div>
+          )}
+          {isCompact && <img src="/Logo-1.png" alt="Logo" style={{ width: '40px', flexShrink: 0 }} />}
+          <button 
+            onClick={toggleSidebar} 
+            className="desktop-toggle-btn" 
+            title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px', borderRadius: '8px', flexShrink: 0 }}
+          >
             {isSidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
           <button onClick={() => setIsMobileOpen(false)} className="mobile-close-btn" style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', display: 'none', alignItems: 'center', padding: '6px', borderRadius: '8px' }}>
@@ -1591,27 +1625,36 @@ const LessonsPage = () => {
           </button>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflowY: 'auto' }}>
           {currentUser?.learningMode !== 'traditional' && (
-            <NavItem icon={<Home size={20} />} label="Home" onClick={() => navigate('/dashboard?tab=home')} collapsed={isSidebarCollapsed} />
+            <NavItem icon={<Home size={20} />} label="Home" onClick={() => navigate('/dashboard?tab=home')} collapsed={isCompact} />
           )}
-          <NavItem icon={<BookOpen size={20} />} label="Lessons" active collapsed={isSidebarCollapsed} />
-          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<BookOpen size={20} />} label="Lessons" active collapsed={isCompact} />
           {currentUser?.learningMode !== 'traditional' && (
-            <NavItem icon={<Music size={20} />} label="Library" onClick={() => navigate('/dashboard?tab=library')} collapsed={isSidebarCollapsed} />
+            <NavItem icon={<Music size={20} />} label="Library" onClick={() => navigate('/dashboard?tab=library')} collapsed={isCompact} />
           )}
-          <NavItem icon={<Bookmark size={20} />} label="Notes" onClick={() => navigate('/dashboard?tab=notes')} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<BarChart2 size={20} />} label="Statistics" onClick={() => navigate('/dashboard?tab=statistics')} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<Award size={20} />} label="Achievements" onClick={() => navigate('/dashboard?tab=achievements')} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<HelpCircle size={20} />} label="Documentation" onClick={() => navigate('/dashboard?tab=docs')} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Bookmark size={20} />} label="Notes" onClick={() => navigate('/dashboard?tab=notes')} collapsed={isCompact} />
+          <NavItem icon={<BarChart2 size={20} />} label="Statistics" onClick={() => navigate('/dashboard?tab=statistics')} collapsed={isCompact} />
+          <NavItem icon={<Award size={20} />} label="Achievements" onClick={() => navigate('/dashboard?tab=achievements')} collapsed={isCompact} />
+          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isCompact} />
+          <NavItem icon={<HelpCircle size={20} />} label="Documentation" onClick={() => navigate('/dashboard?tab=docs')} collapsed={isCompact} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
-          <NavItem icon={<Settings size={20} />} label="Profile" onClick={() => navigate('/dashboard?tab=profile')} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); navigate('/login'); }} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Settings size={20} />} label="Profile" onClick={() => navigate('/dashboard?tab=profile')} collapsed={isCompact} />
+          <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); navigate('/login'); }} collapsed={isCompact} />
+        </div>
+
+        {/* Drag Resizer Handle */}
+        <div 
+          onMouseDown={startResizing}
+          className={`sidebar-resize-handle ${isResizing ? 'active' : ''}`}
+          title="Drag to resize sidebar"
+        >
+          <div className="resize-handle-line" />
         </div>
       </aside>
 
-      <main className="main-content" style={{ flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center', transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)', position: 'relative' }}>
+      <main className={`main-content ${isResizing ? 'resizing' : ''}`} style={{ flex: 1, marginLeft: `var(--sidebar-width, ${effectiveWidth}px)`, padding: '40px', display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center', transition: isResizing ? 'none' : 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)', position: 'relative' }}>
         
         {/* Toggle Mode Button (Top Right) */}
         {view === 'setup' && !language && (
@@ -1716,9 +1759,9 @@ const LessonsPage = () => {
           100% { opacity: 0; }
         }
 
-        :root { --sidebar-width: ${isSidebarCollapsed ? '88px' : '280px'}; }
-        .desktop-sidebar { transition: width 0.3s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease; }
-        .main-content { transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1); }
+        :root { --sidebar-width: ${effectiveWidth}px; }
+        .desktop-sidebar { transition: ${isResizing ? 'none' : 'width 0.3s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease'}; }
+        .main-content { transition: ${isResizing ? 'none' : 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)'}; }
         .btn-hover { transition: all 0.2s; }
         .btn-hover:hover { filter: brightness(1.1); transform: translateY(-1px); }
         @media (max-width: 1024px) {
@@ -1726,6 +1769,7 @@ const LessonsPage = () => {
           .desktop-sidebar { transform: translateX(${isMobileOpen ? '0' : '-100%'}); display: flex !important; width: 280px !important; padding: 40px 24px !important; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1) !important; }
           .mobile-toggle { display: flex !important; }
           .desktop-toggle-btn { display: none !important; }
+          .sidebar-resize-handle { display: none !important; }
           .mobile-close-btn { display: flex !important; }
           main { padding: 24px !important; padding-bottom: 100px !important; padding-top: 80px !important; margin-left: 0 !important; }
         }

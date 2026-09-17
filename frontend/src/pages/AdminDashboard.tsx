@@ -355,7 +355,7 @@ const AdminDashboard = () => {
       
       console.log("Translation Response:", response.data);
       
-      if (response.data.hindi && response.data.hindi.length > 0) {
+      if (response.data && (response.data.hindi?.length > 0 || response.data.korean?.length > 0 || response.data.english?.length > 0 || response.data.spanish?.length > 0)) {
         setTranslations(response.data);
         // Force refresh preview lines to ensure they match the translation indices
         const lines = form.lyrics.split('\n').filter(line => line.trim() !== '');
@@ -895,9 +895,7 @@ const AdminDashboard = () => {
       {/* Sidebar */}
       <aside style={{ width: '260px', background: '#000', borderRight: '1px solid #18181b', padding: '32px 16px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '0 12px' }}>
-          <div style={{ background: '#20BEFF', padding: '8px', borderRadius: '10px' }}>
-            <Music size={24} color="#000" />
-          </div>
+          <img src="/Logo-1.png" alt="Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
           <span style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.5px' }}>Lingofy Admin</span>
         </div>
 

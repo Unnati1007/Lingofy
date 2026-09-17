@@ -90,6 +90,8 @@ const getLanguageCode = (lang: string): string => {
   return mapping[lang.toLowerCase()] || "auto";
 };
 
+import { translateLyricsWithAI } from "../../services/translationService";
+
 export const autoTranslate = async (req: Request, res: Response): Promise<void> => {
   try {
     const { songId } = req.params;
@@ -100,49 +102,30 @@ export const autoTranslate = async (req: Request, res: Response): Promise<void> 
     }
 
     const segments = await LyricSegment.find({ songId }).sort({ segmentOrder: 1 });
-
-    const english: any[] = [];
-    const hindi: any[] = [];
-    const spanish: any[] = [];
-
-    const sourceLangCode = getLanguageCode(song.language);
-
-    // Use a more reliable public Google Translate endpoint
-    const translateText = async (text: string, target: string) => {
-      try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLangCode}&tl=${target}&dt=t&q=${encodeURI(text)}`;
-        const res = await axios.get(url);
-        // Google Translate returns an array structure: [[["translated", "original", ...]]]
-        return res.data[0][0][0];
-      } catch (err) {
-        console.error(`Translation error for ${target}:`, err);
-        return `[Error translating to ${target}]`;
-      }
-    };
-
-    console.log(`Starting translation for song ${songId} (source language: ${song.language})...`);
-
-    for (let seg of segments) {
-      const enText = sourceLangCode === "en" ? seg.text : await translateText(seg.text, "en");
-      const hiText = sourceLangCode === "hi" ? seg.text : await translateText(seg.text, "hi");
-      const esText = sourceLangCode === "es" ? seg.text : await translateText(seg.text, "es");
-
-      english.push({ order: seg.segmentOrder, text: enText });
-      hindi.push({ order: seg.segmentOrder, text: hiText });
-      spanish.push({ order: seg.segmentOrder, text: esText });
+    if (segments.length === 0) {
+      res.status(400).json({ message: "No lyrics segments found for this song." });
+      return;
     }
 
-    // Save translations to the Song document
+    console.log(`Starting translation for song "${song.title}" (${song.language})...`);
+
+    const { english, hindi, spanish, korean } = await translateLyricsWithAI(
+      segments.map(s => ({ segmentOrder: s.segmentOrder, text: s.text })),
+      song.language || "English"
+    );
+
+    // Save all translations to the Song document
     await Song.findByIdAndUpdate(songId, {
       translations: {
         english,
         hindi,
-        spanish
+        spanish,
+        korean
       }
     });
 
-    console.log(`Translation complete for song ${songId}`);
-    res.json({ english, hindi, spanish });
+    console.log(`Translation complete for song "${song.title}" (EN: ${english.length}, HI: ${hindi.length}, ES: ${spanish.length}, KO: ${korean.length})`);
+    res.json({ english, hindi, spanish, korean });
   } catch (error: any) {
     console.error("AutoTranslate Overall Error:", error);
     res.status(500).json({ message: error.message });
@@ -165,11 +148,13 @@ export const getSongSuggestions = async (req: Request, res: Response): Promise<v
     const users = await User.find({ role: 'user' });
     let hindiCount = 0;
     let spanishCount = 0;
+    let koreanCount = 0;
 
     users.forEach(u => {
       const lang = u.learningLanguage?.toLowerCase() || '';
       if (lang === 'hindi') hindiCount++;
       if (lang === 'spanish') spanishCount++;
+      if (lang === 'korean') koreanCount++;
     });
 
     const suggestions = [];
@@ -187,18 +172,20 @@ export const getSongSuggestions = async (req: Request, res: Response): Promise<v
       { title: "La Bamba", artist: "Los Lobos", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=jSKJQ18ZoIA", reason: `Classic folk song, excellent for beginners.` }
     ];
 
-    // Combine them, sort by the language with more learners
-    if (hindiCount >= spanishCount) {
-      if (hindiCount > 0) suggestions.push(...hindiSongs);
-      if (spanishCount > 0) suggestions.push(...spanishSongs);
-    } else {
-      if (spanishCount > 0) suggestions.push(...spanishSongs);
-      if (hindiCount > 0) suggestions.push(...hindiSongs);
-    }
+    const koreanSongs = [
+      { title: "Spring Day", artist: "BTS", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=xEeFrLSkMm8", reason: `Iconic Korean ballad! Perfect for your ${koreanCount} Korean learners.` },
+      { title: "Stay With Me", artist: "CHANYEOL, PUNCH", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=pK_f_3xJ5vA", reason: `Top drama OST with clear, emotional pronunciation.` },
+      { title: "Love Scenario", artist: "iKON", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=vecSVX1QYbQ", reason: `Easy-to-follow rhythm great for learning Korean vocabulary.` }
+    ];
+
+    // Combine them according to popularity
+    if (koreanCount > 0) suggestions.push(...koreanSongs);
+    if (hindiCount > 0) suggestions.push(...hindiSongs);
+    if (spanishCount > 0) suggestions.push(...spanishSongs);
 
     // Fallback if no users have preferences yet
     if (suggestions.length === 0) {
-      suggestions.push(hindiSongs[0], spanishSongs[0]);
+      suggestions.push(koreanSongs[0], hindiSongs[0], spanishSongs[0]);
     }
 
     res.json(suggestions);

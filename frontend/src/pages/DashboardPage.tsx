@@ -36,6 +36,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LearningFocusDistribution } from '../components/LearningFocusDistribution';
 import NotesHub from '../components/notes/NotesHub';
+import { useResizableSidebar } from '../hooks/useResizableSidebar';
 
 const SONGS_DATA = [
   { id: 1, title: 'STRUCT', artist: 'UdieNnx', duration: 234, image: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop' },
@@ -46,6 +47,17 @@ const SONGS_DATA = [
 ];
 
 const DashboardPage = () => {
+  const {
+    sidebarWidth,
+    effectiveWidth,
+    isSidebarCollapsed,
+    isCompact,
+    isResizing,
+    startResizing,
+    toggleSidebar,
+    setIsSidebarCollapsed,
+  } = useResizableSidebar();
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [songs, setSongs] = useState<any[]>([]);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
@@ -61,7 +73,6 @@ const DashboardPage = () => {
   const [ytReady, setYtReady] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [modalMode, setModalMode] = useState<'completed' | 'practice'>('practice');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes'>('home');
   const [history, setHistory] = useState<any[]>([]);
@@ -413,10 +424,20 @@ const DashboardPage = () => {
       setSyncOffset(0); // Reset sync for new song
       
       const songLang = currentSong.language?.toLowerCase() || '';
-      if (songLang !== 'english' && songLang !== '') {
+      const userLearnLang = (currentUser?.learningLanguage || preferences?.languagesToLearn?.[0] || '').toLowerCase();
+      
+      if (songLang === 'korean') {
+        setTranslationLang(userLearnLang.includes('hindi') ? 'hi' : userLearnLang.includes('spanish') ? 'es' : 'en');
+      } else if (userLearnLang.includes('korean')) {
+        setTranslationLang('ko');
+      } else if (userLearnLang.includes('spanish')) {
+        setTranslationLang('es');
+      } else if (userLearnLang.includes('hindi')) {
+        setTranslationLang('hi');
+      } else if (songLang !== 'english' && songLang !== '') {
         setTranslationLang('en');
       } else {
-        setTranslationLang('hi');
+        setTranslationLang('ko');
       }
 
       const fetchSegments = async () => {
@@ -433,7 +454,7 @@ const DashboardPage = () => {
       };
       fetchSegments();
     }
-  }, [currentSong]);
+  }, [currentSong, currentUser, preferences]);
 
   // Adjusted timing calculation to keep lyrics highlighted during instrumental gaps
   let activeIndex = -1;
@@ -484,9 +505,13 @@ const DashboardPage = () => {
 
       const isIframe = container.tagName === 'IFRAME';
       
-      if (playerRef.current && playerRef.current.loadVideoById && isIframe) {
+      if (playerRef.current && isIframe) {
         if (playerRef.current._isReady) {
-          playerRef.current.loadVideoById(videoId);
+          if (isPlaying && typeof playerRef.current.loadVideoById === 'function') {
+            playerRef.current.loadVideoById(videoId);
+          } else if (typeof playerRef.current.cueVideoById === 'function') {
+            playerRef.current.cueVideoById(videoId);
+          }
         }
       } else {
         // Cleanup orphaned player instance (e.g. from StrictMode remount or phantom creation)
@@ -498,7 +523,7 @@ const DashboardPage = () => {
           height: '100%',
           width: '100%',
           videoId: videoId || '',
-          playerVars: { 'autoplay': 1, 'controls': 0, 'mute': 0, 'enablejsapi': 1 },
+          playerVars: { 'autoplay': 0, 'controls': 0, 'mute': 0, 'enablejsapi': 1 },
           events: {
             'onStateChange': (event: any) => {
               if (event.data === (window as any).YT.PlayerState.PLAYING) {
@@ -514,9 +539,12 @@ const DashboardPage = () => {
             'onReady': (event: any) => {
               console.log("Player Ready");
               playerRef.current._isReady = true;
-              // If videoId changed while we were waiting for player to be ready, load it now!
-              if (videoId && event.target && event.target.loadVideoById) {
-                event.target.loadVideoById(videoId);
+              if (videoId && event.target) {
+                if (isPlaying && typeof event.target.loadVideoById === 'function') {
+                  event.target.loadVideoById(videoId);
+                } else if (typeof event.target.cueVideoById === 'function') {
+                  event.target.cueVideoById(videoId);
+                }
               }
             }
           }
@@ -1814,24 +1842,35 @@ const DashboardPage = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`desktop-sidebar ${isMobileOpen ? 'sidebar-open' : ''}`} style={{ 
-        width: isSidebarCollapsed ? '88px' : '280px', background: '#000', borderRight: '1px solid rgba(255,255,255,0.05)',
-        padding: isSidebarCollapsed ? '40px 12px' : '40px 24px', display: 'flex', flexDirection: 'column', position: 'fixed', height: '100vh', zIndex: 100
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isSidebarCollapsed ? 'center' : 'space-between', marginBottom: '48px', position: 'relative' }}>
-          {!isSidebarCollapsed && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img src="/Logo-1.png" alt="Logo" style={{ width: '40px' }} />
-              <span style={{ fontSize: '24px', fontWeight: '800' }}>Lingofy</span>
+      <aside 
+        className={`desktop-sidebar ${isMobileOpen ? 'sidebar-open' : ''} ${isResizing ? 'resizing' : ''}`} 
+        style={{ 
+          width: `${effectiveWidth}px`, 
+          background: '#000', 
+          borderRight: '1px solid rgba(255,255,255,0.05)',
+          padding: isCompact ? '40px 12px' : '40px 24px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          position: 'fixed', 
+          height: '100vh', 
+          zIndex: 100 
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCompact ? 'center' : 'space-between', marginBottom: '48px', position: 'relative' }}>
+          {!isCompact && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+              <img src="/Logo-1.png" alt="Logo" style={{ width: '40px', flexShrink: 0 }} />
+              <span style={{ fontSize: '24px', fontWeight: '800', whiteSpace: 'nowrap' }}>Lingofy</span>
             </div>
           )}
-          {isSidebarCollapsed && (
-            <img src="/Logo-1.png" alt="Logo" style={{ width: '40px' }} />
+          {isCompact && (
+            <img src="/Logo-1.png" alt="Logo" style={{ width: '40px', flexShrink: 0 }} />
           )}
           
           <button 
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            onClick={toggleSidebar}
             className="desktop-toggle-btn"
+            title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             style={{
               background: 'transparent',
               border: 'none',
@@ -1843,6 +1882,7 @@ const DashboardPage = () => {
               padding: '6px',
               borderRadius: '8px',
               transition: 'all 0.2s',
+              flexShrink: 0
             }}
           >
             {isSidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
@@ -1867,28 +1907,37 @@ const DashboardPage = () => {
           </button>
         </div>
         
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflowY: 'auto' }}>
           {currentUser?.learningMode !== 'traditional' && (
-            <NavItem icon={<Home size={20} />} label="Home" active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+            <NavItem icon={<Home size={20} />} label="Home" active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileOpen(false); }} collapsed={isCompact} />
           )}
-          <NavItem icon={<BookOpen size={20} />} label="Lessons" onClick={() => navigate('/lessons')} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<BookOpen size={20} />} label="Lessons" onClick={() => navigate('/lessons')} collapsed={isCompact} />
           {currentUser?.learningMode !== 'traditional' && (
-            <NavItem icon={<Music size={20} />} label="Library" active={activeTab === 'library'} onClick={() => { setActiveTab('library'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+            <NavItem icon={<Music size={20} />} label="Library" active={activeTab === 'library'} onClick={() => { setActiveTab('library'); setIsMobileOpen(false); }} collapsed={isCompact} />
           )}
-          <NavItem icon={<Bookmark size={20} />} label="Notes" active={activeTab === 'notes'} onClick={() => { setActiveTab('notes'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<Award size={20} />} label="Achievements" active={activeTab === 'achievements'} onClick={() => { setActiveTab('achievements'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<HelpCircle size={20} />} label="Documentation" active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Bookmark size={20} />} label="Notes" active={activeTab === 'notes'} onClick={() => { setActiveTab('notes'); setIsMobileOpen(false); }} collapsed={isCompact} />
+          <NavItem icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isCompact} />
+          <NavItem icon={<Award size={20} />} label="Achievements" active={activeTab === 'achievements'} onClick={() => { setActiveTab('achievements'); setIsMobileOpen(false); }} collapsed={isCompact} />
+          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isCompact} />
+          <NavItem icon={<HelpCircle size={20} />} label="Documentation" active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); setIsMobileOpen(false); }} collapsed={isCompact} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
-          <NavItem icon={<Settings size={20} />} label="Profile" active={activeTab === 'profile'} onClick={() => { setActiveTab('profile'); setIsMobileOpen(false); }} collapsed={isSidebarCollapsed} />
-          <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); navigate('/login'); }} collapsed={isSidebarCollapsed} />
+          <NavItem icon={<Settings size={20} />} label="Profile" active={activeTab === 'profile'} onClick={() => { setActiveTab('profile'); setIsMobileOpen(false); }} collapsed={isCompact} />
+          <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); navigate('/login'); }} collapsed={isCompact} />
+        </div>
+
+        {/* Drag Resizer Handle on Right Edge */}
+        <div 
+          onMouseDown={startResizing}
+          className={`sidebar-resize-handle ${isResizing ? 'active' : ''}`}
+          title="Drag to resize sidebar"
+        >
+          <div className="resize-handle-line" />
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="main-content custom-scrollbar" style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', flex: 1, marginLeft: 'var(--sidebar-width, 0px)', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative' }}>
+      <main className={`main-content custom-scrollbar ${isResizing ? 'resizing' : ''}`} style={{ height: '100vh', overflowY: 'auto', overflowX: 'hidden', flex: 1, marginLeft: `var(--sidebar-width, ${effectiveWidth}px)`, padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', transition: isResizing ? 'none' : 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative' }}>
         
         {/* Top Header Bar */}
         <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'flex-end', marginBottom: '32px', alignItems: 'center', position: 'relative', zIndex: 10 }}>
@@ -2412,13 +2461,33 @@ const DashboardPage = () => {
                   segments.map((line: any, idx: number) => {
                     let translationText = "";
                     if (translationLang === 'en') {
-                      translationText = currentSong?.translations?.english?.[idx]?.text;
+                      if (currentSong?.language?.toLowerCase() === 'english') {
+                        translationText = line.text;
+                      } else {
+                        const obj = currentSong?.translations?.english?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.english?.[idx];
+                        translationText = obj?.text || "";
+                      }
                     } else if (translationLang === 'hi') {
-                      translationText = currentSong?.translations?.hindi?.[idx]?.text;
+                      if (currentSong?.language?.toLowerCase() === 'hindi') {
+                        translationText = line.text;
+                      } else {
+                        const obj = currentSong?.translations?.hindi?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.hindi?.[idx];
+                        translationText = obj?.text || "";
+                      }
                     } else if (translationLang === 'es') {
-                      translationText = currentSong?.translations?.spanish?.[idx]?.text;
+                      if (currentSong?.language?.toLowerCase() === 'spanish') {
+                        translationText = line.text;
+                      } else {
+                        const obj = currentSong?.translations?.spanish?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.spanish?.[idx];
+                        translationText = obj?.text || "";
+                      }
                     } else if (translationLang === 'ko') {
-                      translationText = currentSong?.translations?.korean?.[idx]?.text;
+                      if (currentSong?.language?.toLowerCase() === 'korean') {
+                        translationText = line.text;
+                      } else {
+                        const obj = currentSong?.translations?.korean?.find((t: any) => t.order === (line.segmentOrder || idx + 1)) || currentSong?.translations?.korean?.[idx];
+                        translationText = obj?.text || "";
+                      }
                     }
                     const isActive = idx === activeIndex;
 
@@ -3141,12 +3210,12 @@ const DashboardPage = () => {
       )}
 
       <style>{`
-        :root { --sidebar-width: ${isSidebarCollapsed ? '88px' : '280px'}; }
+        :root { --sidebar-width: ${effectiveWidth}px; }
         .desktop-sidebar {
-          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease, transform 0.3s ease;
+          transition: ${isResizing ? 'none' : 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease, transform 0.3s ease'};
         }
         .main-content {
-          transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: ${isResizing ? 'none' : 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'};
         }
         @media (max-width: 1024px) {
           :root { --sidebar-width: 0px; }
@@ -3161,6 +3230,9 @@ const DashboardPage = () => {
             display: flex !important;
           }
           .desktop-toggle-btn {
+            display: none !important;
+          }
+          .sidebar-resize-handle {
             display: none !important;
           }
           .mobile-close-btn {

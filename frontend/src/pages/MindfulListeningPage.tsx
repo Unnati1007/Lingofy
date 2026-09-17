@@ -283,7 +283,6 @@ export function MindfulListeningPage() {
                       ref={audioRef} 
                       src={activeTrack.audioUrl} 
                       preload="metadata"
-                      autoPlay
                       onPlay={() => setIsPlaying(true)}
                       onPause={() => setIsPlaying(false)}
                     />
