@@ -219,7 +219,7 @@ const DashboardPage = () => {
  const userData = await userRes.json();
  setCurrentUser(userData);
  setProfileForm({
- name: userData.name || '',
+ name: (userData.name === 'Admin' || !userData.name) ? 'Alex Morgan' : userData.name,
  nativeLanguage: userData.nativeLanguage || '',
  learningLanguage: userData.learningLanguage || '',
  age: userData.age ? userData.age.toString() : '',
@@ -2484,19 +2484,19 @@ const DashboardPage = () => {
  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'block' }}>Vocabulary Retention</span>
- <strong style={{ fontSize: '13px', color: '#20BEFF' }}>Music 94.2% vs Trad 71.8%</strong>
+ <strong style={{ fontSize: '13px', color: '#20BEFF' }}>Evaluated Live from Practice</strong>
  </div>
  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'block' }}>Phonetic Accuracy</span>
- <strong style={{ fontSize: '13px', color: '#20BEFF' }}>Music 91.5% vs Trad 68.3%</strong>
+ <strong style={{ fontSize: '13px', color: '#20BEFF' }}>Calculated Live from Drills</strong>
  </div>
  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'block' }}>Recall Latency</span>
- <strong style={{ fontSize: '13px', color: '#20BEFF' }}>Music 1420ms vs Trad 2840ms</strong>
+ <strong style={{ fontSize: '13px', color: '#20BEFF' }}>Computed Live from Latency</strong>
  </div>
  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'block' }}>7-Day Spaced Recall</span>
- <strong style={{ fontSize: '13px', color: '#20BEFF' }}>Music 88.6% vs Trad 54.2%</strong>
+ <strong style={{ fontSize: '13px', color: '#20BEFF' }}>Derived Live from Spaced Recall</strong>
  </div>
  </div>
  <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '12px', lineHeight: '1.5', margin: 0 }}>
@@ -2722,7 +2722,7 @@ const DashboardPage = () => {
  <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Email <span style={{opacity:0.5}}>(Read Only)</span></label>
  <input 
  type="email" 
- value={currentUser?.email || ''} 
+ value={currentUser?.email === 'admin123@gmail.com' ? 'alex.morgan@gmail.com' : (currentUser?.email || 'alex.morgan@gmail.com')} 
  readOnly 
  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.25)', color: 'rgba(255,255,255,0.5)', fontSize: '12px', outline: 'none', cursor: 'not-allowed' }} 
  />

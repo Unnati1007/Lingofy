@@ -105,9 +105,9 @@ export const ComparativeAnalytics: React.FC<ComparativeAnalyticsProps> = ({ hist
     },
     {
       label: 'Phonetic & Intonation Accuracy',
-      traditional: tradAvgPct !== null ? `${Math.round(tradAvgPct * 0.92)}%` : 'No Data',
+      traditional: tradAvgPct !== null ? `${tradAvgPct}%` : 'No Data',
       music: musicAvgPct !== null ? `${musicAvgPct}%` : 'No Data',
-      delta: formatDeltaPct(musicAvgPct, tradAvgPct !== null ? Math.round(tradAvgPct * 0.92) : null),
+      delta: formatDeltaPct(musicAvgPct, tradAvgPct),
       icon: <Mic size={18} color="#a855f7" />,
       description: 'Pronunciation & accent matching performance derived from interactive song practice.'
     },
@@ -135,26 +135,23 @@ export const ComparativeAnalytics: React.FC<ComparativeAnalyticsProps> = ({ hist
 
   // Learning Dimensions derived from actual history
   const getDimensions = () => {
-    if (totalN === 0) return [];
+    if (totalN === 0 || musicAvgPct === null || tradAvgPct === null) return [];
     
     const easyAttempts = history.filter(a => a.level === 'easy' || a.level === '1');
-    const easyPct = getAvgPct(easyAttempts) ?? musicAvgPct ?? tradAvgPct ?? 0;
+    const easyPct = getAvgPct(easyAttempts) ?? musicAvgPct;
 
     const interAttempts = history.filter(a => a.level === 'intermediate' || a.level === '2');
-    const interPct = getAvgPct(interAttempts) ?? musicAvgPct ?? tradAvgPct ?? 0;
+    const interPct = getAvgPct(interAttempts) ?? musicAvgPct;
 
     const hardAttempts = history.filter(a => a.level === 'hard' || a.level === 'song' || a.level === 'dynamic');
-    const hardPct = getAvgPct(hardAttempts) ?? musicAvgPct ?? tradAvgPct ?? 0;
-
-    const baseTrad = tradAvgPct ?? Math.round((musicAvgPct ?? 70) * 0.85);
-    const musicBase = musicAvgPct ?? hardPct;
+    const hardPct = getAvgPct(hardAttempts) ?? musicAvgPct;
 
     return [
-      { name: 'Phonetic & Pitch Memory', trad: Math.round(baseTrad * 0.85), music: hardPct || musicBase, delta: `+${Math.max(0, (hardPct || musicBase) - Math.round(baseTrad * 0.85))}%` },
-      { name: 'Contextual Word Association', trad: Math.round(baseTrad * 0.95), music: easyPct || musicBase, delta: `+${Math.max(0, (easyPct || musicBase) - Math.round(baseTrad * 0.95))}%` },
-      { name: 'Listening Comprehension Speed', trad: Math.round(baseTrad * 0.90), music: interPct || musicBase, delta: `+${Math.max(0, (interPct || musicBase) - Math.round(baseTrad * 0.90))}%` },
-      { name: 'Spaced Retention (7 Days)', trad: Math.round(baseTrad * 0.80), music: musicBase, delta: `+${Math.max(0, musicBase - Math.round(baseTrad * 0.80))}%` },
-      { name: 'Grammar Pattern Intuition', trad: baseTrad, music: hardPct || musicBase, delta: `+${Math.max(0, (hardPct || musicBase) - baseTrad)}%` },
+      { name: 'Phonetic & Pitch Memory', trad: tradAvgPct, music: musicAvgPct, delta: formatDeltaPct(musicAvgPct, tradAvgPct) },
+      { name: 'Contextual Word Association', trad: tradAvgPct, music: easyPct, delta: formatDeltaPct(easyPct, tradAvgPct) },
+      { name: 'Listening Comprehension Speed', trad: tradAvgPct, music: interPct, delta: formatDeltaPct(interPct, tradAvgPct) },
+      { name: 'Spaced Retention (7 Days)', trad: tradAvgPct, music: musicAvgPct, delta: formatDeltaPct(musicAvgPct, tradAvgPct) },
+      { name: 'Grammar Pattern Intuition', trad: tradAvgPct, music: hardPct, delta: formatDeltaPct(hardPct, tradAvgPct) },
     ];
   };
 
