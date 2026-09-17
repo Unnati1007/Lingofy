@@ -325,18 +325,36 @@ export const FaqChatbot: React.FC = () => {
             height: '60px',
             borderRadius: '50%',
             background: 'linear-gradient(135deg, #20BEFF 0%, #a855f7 100%)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
+            border: 'none',
             boxShadow: '0 8px 30px rgba(32, 190, 255, 0.45), 0 0 20px rgba(168, 85, 247, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
             cursor: 'pointer',
-            position: 'relative'
+            position: 'relative',
+            padding: '3px',
+            boxSizing: 'border-box'
           }}
           title="Lingofy Guide & FAQs"
         >
-          {isOpen ? <X size={26} /> : <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '34px', height: '34px', objectFit: 'contain' }} />}
+          {isOpen ? (
+            <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#121214', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={26} color="#fff" />
+            </div>
+          ) : (
+            <img 
+              src="/Logo-1.png" 
+              alt="Lingofy Logo" 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                borderRadius: '50%', 
+                objectFit: 'cover',
+                display: 'block'
+              }} 
+            />
+          )}
 
           {/* Pulse notification dot */}
           {!isOpen && hasNewPrompt && (
@@ -349,7 +367,8 @@ export const FaqChatbot: React.FC = () => {
               borderRadius: '50%',
               background: '#22c55e',
               border: '2px solid #000',
-              boxShadow: '0 0 8px #22c55e'
+              boxShadow: '0 0 8px #22c55e',
+              zIndex: 10
             }} />
           )}
         </motion.button>
