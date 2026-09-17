@@ -1624,108 +1624,277 @@ const DashboardPage = () => {
 
   const renderProfile = () => {
     return (
-      <div style={{ padding: '32px' }}>
-        <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px' }}>Profile</h2>
-        <p style={{ opacity: 0.6, fontSize: '15px', marginBottom: '32px' }}>Update your personal details, demographics, and learning goals.</p>
-
-        <form onSubmit={handleSaveProfile} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '32px', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Full Name</label>
-              <input type="text" value={profileForm.name} onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} required style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Email <span style={{opacity:0.5}}>(Read Only)</span></label>
-              <input type="email" value={currentUser?.email || ''} readOnly style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)', color: 'rgba(255,255,255,0.5)', outline: 'none', cursor: 'not-allowed' }} />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Native Language</label>
-              <select value={profileForm.nativeLanguage} onChange={(e) => setProfileForm({...profileForm, nativeLanguage: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', outline: 'none' }}>
-                <option value="">Select Native Language</option>
-                <option value="English">English</option>
-                <option value="Hindi">Hindi</option>
-                <option value="Spanish">Spanish</option>
-                <option value="Korean">Korean</option>
-                <option value="French">French</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Target Language</label>
-              <select value={profileForm.learningLanguage} onChange={(e) => setProfileForm({...profileForm, learningLanguage: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', outline: 'none' }}>
-                <option value="">Select Target Language</option>
-                <option value="Hindi">Hindi</option>
-                <option value="Spanish">Spanish</option>
-                <option value="Korean">Korean</option>
-                <option value="French">French</option>
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Age</label>
-              <input type="number" min="1" max="120" value={profileForm.age} onChange={(e) => setProfileForm({...profileForm, age: e.target.value})} placeholder="e.g. 25" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Mobile</label>
-              <input type="text" value={profileForm.mobile} onChange={(e) => setProfileForm({...profileForm, mobile: e.target.value})} placeholder="e.g. +1 234 567 8900" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Profession (Optional)</label>
-              <input type="text" value={profileForm.profession} onChange={(e) => setProfileForm({...profileForm, profession: e.target.value})} placeholder="e.g. Software Engineer" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Known Languages (comma-separated)</label>
-              <input type="text" value={profileForm.knownLanguages} onChange={(e) => setProfileForm({...profileForm, knownLanguages: e.target.value})} placeholder="e.g. English, Hindi" style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none' }} />
-            </div>
-          </div>
-
+      <div style={{ padding: '0 24px 24px 24px', width: '100%', maxWidth: '1100px' }}>
+        {/* Header with Save button on top right */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>About Me</label>
-            <textarea value={profileForm.about} onChange={(e) => setProfileForm({...profileForm, about: e.target.value})} placeholder="Tell us a little about yourself..." style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', outline: 'none', minHeight: '80px', resize: 'vertical' }} />
+            <h2 style={{ fontSize: '28px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>Profile Settings</h2>
+            <p style={{ opacity: 0.6, fontSize: '13px', margin: '4px 0 0 0' }}>Update your personal details, demographics, and learning goals.</p>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Daily Goal (Minutes)</label>
-              <select value={profileForm.dailyGoal} onChange={(e) => setProfileForm({...profileForm, dailyGoal: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', outline: 'none' }}>
-                <option value="10">10 mins (Casual)</option>
-                <option value="15">15 mins (Regular)</option>
-                <option value="30">30 mins (Serious)</option>
-                <option value="60">60 mins (Intense)</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', opacity: 0.8 }}>Current Proficiency <span style={{opacity:0.5}}>(Read Only)</span></label>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {['beginner', 'intermediate', 'advanced'].map((lvl) => (
-                <div
-                  key={lvl}
-                  style={{
-                    flex: 1, padding: '10px', borderRadius: '10px', border: `1px solid ${profileForm.proficiency === lvl ? '#20BEFF' : 'rgba(255,255,255,0.1)'}`,
-                    background: profileForm.proficiency === lvl ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.02)',
-                    color: profileForm.proficiency === lvl ? '#20BEFF' : 'rgba(255,255,255,0.5)', fontWeight: 'bold', textAlign: 'center', transition: 'all 0.2s', textTransform: 'capitalize',
-                    cursor: 'not-allowed'
-                  }}
-                >{lvl}</div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
-            {profileSuccessMessage && <span style={{ color: '#20BEFF', fontSize: '13px', fontWeight: 'bold' }}>{profileSuccessMessage}</span>}
-            <button type="submit" disabled={savingProfile} className="btn-hover" style={{ background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', border: 'none', padding: '14px 32px', borderRadius: '12px', fontWeight: '800', cursor: savingProfile ? 'not-allowed' : 'pointer', opacity: savingProfile ? 0.7 : 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {profileSuccessMessage && (
+              <span style={{ color: '#20BEFF', fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                ✓ {profileSuccessMessage}
+              </span>
+            )}
+            <button 
+              type="button" 
+              onClick={handleSaveProfile}
+              disabled={savingProfile} 
+              className="btn-hover" 
+              style={{ 
+                background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', 
+                color: '#000', 
+                border: 'none', 
+                padding: '10px 24px', 
+                borderRadius: '12px', 
+                fontWeight: '800', 
+                fontSize: '13px',
+                cursor: savingProfile ? 'not-allowed' : 'pointer', 
+                opacity: savingProfile ? 0.7 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(32, 190, 255, 0.25)'
+              }}
+            >
               {savingProfile ? 'Saving...' : 'Save Profile'}
             </button>
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveProfile} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', width: '100%' }}>
+          
+          {/* Card 1: Personal Details */}
+          <div style={{ 
+            background: 'rgba(255,255,255,0.03)', 
+            border: '1px solid rgba(255,255,255,0.06)', 
+            borderRadius: '20px', 
+            padding: '22px', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '14px' 
+          }}>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              👤 Personal Information
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Full Name</label>
+                <input 
+                  type="text" 
+                  value={profileForm.name} 
+                  onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} 
+                  required 
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Email <span style={{opacity:0.5}}>(Read Only)</span></label>
+                <input 
+                  type="email" 
+                  value={currentUser?.email || ''} 
+                  readOnly 
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.25)', color: 'rgba(255,255,255,0.5)', fontSize: '13px', outline: 'none', cursor: 'not-allowed' }} 
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Age</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="120" 
+                  value={profileForm.age} 
+                  onChange={(e) => setProfileForm({...profileForm, age: e.target.value})} 
+                  placeholder="e.g. 25" 
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Mobile</label>
+                <input 
+                  type="text" 
+                  value={profileForm.mobile} 
+                  onChange={(e) => setProfileForm({...profileForm, mobile: e.target.value})} 
+                  placeholder="e.g. +1 234 567 8900" 
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Profession (Optional)</label>
+                <input 
+                  type="text" 
+                  value={profileForm.profession} 
+                  onChange={(e) => setProfileForm({...profileForm, profession: e.target.value})} 
+                  placeholder="e.g. Software Engineer" 
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Known Languages</label>
+                <input 
+                  type="text" 
+                  value={profileForm.knownLanguages} 
+                  onChange={(e) => setProfileForm({...profileForm, knownLanguages: e.target.value})} 
+                  placeholder="e.g. English, Hindi" 
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>About Me</label>
+              <textarea 
+                value={profileForm.about} 
+                onChange={(e) => setProfileForm({...profileForm, about: e.target.value})} 
+                placeholder="Tell us a little about yourself..." 
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none', height: '62px', resize: 'none' }} 
+              />
+            </div>
+          </div>
+
+          {/* Card 2: Language & Learning Goals */}
+          <div style={{ 
+            background: 'rgba(255,255,255,0.03)', 
+            border: '1px solid rgba(255,255,255,0.06)', 
+            borderRadius: '20px', 
+            padding: '22px', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '14px',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🎯 Language & Learning Goals
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Native Language</label>
+                  <select 
+                    value={profileForm.nativeLanguage} 
+                    onChange={(e) => setProfileForm({...profileForm, nativeLanguage: e.target.value})} 
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', fontSize: '13px', outline: 'none' }}
+                  >
+                    <option value="">Select Native Language</option>
+                    <option value="English">English</option>
+                    <option value="Hindi">Hindi</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="Korean">Korean</option>
+                    <option value="French">French</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Target Language</label>
+                  <select 
+                    value={profileForm.learningLanguage} 
+                    onChange={(e) => setProfileForm({...profileForm, learningLanguage: e.target.value})} 
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: '#121214', color: '#fff', fontSize: '13px', outline: 'none' }}
+                  >
+                    <option value="">Select Target Language</option>
+                    <option value="Hindi">Hindi</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="Korean">Korean</option>
+                    <option value="French">French</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Daily Learning Goal</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                  {[
+                    { val: '10', label: '10m', desc: 'Casual' },
+                    { val: '15', label: '15m', desc: 'Regular' },
+                    { val: '30', label: '30m', desc: 'Serious' },
+                    { val: '60', label: '60m', desc: 'Intense' },
+                  ].map((goal) => {
+                    const isSelected = profileForm.dailyGoal === goal.val;
+                    return (
+                      <div
+                        key={goal.val}
+                        onClick={() => setProfileForm({ ...profileForm, dailyGoal: goal.val })}
+                        style={{
+                          padding: '8px 4px',
+                          borderRadius: '10px',
+                          border: `1px solid ${isSelected ? '#20BEFF' : 'rgba(255,255,255,0.08)'}`,
+                          background: isSelected ? 'rgba(32, 190, 255, 0.12)' : 'rgba(255,255,255,0.02)',
+                          color: isSelected ? '#20BEFF' : 'rgba(255,255,255,0.7)',
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <div style={{ fontSize: '13px', fontWeight: '800' }}>{goal.label}</div>
+                        <div style={{ fontSize: '10px', opacity: 0.6 }}>{goal.desc}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Current Proficiency <span style={{opacity:0.5}}>(Read Only)</span></label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {['beginner', 'intermediate', 'advanced'].map((lvl) => (
+                    <div
+                      key={lvl}
+                      style={{
+                        flex: 1, 
+                        padding: '8px', 
+                        borderRadius: '10px', 
+                        border: `1px solid ${profileForm.proficiency === lvl ? '#20BEFF' : 'rgba(255,255,255,0.08)'}`,
+                        background: profileForm.proficiency === lvl ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.02)',
+                        color: profileForm.proficiency === lvl ? '#20BEFF' : 'rgba(255,255,255,0.45)', 
+                        fontWeight: '700', 
+                        fontSize: '12px',
+                        textAlign: 'center', 
+                        textTransform: 'capitalize',
+                        cursor: 'not-allowed'
+                      }}
+                    >
+                      {lvl}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Summary / Submit Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '4px' }}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)' }}>
+                Target: <strong style={{ color: '#fff' }}>{profileForm.learningLanguage || 'None'}</strong> • Goal: <strong style={{ color: '#fff' }}>{profileForm.dailyGoal || '15'} mins/day</strong>
+              </div>
+              <button 
+                type="submit" 
+                disabled={savingProfile} 
+                className="btn-hover" 
+                style={{ 
+                  background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', 
+                  color: '#000', 
+                  border: 'none', 
+                  padding: '10px 24px', 
+                  borderRadius: '10px', 
+                  fontWeight: '800', 
+                  fontSize: '13px',
+                  cursor: savingProfile ? 'not-allowed' : 'pointer', 
+                  opacity: savingProfile ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {savingProfile ? 'Saving...' : 'Save Profile'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
