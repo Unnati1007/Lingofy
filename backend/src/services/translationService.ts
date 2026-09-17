@@ -61,8 +61,9 @@ Example:
   "lines": ["Line 1", "Line 2", "Line 3"]
 }`;
 
+    const modelToUse = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
     const completion = await groq.chat.completions.create({
-      model: 'openai/gpt-oss-120b',
+      model: modelToUse,
       messages: [
         { role: 'system', content: 'You are an accurate music lyric database. Output valid JSON only with exact lyrics.' },
         { role: 'user', content: prompt }
@@ -134,8 +135,9 @@ ${JSON.stringify(chunk)}
 
 Return strictly a JSON object with keys "english", "hindi", "spanish", "korean", where each value is an array of exactly ${chunk.length} translated strings.`;
 
+          const modelToUse = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
           const completion = await groq.chat.completions.create({
-            model: 'openai/gpt-oss-120b',
+            model: modelToUse,
             messages: [
               { role: 'system', content: 'You are an accurate multilingual music lyric translator. Output valid JSON only.' },
               { role: 'user', content: prompt }

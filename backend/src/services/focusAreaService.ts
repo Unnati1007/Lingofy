@@ -1,26 +1,47 @@
 import Groq from "groq-sdk";
+import { createFallbackGeneralLesson } from "./lessonService";
 
 async function callGroq(prompt: string): Promise<string> {
   const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
   });
 
-  const completion = await groq.chat.completions.create({
-    model: "openai/gpt-oss-120b",
-    messages: [
-      {
-        role: "system",
-        content: "You are a language tutor generator for a specialized focus area practice. Always respond with valid JSON only. No markdown, no backticks, no preamble. Just raw JSON."
-      },
-      {
-        role: "user",
-        content: prompt
-      }
-    ],
-    temperature: 0.9,
-    max_tokens: 2500,
-  });
-  return completion.choices[0].message.content ?? "";
+  const models = [
+    process.env.GROQ_MODEL,
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "llama3-70b-8192",
+    "mixtral-8x7b-32768",
+    "openai/gpt-oss-120b"
+  ].filter(Boolean) as string[];
+
+  let lastError: any = null;
+  for (const model of models) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: "You are a language tutor generator for a specialized focus area practice. Always respond with valid JSON only. No markdown, no backticks, no preamble. Just raw JSON."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.9,
+        max_tokens: 2500,
+      });
+      const content = completion.choices[0]?.message?.content;
+      if (content) return content;
+    } catch (err) {
+      console.warn(`Groq model '${model}' failed:`, (err as Error).message);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error("All Groq models failed.");
 }
 
 async function generateWithRetry(prompt: string) {
@@ -43,13 +64,8 @@ async function generateWithRetry(prompt: string) {
     const cleaned = raw.replace(/```json|```/g, "").trim();
     return sanitizeData(JSON.parse(cleaned));
   } catch (err) {
-    try {
-      const raw = await callGroq(prompt);
-      const cleaned = raw.replace(/```json|```/g, "").trim();
-      return sanitizeData(JSON.parse(cleaned));
-    } catch {
-      throw new Error("Focus practice generation failed. Please try again.");
-    }
+    console.warn("Focus area API call failed:", (err as Error).message);
+    return null;
   }
 }
 
@@ -151,8 +167,8 @@ JSON Schema:
 
     const result = await generateWithRetry(prompt);
     
-    // Shuffle options for each question
-    if (result.questions && Array.isArray(result.questions)) {
+    if (result && result.questions && Array.isArray(result.questions) && result.questions.length > 0) {
+      // Shuffle options for each question
       result.questions.forEach((q: any) => {
         if (Array.isArray(q.options)) {
           // Fisher-Yates shuffle
@@ -162,7 +178,8 @@ JSON Schema:
           }
         }
       });
+      return result;
     }
-    
-    return result;
+
+    return createFallbackGeneralLesson(language, 'easy');
 };

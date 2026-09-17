@@ -5,25 +5,43 @@ async function callGroq(prompt: string): Promise<string> {
     apiKey: process.env.GROQ_API_KEY,
   });
 
-  const completion = await groq.chat.completions.create({
-    model: "openai/gpt-oss-120b",
-    messages: [
-      {
-        role: "system",
-        content: "You are a language quiz generator for a music app.\nCRITICAL RULE: Every single generation must be completely different from previous ones. Never repeat the same words, phrases, or questions. Always pick different vocabulary.\nAlways respond with valid JSON only. No markdown, no backticks, no preamble. Just raw JSON."
-      },
-      {
-        role: "user",
-        content: prompt
-      }
-    ],
-    temperature: 1.0,
-    top_p: 0.9,
-    frequency_penalty: 0.8,
-    presence_penalty: 0.6,
-    max_tokens: 2000,
-  });
-  return completion.choices[0].message.content ?? "";
+  const models = [
+    process.env.GROQ_MODEL,
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "llama3-70b-8192",
+    "mixtral-8x7b-32768",
+    "openai/gpt-oss-120b"
+  ].filter(Boolean) as string[];
+
+  let lastError: any = null;
+  for (const model of models) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: "You are a language quiz generator for a music app.\nCRITICAL RULE: Every single generation must be completely different from previous ones. Never repeat the same words, phrases, or questions. Always pick different vocabulary.\nAlways respond with valid JSON only. No markdown, no backticks, no preamble. Just raw JSON."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.9,
+        top_p: 0.9,
+        max_tokens: 2000,
+      });
+      const content = completion.choices[0]?.message?.content;
+      if (content) return content;
+    } catch (err) {
+      console.warn(`Groq model '${model}' failed:`, (err as Error).message);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error("All Groq models failed.");
 }
 
 async function generateWithRetry(prompt: string) {
@@ -46,14 +64,8 @@ async function generateWithRetry(prompt: string) {
     const cleaned = raw.replace(/```json|```/g, "").trim();
     return sanitizeData(JSON.parse(cleaned));
   } catch (err) {
-    // retry once on failure
-    try {
-      const raw = await callGroq(prompt);
-      const cleaned = raw.replace(/```json|```/g, "").trim();
-      return sanitizeData(JSON.parse(cleaned));
-    } catch {
-      throw new Error("Quiz generation failed. Please try again.");
-    }
+    console.warn("Quiz generation API failed, using smart fallback quiz:", (err as Error).message);
+    return null;
   }
 }
 
@@ -278,9 +290,77 @@ JSON Schema:
 }
 `;
 
-  const result = await generateWithRetry(prompt);
-  return result;
+  try {
+    const result = await generateWithRetry(prompt);
+    if (result && Array.isArray(result.questions) && result.questions.length > 0) {
+      return result;
+    }
+  } catch (err) {
+    console.warn("generateLesson failed, returning fallback:", (err as Error).message);
+  }
+
+  return createFallbackGeneralLesson(language, levelStr);
 };
+
+export function createFallbackGeneralLesson(language: string, levelStr: string = 'easy') {
+  const langKey = (language || 'spanish').toLowerCase();
+  
+  const fallbackBank: Record<string, { targetWord: string; options: string[]; correctAnswer: string; explanation: string; type?: string; questionText?: string }[]> = {
+    spanish: [
+      { targetWord: 'Hola', options: ['Hello', 'Goodbye', 'Thank you', 'Please'], correctAnswer: 'Hello', explanation: 'Hola means Hello in Spanish.', type: 'translate_word', questionText: "What is the Spanish word for 'Hello'?" },
+      { targetWord: 'Gracias', options: ['Thank you', 'Sorry', 'Welcome', 'Yes'], correctAnswer: 'Thank you', explanation: 'Gracias means Thank you in Spanish.', type: 'translate_word', questionText: "What is the Spanish word for 'Thank you'?" },
+      { targetWord: 'Buenos días', options: ['Good morning', 'Good night', 'See you later', 'How are you'], correctAnswer: 'Good morning', explanation: 'Buenos días translates to Good morning.', type: 'translate_word', questionText: "What does 'Buenos días' mean?" },
+      { targetWord: 'Amigo', options: ['Friend', 'Enemy', 'Teacher', 'Brother'], correctAnswer: 'Friend', explanation: 'Amigo means Friend in Spanish.', type: 'translate_word', questionText: "What is the English translation of 'Amigo'?" },
+      { targetWord: 'Por favor', options: ['Please', 'Excuse me', 'You are welcome', 'Good luck'], correctAnswer: 'Please', explanation: 'Por favor means Please in Spanish.', type: 'translate_word', questionText: "What does 'Por favor' mean?" },
+      { targetWord: '¿Cómo estás?', options: ['How are you?', 'What is your name?', 'Where are you from?', 'How old are you?'], correctAnswer: 'How are you?', explanation: '¿Cómo estás? is a common greeting meaning How are you?.', type: 'multiple_choice', questionText: "What does '¿Cómo estás?' mean?" },
+      { targetWord: 'Hasta luego', options: ['See you later', 'Good morning', 'Nice to meet you', 'Have a nice day'], correctAnswer: 'See you later', explanation: 'Hasta luego means See you later.', type: 'multiple_choice', questionText: "What is the meaning of 'Hasta luego'?" },
+      { targetWord: 'Música', options: ['Music', 'Song', 'Dance', 'Rhythm'], correctAnswer: 'Music', explanation: 'Música means Music in Spanish.', type: 'translate_word', questionText: "What is the Spanish word for 'Music'?" },
+      { targetWord: 'Cantar', options: ['To sing', 'To dance', 'To listen', 'To play'], correctAnswer: 'To sing', explanation: 'Cantar means To sing.', type: 'translate_word', questionText: "What does 'Cantar' mean?" },
+      { targetWord: 'Corazón', options: ['Heart', 'Soul', 'Mind', 'Life'], correctAnswer: 'Heart', explanation: 'Corazón means Heart in Spanish.', type: 'translate_word', questionText: "What is the English translation of 'Corazón'?" }
+    ],
+    hindi: [
+      { targetWord: 'नमस्ते (Namaste)', options: ['Hello / Greetings', 'Goodbye', 'Thank you', 'Welcome'], correctAnswer: 'Hello / Greetings', explanation: 'Namaste is the standard Hindi greeting.', type: 'translate_word', questionText: "What is the Hindi word for 'Hello'?" },
+      { targetWord: 'धन्यवाद (Dhanyavaad)', options: ['Thank you', 'Please', 'Sorry', 'Yes'], correctAnswer: 'Thank you', explanation: 'Dhanyavaad means Thank you in Hindi.', type: 'translate_word', questionText: "What is the Hindi word for 'Thank you'?" },
+      { targetWord: 'प्यार (Pyaar)', options: ['Love', 'Peace', 'Friendship', 'Joy'], correctAnswer: 'Love', explanation: 'Pyaar means Love in Hindi.', type: 'translate_word', questionText: "What does 'प्यार (Pyaar)' mean?" },
+      { targetWord: 'संगीत (Sangeet)', options: ['Music', 'Dance', 'Poetry', 'Instrument'], correctAnswer: 'Music', explanation: 'Sangeet means Music in Hindi.', type: 'translate_word', questionText: "What does 'संगीत (Sangeet)' mean?" },
+      { targetWord: 'दोस्त (Dost)', options: ['Friend', 'Brother', 'Companion', 'Teacher'], correctAnswer: 'Friend', explanation: 'Dost means Friend in Hindi.', type: 'translate_word', questionText: "What is the English meaning of 'दोस्त (Dost)'?" },
+      { targetWord: 'शुभ प्रभात (Shubh Prabhat)', options: ['Good morning', 'Good night', 'Good evening', 'Have a nice day'], correctAnswer: 'Good morning', explanation: 'Shubh Prabhat means Good morning in Hindi.', type: 'multiple_choice', questionText: "What does 'शुभ प्रभात (Shubh Prabhat)' mean?" },
+      { targetWord: 'आप कैसे हैं? (Aap kaise hain?)', options: ['How are you?', 'Where are you going?', 'What is your name?', 'Who are you?'], correctAnswer: 'How are you?', explanation: 'Aap kaise hain? means How are you?.', type: 'multiple_choice', questionText: "What is the meaning of 'आप कैसे हैं?'?" },
+      { targetWord: 'गाना (Gaana)', options: ['Song', 'Dance', 'Voice', 'Stage'], correctAnswer: 'Song', explanation: 'Gaana means Song in Hindi.', type: 'translate_word', questionText: "What does 'गाना (Gaana)' mean?" },
+      { targetWord: 'दिल (Dil)', options: ['Heart', 'Mind', 'Soul', 'Life'], correctAnswer: 'Heart', explanation: 'Dil means Heart in Hindi.', type: 'translate_word', questionText: "What does 'दिल (Dil)' mean?" },
+      { targetWord: 'फिर मिलेंगे (Phir milenge)', options: ['See you again', 'Welcome', 'Congratulations', 'Good job'], correctAnswer: 'See you again', explanation: 'Phir milenge means See you again.', type: 'multiple_choice', questionText: "What does 'फिर मिलेंगे' mean?" }
+    ],
+    korean: [
+      { targetWord: '안녕하세요 (Annyeonghaseyo)', options: ['Hello', 'Goodbye', 'Thank you', 'Sorry'], correctAnswer: 'Hello', explanation: 'Annyeonghaseyo is the polite Korean greeting for Hello.', type: 'translate_word', questionText: "What is the Korean word for 'Hello'?" },
+      { targetWord: '감사합니다 (Gamsahamnida)', options: ['Thank you', 'Please', 'Excuse me', 'You are welcome'], correctAnswer: 'Thank you', explanation: 'Gamsahamnida means Thank you in Korean.', type: 'translate_word', questionText: "What is the Korean word for 'Thank you'?" },
+      { targetWord: '사랑 (Sarang)', options: ['Love', 'Hope', 'Dream', 'Peace'], correctAnswer: 'Love', explanation: 'Sarang means Love in Korean.', type: 'translate_word', questionText: "What does '사랑 (Sarang)' mean?" },
+      { targetWord: '음악 (Eum-ak)', options: ['Music', 'Song', 'Sound', 'Art'], correctAnswer: 'Music', explanation: 'Eum-ak means Music in Korean.', type: 'translate_word', questionText: "What is the English meaning of '음악 (Eum-ak)'?" },
+      { targetWord: '친구 (Chingu)', options: ['Friend', 'Family', 'Student', 'Partner'], correctAnswer: 'Friend', explanation: 'Chingu means Friend in Korean.', type: 'translate_word', questionText: "What does '친구 (Chingu)' mean?" },
+      { targetWord: '좋은 아침 (Joeun achim)', options: ['Good morning', 'Good night', 'Welcome', 'See you later'], correctAnswer: 'Good morning', explanation: 'Joeun achim translates to Good morning.', type: 'multiple_choice', questionText: "What does '좋은 아침 (Joeun achim)' mean?" },
+      { targetWord: '노래 (Norae)', options: ['Song', 'Dance', 'Stage', 'Voice'], correctAnswer: 'Song', explanation: 'Norae means Song in Korean.', type: 'translate_word', questionText: "What does '노래 (Norae)' mean?" },
+      { targetWord: '마음 (Maeum)', options: ['Heart / Mind', 'Body', 'Dream', 'Memory'], correctAnswer: 'Heart / Mind', explanation: 'Maeum means Heart or Mind in Korean.', type: 'translate_word', questionText: "What does '마음 (Maeum)' mean?" },
+      { targetWord: '잘 가요 (Jal gayo)', options: ['Goodbye', 'Hello', 'Thank you', 'Nice to meet you'], correctAnswer: 'Goodbye', explanation: 'Jal gayo means Goodbye in Korean.', type: 'multiple_choice', questionText: "What does '잘 가요 (Jal gayo)' mean?" },
+      { targetWord: '반갑습니다 (Bangapseumnida)', options: ['Nice to meet you', 'See you tomorrow', 'Take care', 'Congratulations'], correctAnswer: 'Nice to meet you', explanation: 'Bangapseumnida means Nice to meet you.', type: 'multiple_choice', questionText: "What does '반갑습니다' mean?" }
+    ]
+  };
+
+  const bank = fallbackBank[langKey] || fallbackBank.spanish;
+  const questions = bank.map((q, i) => ({
+    id: i + 1,
+    type: q.type || 'translate_word',
+    questionText: q.questionText || `What is the meaning of ${q.targetWord}?`,
+    targetWord: q.targetWord,
+    options: q.options,
+    correctAnswer: q.correctAnswer,
+    explanation: q.explanation
+  }));
+
+  return {
+    lessonTitle: `${language.charAt(0).toUpperCase() + language.slice(1)} Practice Lesson`,
+    language: langKey,
+    questions
+  };
+}
 
 export const generateSongLesson = async (
   language: string,
