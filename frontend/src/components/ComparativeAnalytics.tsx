@@ -251,7 +251,7 @@ export const ComparativeAnalytics: React.FC<ComparativeAnalyticsProps> = ({ hist
                 padding: '20px',
                 display: 'flex',
                 flexDirection: 'column',
-                justify: 'space-between'
+                justifyContent: 'space-between'
               }}
             >
               <div>
