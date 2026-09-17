@@ -85,7 +85,11 @@ const FAQ_DATABASE: Record<string, { answer: string; link?: { label: string; act
   }
 };
 
-export const FaqChatbot: React.FC = () => {
+interface FaqChatbotProps {
+  bottomOffset?: number;
+}
+
+export const FaqChatbot: React.FC<FaqChatbotProps> = ({ bottomOffset = 100 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -311,7 +315,7 @@ export const FaqChatbot: React.FC = () => {
       />
 
       {/* Floating Toggle Button */}
-      <div id="tour-faq-chatbot" style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
+      <div id="tour-faq-chatbot" style={{ position: 'fixed', bottom: `${bottomOffset}px`, right: '24px', zIndex: 9999 }}>
         <motion.button
           data-tour="chatbot"
           whileHover={{ scale: 1.08 }}
@@ -385,12 +389,12 @@ export const FaqChatbot: React.FC = () => {
             transition={{ duration: 0.2 }}
             style={{
               position: 'fixed',
-              bottom: '94px',
+              bottom: `${bottomOffset + 70}px`,
               right: '24px',
-              width: '560px',
+              width: '540px',
               maxWidth: 'calc(100vw - 32px)',
-              height: '620px',
-              maxHeight: 'calc(100vh - 110px)',
+              height: '520px',
+              maxHeight: 'calc(100vh - 200px)',
               background: 'linear-gradient(180deg, #18181b 0%, #09090b 100%)',
               border: '1px solid rgba(32, 190, 255, 0.3)',
               borderRadius: '26px',

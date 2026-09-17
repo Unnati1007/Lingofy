@@ -5265,7 +5265,7 @@ const DashboardPage = () => {
       />
 
       {/* FAQ Assistant & Interactive Screen Guided Tour */}
-      <FaqChatbot />
+      <FaqChatbot bottomOffset={currentSong ? 105 : 24} />
 
       <style>{`
         :root { --sidebar-width: ${effectiveWidth}px; }
