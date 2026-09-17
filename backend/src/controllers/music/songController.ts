@@ -296,8 +296,13 @@ export const getSegments = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-export const getSongSuggestions = async (req: Request, res: Response): Promise<void> => {
+export const getSongSuggestions = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const userId = req.user?._id;
+    const user = userId ? await User.findById(userId) : null;
+    const preferences = userId ? await UserPreferences.findOne({ userId }) : null;
+    const userLang = (user?.learningLanguage || preferences?.languagesToLearn?.[0] || '').toLowerCase();
+
     const users = await User.find({ role: 'user' });
     let hindiCount = 0;
     let spanishCount = 0;
@@ -310,32 +315,46 @@ export const getSongSuggestions = async (req: Request, res: Response): Promise<v
       if (lang === 'korean') koreanCount++;
     });
 
-    const suggestions = [];
-
     const hindiSongs = [
-      { title: "Tum Hi Ho", artist: "Arijit Singh", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=Umqb9KENgmk", reason: `High demand! ${hindiCount} users are learning Hindi.` },
-      { title: "Chaleya", artist: "Arijit Singh, Shilpa Rao", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=VAdGW7QDJiU", reason: `Popular modern hit for your ${hindiCount} Hindi learners.` },
-      { title: "Jai Ho", artist: "A.R. Rahman", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=xwtdhWltSIg", reason: `Classic upbeat song. Perfect for Hindi learners.` }
+      { title: "Tum Hi Ho", artist: "Arijit Singh", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=Umqb9KENgmk", reason: userLang === 'hindi' ? "Tailored for your Hindi goal - high vocabulary depth." : `High demand! ${hindiCount} users are learning Hindi.` },
+      { title: "Chaleya", artist: "Arijit Singh, Shilpa Rao", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=VAdGW7QDJiU", reason: userLang === 'hindi' ? "Modern lyrical hit great for conversational rhythm." : `Popular modern hit for your ${hindiCount} Hindi learners.` },
+      { title: "Jai Ho", artist: "A.R. Rahman", language: "Hindi", youtubeUrl: "https://www.youtube.com/watch?v=xwtdhWltSIg", reason: "Classic upbeat anthem. Perfect for Hindi learners." }
     ];
 
     const spanishSongs = [
-      { title: "Despacito", artist: "Luis Fonsi, Daddy Yankee", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=kJQP7kiw5Fk", reason: `Global phenomenon! ${spanishCount} users are learning Spanish.` },
-      { title: "Bailando", artist: "Enrique Iglesias", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=NUsoVlDFqZg", reason: `Great rhythm for vocabulary building for your ${spanishCount} Spanish learners.` },
-      { title: "La Bamba", artist: "Los Lobos", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=jSKJQ18ZoIA", reason: `Classic folk song, excellent for beginners.` }
+      { title: "Despacito", artist: "Luis Fonsi, Daddy Yankee", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=kJQP7kiw5Fk", reason: userLang === 'spanish' ? "Top recommended for Spanish learners - clear pronunciation." : `Global phenomenon! ${spanishCount} users are learning Spanish.` },
+      { title: "Bailando", artist: "Enrique Iglesias", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=NUsoVlDFqZg", reason: userLang === 'spanish' ? "Great rhythmic flow for rapid vocabulary building." : `Great rhythm for vocabulary building for your ${spanishCount} Spanish learners.` },
+      { title: "La Bamba", artist: "Los Lobos", language: "Spanish", youtubeUrl: "https://www.youtube.com/watch?v=jSKJQ18ZoIA", reason: "Classic folk melody, excellent for beginners." }
     ];
 
     const koreanSongs = [
-      { title: "Spring Day", artist: "BTS", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=xEeFrLSkMm8", reason: `Iconic Korean ballad! Perfect for your ${koreanCount} Korean learners.` },
-      { title: "Stay With Me", artist: "CHANYEOL, PUNCH", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=pK_f_3xJ5vA", reason: `Top drama OST with clear, emotional pronunciation.` },
-      { title: "Love Scenario", artist: "iKON", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=vecSVX1QYbQ", reason: `Easy-to-follow rhythm great for learning Korean vocabulary.` }
+      { title: "Spring Day", artist: "BTS", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=xEeFrLSkMm8", reason: userLang === 'korean' ? "Iconic emotional ballad with clear, paced Korean lyrics." : `Iconic Korean ballad! Perfect for your ${koreanCount} Korean learners.` },
+      { title: "Stay With Me", artist: "CHANYEOL, PUNCH", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=pK_f_3xJ5vA", reason: "Top drama OST with clear, emotional pronunciation." },
+      { title: "Love Scenario", artist: "iKON", language: "Korean", youtubeUrl: "https://www.youtube.com/watch?v=vecSVX1QYbQ", reason: "Easy-to-follow rhythm great for learning Korean vocabulary." }
     ];
 
-    if (koreanCount > 0) suggestions.push(...koreanSongs);
-    if (hindiCount > 0) suggestions.push(...hindiSongs);
-    if (spanishCount > 0) suggestions.push(...spanishSongs);
+    const englishSongs = [
+      { title: "Shape of You", artist: "Ed Sheeran", language: "English", youtubeUrl: "https://www.youtube.com/watch?v=JGwWNGJdvx8", reason: "Global pop hit with rhythmic tempo and everyday vocabulary." },
+      { title: "Someone You Loved", artist: "Lewis Capaldi", language: "English", youtubeUrl: "https://www.youtube.com/watch?v=zABLecsR5UE", reason: "Emotional ballad with clear vocal pacing." }
+    ];
 
-    if (suggestions.length === 0) {
-      suggestions.push(koreanSongs[0], hindiSongs[0], spanishSongs[0]);
+    let suggestions: any[] = [];
+
+    if (userLang === 'spanish') {
+      suggestions = [...spanishSongs, ...koreanSongs.slice(0, 1), ...hindiSongs.slice(0, 1)];
+    } else if (userLang === 'korean') {
+      suggestions = [...koreanSongs, ...spanishSongs.slice(0, 1), ...hindiSongs.slice(0, 1)];
+    } else if (userLang === 'hindi') {
+      suggestions = [...hindiSongs, ...spanishSongs.slice(0, 1), ...koreanSongs.slice(0, 1)];
+    } else if (userLang === 'english') {
+      suggestions = [...englishSongs, ...spanishSongs.slice(0, 1), ...koreanSongs.slice(0, 1)];
+    } else {
+      if (koreanCount > 0) suggestions.push(...koreanSongs.slice(0, 2));
+      if (spanishCount > 0) suggestions.push(...spanishSongs.slice(0, 2));
+      if (hindiCount > 0) suggestions.push(...hindiSongs.slice(0, 2));
+      if (suggestions.length === 0) {
+        suggestions = [spanishSongs[0], koreanSongs[0], hindiSongs[0], englishSongs[0]];
+      }
     }
 
     res.json(suggestions);

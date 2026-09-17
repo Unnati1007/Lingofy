@@ -39,7 +39,13 @@ import {
   User,
   Target,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  CheckCircle2,
+  Send,
+  Languages,
+  RefreshCw,
+  PlusCircle
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LearningFocusDistribution } from '../components/LearningFocusDistribution';
@@ -156,6 +162,13 @@ const DashboardPage = () => {
     url: '',
     lyrics: ''
   });
+  const [songSuggestions, setSongSuggestions] = useState<any[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [previewLines, setPreviewLines] = useState<string[]>([]);
+  const [savedSongId, setSavedSongId] = useState<string | null>(null);
+  const [savedSongObj, setSavedSongObj] = useState<any | null>(null);
+  const [translations, setTranslations] = useState<{ hindi?: any[]; spanish?: any[]; korean?: any[]; english?: any[] } | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importStatusText, setImportStatusText] = useState('');
   const [addToPlaylistModalSong, setAddToPlaylistModalSong] = useState<any>(null);
@@ -1156,17 +1169,42 @@ const DashboardPage = () => {
     }
   };
 
-  const handleImportSong = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOpenImportModal = () => {
+    setShowImportModal(true);
+    fetchSongSuggestions();
+  };
+
+  const fetchSongSuggestions = async () => {
+    setSuggestionsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/api/admin/song-suggestions`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSongSuggestions(data);
+      }
+    } catch (err) {
+      console.error("Error fetching suggestions:", err);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  const handleSaveImportSong = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!importForm.title.trim() || !importForm.artist.trim() || !importForm.url.trim()) {
-      alert("Please fill in the song title, artist, and audio/YouTube URL.");
+      alert("Please fill in the song title, artist name, and audio/YouTube URL.");
       return;
     }
     setIsImporting(true);
-    setImportStatusText("Fetching audio and extracting timed lyrics...");
+    setImportStatusText("Fetching YouTube transcript & processing lyrics...");
     try {
       const token = localStorage.getItem('token');
-      const lyricsLines = importForm.lyrics.trim() ? importForm.lyrics.split('\n').map(l => l.trim()).filter(l => l.length > 0) : [];
+      const lines = previewLines.length > 0 
+        ? previewLines 
+        : (importForm.lyrics.trim() ? importForm.lyrics.split('\n').map(l => l.trim()).filter(l => l.length > 0) : []);
 
       const res = await fetch(`${API_BASE}/api/admin/song`, {
         method: 'POST',
@@ -1180,34 +1218,82 @@ const DashboardPage = () => {
           language: importForm.language,
           audioUrl: importForm.url.trim(),
           youtubeUrl: importForm.url.trim(),
-          lyrics: lyricsLines
+          lyrics: lines
         })
       });
 
       const data = await res.json();
       if (res.ok) {
+        setSavedSongId(data.song?._id || null);
+        setSavedSongObj(data.song || null);
+        if (data.song?.translations) {
+          setTranslations(data.song.translations);
+        }
+
+        if (data.fetchedSegments > 0 && data.segments) {
+          const segLines = data.segments.map((s: any) => s.text);
+          setPreviewLines(segLines);
+          setImportForm(prev => ({ ...prev, lyrics: segLines.join('\n') }));
+        }
+
+        fetchRecommendationsAndQuota();
+        fetchPlaylists();
+
         if (data.isExisting) {
           alert(`✨ ${data.message}`);
         } else {
-          alert(`🎉 Song "${data.song?.title || importForm.title}" has been successfully imported and processed with 4-language AI translations!`);
-        }
-        setShowImportModal(false);
-        setImportForm({ title: '', artist: '', language: 'Spanish', url: '', lyrics: '' });
-        fetchRecommendationsAndQuota();
-        fetchPlaylists();
-        if (data.song) {
-          handlePlaySingleSong(data.song);
+          setImportStatusText(`✓ Song saved! Auto-extracted ${data.fetchedSegments || 0} lyric segments.`);
         }
       } else {
-        alert(data.message || "Failed to import song");
+        alert(data.message || "Failed to save song");
       }
     } catch (err: any) {
       console.error(err);
-      alert("Network error while importing song.");
+      alert("Network error while saving song.");
     } finally {
       setIsImporting(false);
-      setImportStatusText("");
     }
+  };
+
+  const handleTranslateSong = async () => {
+    if (!savedSongId) return;
+    setIsTranslating(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/api/admin/translate/${savedSongId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (response.ok && (data.hindi?.length > 0 || data.spanish?.length > 0 || data.korean?.length > 0 || data.english?.length > 0)) {
+        setTranslations(data);
+        const lines = importForm.lyrics.split('\n').filter(line => line.trim() !== '');
+        if (lines.length > 0) setPreviewLines(lines);
+        alert("✨ 4-Language AI translation complete! Preview updated below.");
+      } else {
+        alert(data.message || "Translation completed with empty results.");
+      }
+    } catch (err: any) {
+      console.error("Translation Error:", err);
+      alert("Translation failed: " + (err.message || 'Error'));
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const handleResetImportModal = () => {
+    setImportForm({
+      title: '',
+      artist: '',
+      language: 'Spanish',
+      url: '',
+      lyrics: ''
+    });
+    setPreviewLines([]);
+    setSavedSongId(null);
+    setSavedSongObj(null);
+    setTranslations(null);
+    setImportStatusText('');
   };
 
   const handlePlayPlaylist = (playlistSongs: any[], playlistTitle: string) => {
@@ -1290,7 +1376,7 @@ const DashboardPage = () => {
 
             {/* Import Song Button */}
             <button 
-              onClick={() => setShowImportModal(true)}
+              onClick={handleOpenImportModal}
               className="btn-hover"
               style={{
                 background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
@@ -2064,7 +2150,7 @@ const DashboardPage = () => {
                 </div>
 
                 <button
-                  onClick={() => setShowImportModal(true)}
+                  onClick={handleOpenImportModal}
                   disabled={uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited}
                   className="btn-hover"
                   style={{
@@ -2108,7 +2194,7 @@ const DashboardPage = () => {
                   Import your favorite songs from YouTube! Lingofy AI will automatically extract timed lyrics and translate them into 4 parallel languages.
                 </p>
                 <button
-                  onClick={() => setShowImportModal(true)}
+                  onClick={handleOpenImportModal}
                   className="btn-hover"
                   style={{ background: '#a855f7', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}
                 >
@@ -4373,167 +4459,419 @@ const DashboardPage = () => {
         </div>
       )}
 
-      {/* Import Song Modal */}
+      {/* Import Song Modal - Admin-grade Rich Interface for Users */}
       {showImportModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)',
+          background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(12px)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px',
-          animation: 'fadeIn 0.3s ease-out'
+          animation: 'fadeIn 0.25s ease-out'
         }}>
           <div style={{
-            background: 'linear-gradient(135deg, #1e1e30 0%, #0c0c14 100%)',
+            background: 'linear-gradient(145deg, #16161d 0%, #0c0c12 100%)',
             border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '28px',
-            padding: '36px', maxWidth: '520px', width: '100%',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(168, 85, 247, 0.15)', position: 'relative',
-            maxHeight: '90vh', overflowY: 'auto'
+            padding: '32px', maxWidth: '1050px', width: '100%',
+            boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(168, 85, 247, 0.15)', position: 'relative',
+            maxHeight: '92vh', overflowY: 'auto'
           }}>
+            {/* Close Button */}
             <button 
-              onClick={() => { setShowImportModal(false); setImportStatusText(''); }}
-              style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            ><X size={16} /></button>
+              onClick={() => { setShowImportModal(false); }}
+              style={{ position: 'absolute', top: '22px', right: '22px', background: 'rgba(255,255,255,0.06)', border: 'none', color: '#fff', borderRadius: '50%', width: '34px', height: '34px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+            ><X size={18} /></button>
 
-            <div style={{ display: 'inline-flex', background: 'rgba(168, 85, 247, 0.15)', padding: '14px', borderRadius: '50%', marginBottom: '16px', color: '#a855f7' }}>
-              <Upload size={28} />
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                  <div style={{ background: 'linear-gradient(135deg, #a855f7 0%, #20BEFF 100%)', padding: '8px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                    <Sparkles size={20} />
+                  </div>
+                  <h2 style={{ fontSize: '24px', fontWeight: '800', margin: 0, background: 'linear-gradient(90deg, #fff 0%, #c084fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    Import New Song
+                  </h2>
+                </div>
+                <p style={{ opacity: 0.6, fontSize: '13px', margin: 0 }}>
+                  Add custom YouTube songs to Lingofy. AI will automatically extract timed subtitles & parallel 4-language translations.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ 
+                  fontSize: '12px', 
+                  background: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? 'rgba(168, 85, 247, 0.15)' : 'rgba(239, 68, 68, 0.15)', 
+                  border: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+                  color: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? '#c084fc' : '#ef4444', 
+                  padding: '6px 14px', 
+                  borderRadius: '12px', 
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <Upload size={13} />
+                  Quota: {uploadQuota.uploadedCount} / {uploadQuota.isUnlimited ? '∞' : `${uploadQuota.maxLimit} slots used`}
+                </span>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: '800', margin: 0 }}>Import Custom Song</h2>
-              <span style={{ 
-                fontSize: '11px', 
-                background: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? 'rgba(168, 85, 247, 0.2)' : 'rgba(239, 68, 68, 0.2)', 
-                color: uploadQuota.remaining > 0 || uploadQuota.isUnlimited ? '#a855f7' : '#ef4444', 
-                padding: '4px 10px', 
-                borderRadius: '8px', 
-                fontWeight: 'bold' 
+            {/* Smart Suggestions Banner */}
+            {suggestionsLoading ? (
+              <div style={{ marginBottom: '24px', textAlign: 'center', opacity: 0.6, padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', fontSize: '13px' }}>
+                <Loader2 size={16} className="spin" style={{ display: 'inline', marginRight: '8px' }} />
+                Loading smart song suggestions...
+              </div>
+            ) : songSuggestions.length > 0 && (
+              <div style={{ 
+                marginBottom: '24px', 
+                background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(32, 190, 255, 0.12) 100%)', 
+                border: '1px solid rgba(168, 85, 247, 0.25)', 
+                borderRadius: '20px', 
+                padding: '20px' 
               }}>
-                Quota: {uploadQuota.uploadedCount} / {uploadQuota.isUnlimited ? '∞' : `${uploadQuota.maxLimit} used`}
-              </span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#c084fc' }}>
+                    <Sparkles size={16} color="#c084fc" /> Recommended by Your Preferences & Goal
+                  </h3>
+                  <button 
+                    onClick={fetchSongSuggestions}
+                    title="Refresh suggestions"
+                    style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: '4px' }}
+                  >
+                    <RefreshCw size={13} />
+                  </button>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+                  {songSuggestions.slice(0, 3).map((suggestion, idx) => (
+                    <div key={idx} style={{ background: 'rgba(0,0,0,0.5)', padding: '14px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                          <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: '#fff', margin: 0 }}>{suggestion.title}</h4>
+                          <span style={{ background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', fontSize: '10px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '8px' }}>
+                            {suggestion.language}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '12px', opacity: 0.7, margin: '0 0 6px 0' }}>{suggestion.artist}</p>
+                        <p style={{ fontSize: '11px', opacity: 0.5, fontStyle: 'italic', margin: '0 0 12px 0' }}>{suggestion.reason}</p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setImportForm({
+                            title: suggestion.title,
+                            artist: suggestion.artist,
+                            language: suggestion.language,
+                            url: suggestion.youtubeUrl,
+                            lyrics: ''
+                          });
+                          setSavedSongId(null);
+                          setSavedSongObj(null);
+                          setTranslations(null);
+                          setPreviewLines([]);
+                          setImportStatusText(`Auto-filled "${suggestion.title}". Click "Save Song" to import!`);
+                        }}
+                        style={{ 
+                          width: '100%', padding: '8px', background: 'rgba(168, 85, 247, 0.2)', 
+                          border: '1px solid rgba(168, 85, 247, 0.4)', borderRadius: '8px', 
+                          color: '#fff', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' 
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(168, 85, 247, 0.4)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(168, 85, 247, 0.2)'}
+                      >
+                        Use Suggestion
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 2-Column Main Workspace */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)', gap: '24px', alignItems: 'start' }}>
+              
+              {/* Form Column */}
+              <div style={{ background: '#121216', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '18px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.75 }}>Song Title *</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Despacito"
+                      value={importForm.title}
+                      onChange={(e) => setImportForm({ ...importForm, title: e.target.value })}
+                      style={{
+                        width: '100%', padding: '12px 14px', borderRadius: '12px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
+                        color: '#fff', fontSize: '13px', outline: 'none'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.75 }}>Artist Name *</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Luis Fonsi"
+                      value={importForm.artist}
+                      onChange={(e) => setImportForm({ ...importForm, artist: e.target.value })}
+                      style={{
+                        width: '100%', padding: '12px 14px', borderRadius: '12px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
+                        color: '#fff', fontSize: '13px', outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.75 }}>Original Song Language *</label>
+                  <select 
+                    value={importForm.language}
+                    onChange={(e) => setImportForm({ ...importForm, language: e.target.value })}
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)', background: '#181822',
+                      color: '#fff', fontSize: '13px', outline: 'none'
+                    }}
+                  >
+                    <option value="Spanish">Spanish (Español)</option>
+                    <option value="Hindi">Hindi (हिंदी)</option>
+                    <option value="Korean">Korean (한국어)</option>
+                    <option value="English">English</option>
+                    <option value="French">French (Français)</option>
+                    <option value="Japanese">Japanese (日本語)</option>
+                  </select>
+                </div>
+
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.75 }}>YouTube URL *</label>
+                  <input 
+                    type="text" 
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={importForm.url}
+                    onChange={(e) => setImportForm({ ...importForm, url: e.target.value })}
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
+                      color: '#fff', fontSize: '13px', outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '4px', opacity: 0.75 }}>Lyrics (Optional)</label>
+                  <p style={{ fontSize: '12px', opacity: 0.8, color: '#c084fc', marginBottom: '8px' }}>
+                    ✨ Leave this empty to automatically extract timed lyrics and timestamps from YouTube!
+                  </p>
+                  <textarea 
+                    rows={6} 
+                    placeholder="Paste lyrics line by line OR leave empty to auto-fetch from YouTube..."
+                    value={importForm.lyrics}
+                    onChange={(e) => {
+                      setImportForm({ ...importForm, lyrics: e.target.value });
+                      const lines = e.target.value.split('\n').filter(l => l.trim() !== '');
+                      setPreviewLines(lines);
+                    }}
+                    style={{
+                      width: '100%', padding: '12px 14px', borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
+                      color: '#fff', fontSize: '13px', outline: 'none', resize: 'vertical'
+                    }}
+                  />
+                </div>
+
+                {/* Auto Translate Button */}
+                <div style={{ marginBottom: '24px' }}>
+                  <button 
+                    type="button"
+                    onClick={handleTranslateSong}
+                    disabled={!savedSongId || isTranslating}
+                    style={{ 
+                      width: '100%', 
+                      padding: '12px', 
+                      borderRadius: '12px', 
+                      border: savedSongId ? '1px solid #a855f7' : '1px solid rgba(168, 85, 247, 0.3)', 
+                      background: savedSongId 
+                        ? 'linear-gradient(90deg, rgba(168, 85, 247, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%)' 
+                        : 'rgba(255,255,255,0.03)', 
+                      color: savedSongId ? '#fff' : 'rgba(255,255,255,0.4)', 
+                      fontWeight: '600', 
+                      fontSize: '13px',
+                      cursor: !savedSongId || isTranslating ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: savedSongId ? '0 0 20px rgba(168, 85, 247, 0.2)' : 'none',
+                      transition: 'all 0.3s'
+                    }}
+                  >
+                    {isTranslating ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} color={savedSongId ? "#c084fc" : undefined} />} 
+                    {isTranslating ? 'Translating into 4 Languages...' : savedSongId ? 'Auto Translate Now (AI Groq)' : 'Auto Translate (Save Song First)'}
+                  </button>
+                </div>
+
+                {/* Status indicator */}
+                {importStatusText && (
+                  <div style={{ marginBottom: '18px', background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#c084fc' }}>
+                    <Sparkles size={15} />
+                    <span>{importStatusText}</span>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <button 
+                    type="button"
+                    onClick={handleResetImportModal}
+                    style={{ 
+                      flex: 1, 
+                      padding: '12px 18px', 
+                      borderRadius: '12px', 
+                      border: '1px solid rgba(255,255,255,0.1)', 
+                      background: 'rgba(255,255,255,0.04)', 
+                      color: '#fff', 
+                      fontWeight: '600', 
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    New Song / Reset
+                  </button>
+
+                  <button 
+                    type="button"
+                    onClick={handleSaveImportSong}
+                    disabled={isImporting || (uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited && !savedSongId)}
+                    style={{ 
+                      flex: 1.5, 
+                      padding: '12px 20px', 
+                      borderRadius: '12px', 
+                      border: 'none', 
+                      background: savedSongId 
+                        ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' 
+                        : (uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)'), 
+                      color: '#fff', 
+                      fontWeight: '700', 
+                      fontSize: '13px',
+                      cursor: isImporting || (uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited && !savedSongId) ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: savedSongId ? '0 8px 20px rgba(16, 185, 129, 0.3)' : '0 8px 20px rgba(168, 85, 247, 0.3)'
+                    }}
+                  >
+                    {isImporting ? <Loader2 size={16} className="spin" /> : (savedSongId ? <CheckCircle2 size={16} /> : <Send size={16} />)}
+                    {isImporting ? 'Saving & Processing...' : (savedSongId ? 'Saved to Library' : 'Save & Import Song')}
+                  </button>
+
+                  {savedSongObj && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handlePlaySingleSong(savedSongObj);
+                        setShowImportModal(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        marginTop: '4px',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)',
+                        color: '#000',
+                        fontWeight: '800',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <Play size={15} fill="#000" /> Play Now in Lingofy Player
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Preview Column */}
+              <div style={{ background: '#121216', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '24px', position: 'sticky', top: '0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Languages size={17} color="#20BEFF" /> Preview Segments & AI Translations
+                  </h3>
+                  {previewLines.length > 0 && (
+                    <span style={{ background: 'rgba(32, 190, 255, 0.15)', color: '#20BEFF', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>
+                      {previewLines.length} lines
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '12px', 
+                  maxHeight: '440px', 
+                  overflowY: 'auto',
+                  paddingRight: '6px'
+                }}>
+                  {previewLines.length === 0 ? (
+                    <div style={{ border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '16px', padding: '40px 20px', textAlign: 'center', opacity: 0.5 }}>
+                      <PlusCircle size={32} style={{ marginBottom: '10px' }} />
+                      <p style={{ fontSize: '13px', margin: '0 0 4px 0', fontWeight: '600' }}>No lyric segments yet</p>
+                      <p style={{ fontSize: '11px', margin: 0, opacity: 0.7 }}>
+                        Paste lyrics, or enter a YouTube URL and click "Save" to auto-fetch timed subtitles and 4-language translations.
+                      </p>
+                    </div>
+                  ) : (
+                    previewLines.map((line, idx) => (
+                      <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '12px', transition: 'all 0.2s' }}>
+                        <div style={{ fontSize: '10px', textTransform: 'uppercase', opacity: 0.5, fontWeight: '700', marginBottom: '4px', color: '#20BEFF' }}>
+                          Line {idx + 1}
+                        </div>
+                        <div style={{ fontSize: '13px', lineHeight: '1.4', marginBottom: translations ? '8px' : '0', color: '#fff' }}>
+                          {line}
+                        </div>
+                        
+                        {translations && (
+                          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {translations.hindi && translations.hindi[idx]?.text && (
+                              <div style={{ fontSize: '12px', color: '#fed7aa' }}>
+                                <span style={{ opacity: 0.6, fontSize: '10px', marginRight: '6px', fontWeight: 'bold' }}>HI:</span> 
+                                {translations.hindi[idx]?.text}
+                              </div>
+                            )}
+                            {translations.spanish && translations.spanish[idx]?.text && (
+                              <div style={{ fontSize: '12px', color: '#bfdbfe' }}>
+                                <span style={{ opacity: 0.6, fontSize: '10px', marginRight: '6px', fontWeight: 'bold' }}>ES:</span> 
+                                {translations.spanish[idx]?.text}
+                              </div>
+                            )}
+                            {translations.korean && translations.korean[idx]?.text && (
+                              <div style={{ fontSize: '12px', color: '#e9d5ff' }}>
+                                <span style={{ opacity: 0.6, fontSize: '10px', marginRight: '6px', fontWeight: 'bold' }}>KO:</span> 
+                                {translations.korean[idx]?.text}
+                              </div>
+                            )}
+                            {translations.english && translations.english[idx]?.text && (
+                              <div style={{ fontSize: '12px', color: '#bbf7d0' }}>
+                                <span style={{ opacity: 0.6, fontSize: '10px', marginRight: '6px', fontWeight: 'bold' }}>EN:</span> 
+                                {translations.english[idx]?.text}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
             </div>
-
-            <p style={{ opacity: 0.6, fontSize: '13px', marginBottom: '24px', lineHeight: '1.5' }}>
-              Paste a YouTube song link. Lingofy AI will automatically extract timed subtitles and generate 4-language synced translations (English, Hindi, Spanish, Korean).
-            </p>
-
-            <form onSubmit={handleImportSong} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>YouTube / Audio URL *</label>
-                <input 
-                  type="text"
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  value={importForm.url}
-                  onChange={(e) => setImportForm({ ...importForm, url: e.target.value })}
-                  required
-                  style={{
-                    width: '100%', padding: '12px 14px', borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
-                    color: '#fff', fontSize: '13px', outline: 'none'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>Song Title *</label>
-                  <input 
-                    type="text"
-                    placeholder="e.g. Despacito"
-                    value={importForm.title}
-                    onChange={(e) => setImportForm({ ...importForm, title: e.target.value })}
-                    required
-                    style={{
-                      width: '100%', padding: '12px 14px', borderRadius: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
-                      color: '#fff', fontSize: '13px', outline: 'none'
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>Artist Name *</label>
-                  <input 
-                    type="text"
-                    placeholder="e.g. Luis Fonsi"
-                    value={importForm.artist}
-                    onChange={(e) => setImportForm({ ...importForm, artist: e.target.value })}
-                    required
-                    style={{
-                      width: '100%', padding: '12px 14px', borderRadius: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
-                      color: '#fff', fontSize: '13px', outline: 'none'
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>Original Song Language *</label>
-                <select
-                  value={importForm.language}
-                  onChange={(e) => setImportForm({ ...importForm, language: e.target.value })}
-                  style={{
-                    width: '100%', padding: '12px 14px', borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)', background: '#181824',
-                    color: '#fff', fontSize: '13px', outline: 'none'
-                  }}
-                >
-                  <option value="Spanish">Spanish (Español)</option>
-                  <option value="Hindi">Hindi (हिंदी)</option>
-                  <option value="Korean">Korean (한국어)</option>
-                  <option value="English">English</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 'bold', opacity: 0.7, marginBottom: '6px', display: 'block' }}>Optional Manual Lyrics (if YouTube has no auto-subtitles)</label>
-                <textarea 
-                  placeholder="Paste lyric lines here (one line per sentence)..."
-                  rows={3}
-                  value={importForm.lyrics}
-                  onChange={(e) => setImportForm({ ...importForm, lyrics: e.target.value })}
-                  style={{
-                    width: '100%', padding: '12px 14px', borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255,255,255,0.03)',
-                    color: '#fff', fontSize: '13px', outline: 'none', resize: 'vertical'
-                  }}
-                />
-              </div>
-
-              {isImporting && (
-                <div style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Sparkles size={18} color="#a855f7" className="pulse-icon" />
-                  <span style={{ fontSize: '12px', color: '#a855f7', fontWeight: 'bold' }}>
-                    {importStatusText || "AI is processing subtitles & generating 4 translations..."}
-                  </span>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowImportModal(false)}
-                  style={{
-                    flex: 1, padding: '14px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)',
-                    background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 'bold', cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isImporting || (uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited)}
-                  className="btn-hover"
-                  style={{
-                    flex: 1.5, padding: '14px', borderRadius: '14px', border: 'none',
-                    background: uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
-                    color: '#fff', fontWeight: 'bold', cursor: uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'not-allowed' : 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    boxShadow: '0 10px 25px rgba(168, 85, 247, 0.3)'
-                  }}
-                >
-                  <Sparkles size={16} /> {isImporting ? 'Processing...' : 'Import & Process with AI'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

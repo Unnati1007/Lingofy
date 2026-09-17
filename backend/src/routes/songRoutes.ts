@@ -18,13 +18,11 @@ const router = express.Router();
 // User + Admin accessible routes
 router.get("/quota", protect, getUploadQuota);
 router.get("/recommendations", protect, getPersonalizedRecommendations);
+router.get("/song-suggestions", protect, getSongSuggestions);
 router.post("/song", protect, addSong);
 router.get("/", getSongs);
 router.post("/translate/:songId", protect, autoTranslate);
 router.get("/segments/:songId", getSegments);
-
-// Admin-specific routes
-router.get("/song-suggestions", protect, adminOnly, getSongSuggestions);
 
 // GET /api/admin/users - Get list of users (Admin only)
 router.get("/users", protect, adminOnly, async (req, res) => {
