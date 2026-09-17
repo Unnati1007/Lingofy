@@ -446,3 +446,22 @@ export const getSongSuggestions = async (req: AuthRequest, res: Response): Promi
     res.status(500).json({ message: error.message });
   }
 };
+
+// DELETE /api/songs/:id or /api/songs/song/:id - Delete song and its lyric segments (Admin only)
+export const deleteSong = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const song = await Song.findById(id);
+    if (!song) {
+      res.status(404).json({ message: "Song not found" });
+      return;
+    }
+
+    await LyricSegment.deleteMany({ songId: id });
+    await Song.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Song and lyric segments deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -20,8 +20,10 @@ export interface IUserAnswer {
 export interface ILessonAttempt extends Document {
   userId: mongoose.Types.ObjectId;
   language: 'hindi' | 'spanish' | 'korean';
-  level: 'easy' | 'intermediate' | 'hard' | 'beginner' | 'dynamic' | 'focus' | 'pronunciation';
+  level: 'easy' | 'intermediate' | 'hard' | 'beginner' | 'dynamic' | 'focus' | 'pronunciation' | 'retention';
   focusArea?: string;
+  retentionGapHours?: number;
+  retentionOriginalScore?: number;
   questions: IQuestion[];
   userAnswers: IUserAnswer[];
   score: number;
@@ -59,8 +61,10 @@ const UserAnswerSchema: Schema = new Schema({
 const LessonAttemptSchema: Schema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   language: { type: String, enum: ['hindi', 'spanish', 'korean'], required: true },
-  level: { type: String, enum: ['easy', 'beginner', 'intermediate', 'hard', 'dynamic', 'focus', 'pronunciation'], required: true },
+  level: { type: String, enum: ['easy', 'beginner', 'intermediate', 'hard', 'dynamic', 'focus', 'pronunciation', 'retention'], required: true },
   focusArea: { type: String },
+  retentionGapHours: { type: Number },
+  retentionOriginalScore: { type: Number },
   questions: { type: [QuestionSchema], required: true },
   userAnswers: { type: [UserAnswerSchema], default: [] },
   score: { type: Number, default: 0 },

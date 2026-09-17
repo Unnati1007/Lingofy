@@ -6,7 +6,8 @@ import {
   getSegments, 
   getSongSuggestions, 
   getUploadQuota, 
-  getPersonalizedRecommendations 
+  getPersonalizedRecommendations,
+  deleteSong
 } from "../controllers/music/songController";
 import { protect } from "../middleware/authMiddleware";
 import { adminOnly } from "../middleware/roleMiddleware";
@@ -23,6 +24,10 @@ router.post("/song", protect, addSong);
 router.get("/", getSongs);
 router.post("/translate/:songId", protect, autoTranslate);
 router.get("/segments/:songId", getSegments);
+
+// Admin-only song deletion
+router.delete("/song/:id", protect, adminOnly, deleteSong);
+router.delete("/:id", protect, adminOnly, deleteSong);
 
 // GET /api/admin/users - Get list of users (Admin only)
 router.get("/users", protect, adminOnly, async (req, res) => {

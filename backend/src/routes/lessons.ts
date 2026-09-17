@@ -530,4 +530,221 @@ router.get("/admin/progress/:userId", protect, adminOnly, async (req: AuthReques
   }
 });
 
+
+// GET /api/lessons/retention/status - Check if user has past learning history for retention check
+router.get("/retention/status", protect, async (req: AuthRequest, res: Response) => {
+  try {
+    const pastAttempts = await LessonAttempt.find({
+      userId: req.user._id,
+      status: 'completed'
+    }).sort({ completedAt: -1 });
+
+    if (!pastAttempts || pastAttempts.length === 0) {
+      return res.status(200).json({
+        hasHistory: false,
+        totalQuizzesCompleted: 0
+      });
+    }
+
+    const lastAttempt = pastAttempts[0];
+    const lastCompletedAt = lastAttempt.completedAt || lastAttempt.startedAt;
+    const now = new Date();
+    const diffMs = now.getTime() - new Date(lastCompletedAt).getTime();
+    const gapHours = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60)));
+    const gapDays = Math.floor(gapHours / 24);
+
+    let gapFormatted = 'Just recently';
+    if (gapDays >= 1) {
+      gapFormatted = gapDays === 1 ? '1 day ago' : `${gapDays} days ago`;
+    } else if (gapHours >= 1) {
+      gapFormatted = gapHours === 1 ? '1 hour ago' : `${gapHours} hours ago`;
+    } else {
+      const gapMins = Math.max(1, Math.floor(diffMs / (1000 * 60)));
+      gapFormatted = `${gapMins} mins ago`;
+    }
+
+    // Collect all seen words
+    const seenWords = new Set<string>();
+    pastAttempts.forEach(att => {
+      att.questions?.forEach((q: any) => {
+        if (q.targetWord) seenWords.add(q.targetWord);
+      });
+    });
+
+    res.status(200).json({
+      hasHistory: true,
+      totalQuizzesCompleted: pastAttempts.length,
+      lastCompletedAt,
+      gapHours,
+      gapDays,
+      gapFormatted,
+      candidateWordCount: seenWords.size,
+      mostPracticedLanguage: lastAttempt.language || req.user.learningLanguage || 'hindi'
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/lessons/retention/generate - Generate a Retention Flashback Quiz from previous sessions
+router.post("/retention/generate", protect, async (req: AuthRequest, res: Response) => {
+  try {
+    const targetLang = req.body.language || req.user.learningLanguage || 'hindi';
+
+    // Fetch past completed attempts for this user
+    let pastAttempts = await LessonAttempt.find({
+      userId: req.user._id,
+      language: targetLang,
+      status: 'completed'
+    }).sort({ completedAt: -1 }).limit(30);
+
+    // If no past attempts in this language, fetch across all languages
+    if (pastAttempts.length === 0) {
+      pastAttempts = await LessonAttempt.find({
+        userId: req.user._id,
+        status: 'completed'
+      }).sort({ completedAt: -1 }).limit(30);
+    }
+
+    if (pastAttempts.length === 0) {
+      return res.status(400).json({ message: "No previous quiz history found. Complete at least one regular quiz first!" });
+    }
+
+    const lastAttempt = pastAttempts[0];
+    const diffMs = Date.now() - new Date(lastAttempt.completedAt || lastAttempt.startedAt).getTime();
+    const gapHours = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60)));
+    const gapDays = Math.floor(gapHours / 24);
+    let gapFormatted = gapDays >= 1 ? `${gapDays} day${gapDays > 1 ? 's' : ''} ago` : `${Math.max(1, gapHours)} hour${gapHours !== 1 ? 's' : ''} ago`;
+
+    // Extract past questions
+    const questionPool: any[] = [];
+    const seenQuestionTexts = new Set<string>();
+
+    // Prioritize questions from previous sessions
+    pastAttempts.forEach((attempt) => {
+      attempt.questions?.forEach((q: any) => {
+        if (q && q.questionText && !seenQuestionTexts.has(q.questionText.trim())) {
+          seenQuestionTexts.add(q.questionText.trim());
+          questionPool.push({
+            type: q.type || 'multiple_choice',
+            questionText: q.questionText,
+            targetWord: q.targetWord || '',
+            options: q.options || [],
+            correctAnswer: q.correctAnswer || '',
+            explanation: q.explanation || 'Recall check from your previous session.'
+          });
+        }
+      });
+    });
+
+    // Shuffle pool
+    const shuffled = questionPool.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, Math.min(10, shuffled.length)).map((q, idx) => ({
+      id: idx + 1,
+      ...q
+    }));
+
+    // If pool has fewer than 5 questions, supplement with fresh generated lesson
+    let finalQuestions = selected;
+    if (finalQuestions.length < 5) {
+      const freshLesson = await generateLesson(targetLang as any, 'easy', [], 1, false, []);
+      const additional = freshLesson.questions.slice(0, 10 - finalQuestions.length).map((q: any, i: number) => ({
+        ...q,
+        id: finalQuestions.length + i + 1
+      }));
+      finalQuestions = [...finalQuestions, ...additional];
+    }
+
+    const sanitizedQuestions = finalQuestions.map((q: any, idx: number) => ({
+      id: idx + 1,
+      type: q.type || 'multiple_choice',
+      questionText: q.questionText,
+      targetWord: q.targetWord || '',
+      options: q.options && q.options.length > 0 ? q.options : ['Option A', 'Option B', 'Option C', 'Option D'],
+      correctAnswer: q.correctAnswer || (q.options ? q.options[0] : 'N/A'),
+      explanation: q.explanation || 'Recall review.'
+    }));
+
+    // Create in_progress retention attempt
+    const attempt = await LessonAttempt.create({
+      userId: req.user._id,
+      language: targetLang,
+      level: 'retention',
+      retentionGapHours: gapHours,
+      questions: sanitizedQuestions,
+      status: 'in_progress',
+      startedAt: new Date()
+    });
+
+    res.status(200).json({
+      lessonTitle: `🧠 Memory Retention Flashback Quiz (${targetLang.toUpperCase()})`,
+      language: targetLang,
+      gapHours,
+      gapDays,
+      gapFormatted,
+      questions: sanitizedQuestions,
+      attemptId: attempt._id,
+      totalQuestions: sanitizedQuestions.length
+    });
+  } catch (error: any) {
+    console.error("Error generating retention lesson:", error);
+    res.status(500).json({ message: "Failed to generate retention quiz.", error: error.message });
+  }
+});
+
+// GET /api/lessons/retention/analytics - Retention analytics & memory curve
+router.get("/retention/analytics", protect, async (req: AuthRequest, res: Response) => {
+  try {
+    const retentionAttempts = await LessonAttempt.find({
+      userId: req.user._id,
+      level: 'retention',
+      status: 'completed'
+    }).sort({ completedAt: -1 });
+
+    const totalRetentionQuizzes = retentionAttempts.length;
+    let totalScorePctSum = 0;
+
+    const history = retentionAttempts.map(att => {
+      const totalQ = att.questions?.length || 10;
+      const score = att.score || 0;
+      const pct = Math.round((score / totalQ) * 100);
+      totalScorePctSum += pct;
+
+      const gapHours = att.retentionGapHours || 0;
+      const gapDays = Math.floor(gapHours / 24);
+      const gapFormatted = gapDays >= 1 ? `${gapDays}d gap` : `${gapHours}h gap`;
+
+      return {
+        attemptId: att._id,
+        language: att.language,
+        date: att.completedAt || att.startedAt,
+        score,
+        totalQuestions: totalQ,
+        retentionRate: pct,
+        gapHours,
+        gapDays,
+        gapFormatted
+      };
+    });
+
+    const averageRetentionRate = totalRetentionQuizzes > 0 ? Math.round(totalScorePctSum / totalRetentionQuizzes) : 0;
+
+    // Memory Strength Level
+    let memoryStrength = 'Needs Practice';
+    if (averageRetentionRate >= 85) memoryStrength = 'Exceptional Recall 🧠✨';
+    else if (averageRetentionRate >= 70) memoryStrength = 'Strong Retention 🚀';
+    else if (averageRetentionRate >= 50) memoryStrength = 'Moderate Recall 📈';
+
+    res.status(200).json({
+      totalRetentionQuizzes,
+      averageRetentionRate,
+      memoryStrength,
+      history
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;
+
