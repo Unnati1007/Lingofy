@@ -260,137 +260,6 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
 
   return (
     <div id="tour-notes-hub" style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      {/* Hero Stats Banner */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, rgba(32, 190, 255, 0.08) 0%, rgba(24, 24, 27, 0.6) 100%)',
-          borderRadius: '24px',
-          border: '1px solid rgba(32, 190, 255, 0.2)',
-          padding: '32px',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 20px 40px -15px rgba(0,0,0,0.5)'
-        }}
-      >
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: 'rgba(32, 190, 255, 0.2)',
-              color: '#20BEFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Bookmark size={22} />
-            </div>
-            <h1 style={{ fontSize: '28px', fontWeight: '800', color: '#fff', margin: 0 }}>
-              Notes & Tough Words Vault
-            </h1>
-          </div>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '15px', maxWidth: '650px', margin: '0 0 24px 0', lineHeight: '1.5' }}>
-            All challenging words marked during quizzes, lessons, and custom study notes are saved here. Practice with flashcards and track your mastery progress!
-          </p>
-
-          {/* Stats Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '16px',
-            alignItems: 'center'
-          }}>
-            <div style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '16px',
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px'
-            }}>
-              <div style={{ fontSize: '28px' }}>🔥</div>
-              <div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: '#fff' }}>
-                  {stats.totalToughWords || 0}
-                </div>
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: '700' }}>
-                  Tough Words Saved
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              background: 'rgba(32,190,255,0.08)',
-              border: '1px solid rgba(32,190,255,0.2)',
-              borderRadius: '16px',
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px'
-            }}>
-              <div style={{ fontSize: '28px' }}>🎯</div>
-              <div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: '#20BEFF' }}>
-                  {stats.masteredWords || 0}
-                </div>
-                <div style={{ fontSize: '12px', color: 'rgba(32,190,255,0.8)', textTransform: 'uppercase', fontWeight: '700' }}>
-                  Mastered Words
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '16px',
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px'
-            }}>
-              <div style={{ fontSize: '28px' }}>📝</div>
-              <div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: '#fff' }}>
-                  {stats.totalNotes || 0}
-                </div>
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: '700' }}>
-                  Study Notes
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '16px',
-              padding: '16px 20px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: '700' }}>
-                  Mastery Rate
-                </span>
-                <span style={{ fontSize: '14px', fontWeight: '800', color: '#20BEFF' }}>
-                  {masteryPercent}%
-                </span>
-              </div>
-              <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.08)', borderRadius: '100px', overflow: 'hidden' }}>
-                <div
-                  style={{
-                    width: `${masteryPercent}%`,
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #20BEFF, #0099e6)',
-                    borderRadius: '100px',
-                    transition: 'width 0.4s ease'
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navigation Tabs & Action Bar */}
       <div style={{
         display: 'flex',
@@ -572,10 +441,10 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
               cursor: 'pointer'
             }}
           >
-            <option value="all">🌐 All Languages</option>
-            <option value="spanish">🇪🇸 Spanish</option>
-            <option value="hindi">🇮🇳 Hindi</option>
-            <option value="korean">🇰🇷 Korean</option>
+            <option value="all">All Languages</option>
+            <option value="spanish">Spanish</option>
+            <option value="hindi">Hindi</option>
+            <option value="korean">Korean</option>
           </select>
 
           {/* Status filter (for vocabulary) */}
@@ -595,9 +464,9 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 cursor: 'pointer'
               }}
             >
-              <option value="all">⚡ All Statuses</option>
-              <option value="tough">🔥 Needs Practice</option>
-              <option value="mastered">🎯 Mastered</option>
+              <option value="all">All Statuses</option>
+              <option value="tough">Needs Practice</option>
+              <option value="mastered">Mastered</option>
             </select>
           )}
         </div>
@@ -631,16 +500,15 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 color: '#eab308',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '28px'
+                justifyContent: 'center'
               }}>
-                🔖
+                <Bookmark size={28} />
               </div>
               <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>
                 No Tough Words Saved Yet
               </h3>
               <p style={{ color: 'rgba(255, 255, 255, 0.5)', maxWidth: '440px', margin: 0, fontSize: '14px', lineHeight: '1.5' }}>
-                When taking quizzes or learning lessons, click the <strong>"🔖 Mark Tough Word"</strong> button to bookmark any challenging word right here.
+                When taking quizzes or learning lessons, click the <strong>"Mark Tough Word"</strong> button to bookmark any challenging word right here.
               </p>
               <button
                 onClick={() => setShowAddWordModal(true)}
@@ -699,7 +567,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                             background: 'rgba(255, 255, 255, 0.08)',
                             color: 'rgba(255, 255, 255, 0.7)'
                           }}>
-                            {item.language === 'spanish' ? '🇪🇸' : item.language === 'hindi' ? '🇮🇳' : '🇰🇷'} {item.language}
+                            {item.language}
                           </span>
                           <span style={{
                             fontSize: '10px',
@@ -788,7 +656,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                           borderRadius: '8px',
                           padding: '6px 10px'
                         }}>
-                          💡 {item.notes}
+                          {item.notes}
                         </div>
                       )}
                     </div>
@@ -814,7 +682,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                       >
                         {isMastered ? (
                           <>
-                            <CheckCircle2 size={14} /> Mastered 🎯
+                            <CheckCircle2 size={14} /> Mastered
                           </>
                         ) : (
                           <>
@@ -856,10 +724,9 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                 color: '#20BEFF',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '28px'
+                justifyContent: 'center'
               }}>
-                📝
+                <FileText size={28} />
               </div>
               <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff', margin: 0 }}>
                 No Study Notes Yet
@@ -920,7 +787,7 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                         background: 'rgba(32, 190, 255, 0.15)',
                         color: '#20BEFF'
                       }}>
-                        {item.language === 'spanish' ? '🇪🇸' : item.language === 'hindi' ? '🇮🇳' : '🇰🇷'} {item.language}
+                        {item.language}
                       </span>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1079,9 +946,9 @@ export const NotesHub: React.FC<NotesHubProps> = ({ currentUser }) => {
                       cursor: 'pointer'
                     }}
                   >
-                    <option value="spanish">🇪🇸 Spanish</option>
-                    <option value="hindi">🇮🇳 Hindi</option>
-                    <option value="korean">🇰🇷 Korean</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="hindi">Hindi</option>
+                    <option value="korean">Korean</option>
                   </select>
                 </div>
 
