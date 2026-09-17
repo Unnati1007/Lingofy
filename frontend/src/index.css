@@ -354,6 +354,15 @@ img, video {
 @media (max-width: 768px) {
   body {
     font-size: 14px;
+    overflow-x: hidden;
+  }
+
+  main {
+    padding: 16px !important;
+    padding-top: 76px !important;
+    padding-bottom: 96px !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
   }
 
   .auth-container {
@@ -373,9 +382,24 @@ img, video {
     width: 60px !important;
     height: 60px !important;
   }
+
+  /* Grid Layout Adapters */
+  .content-grid-desktop,
+  .top-dashboard-grid,
+  .grid-responsive-2col,
+  .lessons-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* Comparative Analytics Responsive */
+  .comparative-analytics-card {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
 }
 
-/* Responsive Grid Adapters */
+/* Responsive Grid & Touch Adapters */
 @media (max-width: 640px) {
   /* Dynamic 2-column grids collapse to 1-column on mobile */
   .grid-responsive-2col {
@@ -391,19 +415,47 @@ img, video {
 
   /* Practice Modal adjustments */
   .song-practice-modal-card {
-    padding: 18px !important;
+    padding: 18px 14px !important;
     border-radius: 20px !important;
+    width: calc(100vw - 20px) !important;
+    max-width: 100vw !important;
+  }
+
+  /* Library Sub-Tabs horizontal scrolling on mobile */
+  #tour-library-tabs {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100% !important;
+  }
+
+  #tour-library-tabs button {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* Mini Video Player on Mobile */
+  .mini-video-player {
+    bottom: 84px !important;
+    right: 10px !important;
+    left: 10px !important;
+    width: calc(100vw - 20px) !important;
+    max-width: 100vw !important;
   }
 }
 
-/* Chatbot & Guided Tour Mobile Adjustments */
+/* Chatbot, Guided Tour & Touch Targets Mobile Adjustments */
 @media (max-width: 480px) {
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
+  h3 { font-size: 17px !important; }
+
   /* Chatbot window adapts to narrow mobile screens */
   .faq-chatbot-window {
-    width: calc(100vw - 24px) !important;
-    right: 12px !important;
-    bottom: 84px !important;
-    height: calc(100vh - 110px) !important;
+    width: calc(100vw - 20px) !important;
+    right: 10px !important;
+    bottom: 80px !important;
+    height: calc(100vh - 100px) !important;
   }
 
   /* Tour Modal scales on narrow mobile screens */
