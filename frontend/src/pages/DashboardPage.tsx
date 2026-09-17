@@ -54,6 +54,7 @@ import { useResizableSidebar } from '../hooks/useResizableSidebar';
 import { SongPracticeModal } from '../components/SongPracticeModal';
 import { FaqChatbot } from '../components/FaqChatbot';
 import { MindfulListeningPage } from './MindfulListeningPage';
+import { ComparativeAnalytics } from '../components/ComparativeAnalytics';
 
 const SONGS_DATA = [
   { id: 1, title: 'STRUCT', artist: 'UdieNnx', duration: 234, image: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop' },
@@ -788,6 +789,9 @@ const DashboardPage = () => {
             <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#eab308' }}>{totalXp} XP</div>
           </div>
         </div>
+
+        {/* Empirical CALL & HCI Research Comparative Analytics */}
+        <ComparativeAnalytics history={history} />
 
         {/* Streak Heatmap */}
         {(() => {
