@@ -29,8 +29,8 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
   },
   {
     targetId: 'tour-sidebar-lessons',
-    title: 'Interactive Lessons',
-    description: 'Structured language learning modules categorized by proficiency levels from Easy to Advanced.',
+    title: 'Traditional Mode & Structured Lessons',
+    description: 'Access classic text-based learning modules. In Traditional Mode, you focus directly on structured grammar rules, vocabulary flashcards, reading comprehension, and level progression lessons without music audio.',
     position: 'right'
   },
   {
@@ -47,8 +47,8 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
   },
   {
     targetId: 'tour-sidebar-statistics',
-    title: 'Statistics & Analytics',
-    description: 'Track daily study minutes, active streaks, learning heatmaps, and spaced memory retention scores.',
+    title: 'Statistics & Research Analytics',
+    description: 'Track daily study minutes, active streaks, learning heatmaps, and empirical HCI stats comparing your Traditional vs. Music Mode performance.',
     position: 'right'
   },
   {
@@ -60,7 +60,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
   {
     targetId: 'tour-sidebar-mindful',
     title: 'Mindful Listening',
-    description: 'Relax with soothing background ambient sounds (birds, rain, waves) paired with soft language phrases for passive learning.',
+    description: 'Relax with soothing background ambient sounds paired with soft language phrases for passive learning.',
     position: 'right'
   },
   {
@@ -68,6 +68,12 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
     title: 'Language Selection & Roadmap',
     description: 'Select your target language (Spanish, Hindi, Korean, English), monitor roadmap proficiency, and take level quizzes.',
     position: 'bottom'
+  },
+  {
+    targetId: 'tour-mode-toggle',
+    title: 'Traditional & Music Mode Switch',
+    description: 'Switch anytime between Music-Enhanced Mode (songs & karaoke lyrics) and Traditional Mode (text drills & grammar) depending on your study preference.',
+    position: 'top'
   },
   {
     targetId: 'tour-song-player',

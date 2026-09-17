@@ -2708,6 +2708,41 @@ const DashboardPage = () => {
                 <Target size={15} color="#20BEFF" /> Language & Learning Goals
               </div>
 
+              {/* Learning Mode Switcher */}
+              <div id="tour-mode-toggle" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '14px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '8px', color: '#20BEFF' }}>Learning Mode Experience</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div
+                    onClick={currentUser?.learningMode === 'traditional' ? toggleLearningMode : undefined}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '10px',
+                      border: `1px solid ${currentUser?.learningMode !== 'traditional' ? '#20BEFF' : 'rgba(255,255,255,0.1)'}`,
+                      background: currentUser?.learningMode !== 'traditional' ? 'rgba(32, 190, 255, 0.12)' : 'transparent',
+                      cursor: 'pointer',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: currentUser?.learningMode !== 'traditional' ? '#20BEFF' : '#fff' }}>Music Mode</div>
+                    <div style={{ fontSize: '10px', opacity: 0.6, marginTop: '2px' }}>Songs, lyrics & audio practice</div>
+                  </div>
+                  <div
+                    onClick={currentUser?.learningMode !== 'traditional' ? toggleLearningMode : undefined}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '10px',
+                      border: `1px solid ${currentUser?.learningMode === 'traditional' ? '#a855f7' : 'rgba(255,255,255,0.1)'}`,
+                      background: currentUser?.learningMode === 'traditional' ? 'rgba(168, 85, 247, 0.12)' : 'transparent',
+                      cursor: 'pointer',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: currentUser?.learningMode === 'traditional' ? '#a855f7' : '#fff' }}>Traditional Mode</div>
+                    <div style={{ fontSize: '10px', opacity: 0.6, marginTop: '2px' }}>Classic text drills & grammar</div>
+                  </div>
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Native Language</label>
