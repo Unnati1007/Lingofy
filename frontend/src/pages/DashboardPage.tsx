@@ -421,6 +421,24 @@ const DashboardPage = () => {
  };
 
  useEffect(() => {
+ fetchHistory();
+ const handleStatsUpdated = () => {
+ fetchHistory();
+ fetchRecommendationsAndQuota();
+ const token = localStorage.getItem('token');
+ if (token) {
+ fetch(`${API_BASE}/api/lessons/progress`, {
+ headers: { 'Authorization': `Bearer ${token}` }
+ }).then(r => r.ok && r.json()).then(data => data && setRoadmapProgress(data)).catch(console.error);
+ }
+ };
+ window.addEventListener('lingofy_stats_updated', handleStatsUpdated);
+ return () => {
+ window.removeEventListener('lingofy_stats_updated', handleStatsUpdated);
+ };
+ }, []);
+
+ useEffect(() => {
  if (activeTab === 'statistics') {
  fetchHistory();
  }
@@ -5232,7 +5250,10 @@ const DashboardPage = () => {
  {/* Song Practice Quiz Modal */}
  <SongPracticeModal 
  isOpen={showQuizModal} 
- onClose={() => setShowQuizModal(false)} 
+ onClose={() => {
+ setShowQuizModal(false);
+ fetchHistory();
+ }} 
  song={currentSong} 
  defaultLanguage={learningLanguageKey} 
  />

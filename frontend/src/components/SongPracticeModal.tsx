@@ -73,6 +73,11 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
  const [userSpeechText, setUserSpeechText] = useState<string>('');
  const [speechAccuracy, setSpeechAccuracy] = useState<number | null>(null);
 
+ const [attemptId, setAttemptId] = useState<string | null>(null);
+ const [userAnswers, setUserAnswers] = useState<any[]>([]);
+ const [quizStartTime, setQuizStartTime] = useState<number>(0);
+ const [questionStartTime, setQuestionStartTime] = useState<number>(0);
+
  useEffect(() => {
  if (isOpen && song) {
  setStep('select_language');
@@ -85,6 +90,8 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
  setIsRecording(false);
  setUserSpeechText('');
  setSpeechAccuracy(null);
+ setAttemptId(null);
+ setUserAnswers([]);
  }
  }, [isOpen, song]);
 
@@ -104,6 +111,8 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
  setIsRecording(false);
  setUserSpeechText('');
  setSpeechAccuracy(null);
+ setAttemptId(null);
+ setUserAnswers([]);
 
  try {
  const token = localStorage.getItem('token');
@@ -121,6 +130,13 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
  );
 
     if (res.data && res.data.questions && res.data.questions.length > 0) {
+      if (res.data.attemptId) {
+        setAttemptId(res.data.attemptId);
+      }
+      const now = Date.now();
+      setQuizStartTime(now);
+      setQuestionStartTime(now);
+
       const shuffledQuestions = res.data.questions.map((q: any) => {
         if (q.options && Array.isArray(q.options) && q.options.length > 1) {
           const opts = [...q.options];
@@ -222,31 +238,68 @@ export const SongPracticeModal: React.FC<SongPracticeModalProps> = ({
  }
  };
 
- const handleSelectOption = (option: string) => {
- if (isAnswered) return;
- setSelectedOption(option);
- setIsAnswered(true);
+  const submitSongPracticeQuiz = async (answersToSubmit: any[]) => {
+    if (!attemptId) return;
+    try {
+      const token = localStorage.getItem('token');
+      const totalTimeSpent = Math.max(10, Math.round((Date.now() - (quizStartTime || Date.now())) / 1000));
+      await axios.post(
+        `${API_BASE}/api/lessons/submit`,
+        {
+          attemptId,
+          language: selectedLanguage,
+          level: 'dynamic',
+          questions,
+          userAnswers: answersToSubmit,
+          totalTimeSpentSeconds: totalTimeSpent,
+          cognitiveLoad: 3,
+          reflectionText: `Completed practice quiz for ${song?.title}`
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      window.dispatchEvent(new CustomEvent('lingofy_stats_updated'));
+    } catch (err) {
+      console.warn("Error submitting song practice quiz attempt:", err);
+    }
+  };
 
- const currentQ = questions[currentIndex];
- const isCorrect = option.trim().toLowerCase() === currentQ.correctAnswer.trim().toLowerCase();
- 
- if (isCorrect) {
- setScore(prev => prev + 1);
- }
- };
+  const handleSelectOption = (option: string) => {
+    if (isAnswered) return;
+    setSelectedOption(option);
+    setIsAnswered(true);
 
- const handleNext = () => {
- if (currentIndex < questions.length - 1) {
- setCurrentIndex(prev => prev + 1);
- setSelectedOption(null);
- setIsAnswered(false);
- setIsRecording(false);
- setUserSpeechText('');
- setSpeechAccuracy(null);
- } else {
- setStep('completed');
- }
- };
+    const currentQ = questions[currentIndex];
+    const isCorrect = option.trim().toLowerCase() === currentQ.correctAnswer.trim().toLowerCase();
+    
+    if (isCorrect) {
+      setScore(prev => prev + 1);
+    }
+
+    const timeSpent = Math.max(1, Math.round((Date.now() - (questionStartTime || Date.now())) / 1000));
+    const newAnswer = {
+      questionId: currentQ.id,
+      answer: option,
+      timeSpentSeconds: timeSpent
+    };
+    setUserAnswers(prev => [...prev.filter(a => a.questionId !== currentQ.id), newAnswer]);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setSelectedOption(null);
+      setIsAnswered(false);
+      setIsRecording(false);
+      setUserSpeechText('');
+      setSpeechAccuracy(null);
+      setQuestionStartTime(Date.now());
+    } else {
+      submitSongPracticeQuiz(userAnswers);
+      setStep('completed');
+    }
+  };
 
  const currentQ = questions[currentIndex];
  const progressPct = questions.length > 0 ? ((currentIndex + (isAnswered ? 1 : 0)) / questions.length) * 100 : 0;
