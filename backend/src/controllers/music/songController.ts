@@ -20,7 +20,12 @@ export const getUploadQuota = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    const uploadedCount = await Song.countDocuments({ uploadedBy: userId });
+    const uploadedCount = await Song.countDocuments({
+      $or: [
+        { uploadedBy: userId },
+        { isUserUploaded: true }
+      ]
+    });
     const remaining = Math.max(0, MAX_USER_SONG_UPLOADS - uploadedCount);
 
     res.status(200).json({
@@ -79,7 +84,12 @@ export const getPersonalizedRecommendations = async (req: AuthRequest, res: Resp
     // Get quota if user is authenticated (Strict limit: 5 custom song uploads for all)
     let quota = { uploadedCount: 0, maxLimit: MAX_USER_SONG_UPLOADS, remaining: MAX_USER_SONG_UPLOADS, isUnlimited: false };
     if (userId) {
-      const count = await Song.countDocuments({ uploadedBy: userId });
+      const count = await Song.countDocuments({
+        $or: [
+          { uploadedBy: userId },
+          { isUserUploaded: true }
+        ]
+      });
       quota = {
         uploadedCount: count,
         maxLimit: MAX_USER_SONG_UPLOADS,
@@ -114,7 +124,12 @@ export const addSong = async (req: AuthRequest, res: Response): Promise<void> =>
 
     // Check user upload quota if not admin
     if (!isAdmin && userId) {
-      const userUploadedCount = await Song.countDocuments({ uploadedBy: userId });
+      const userUploadedCount = await Song.countDocuments({
+        $or: [
+          { uploadedBy: userId },
+          { isUserUploaded: true }
+        ]
+      });
       if (userUploadedCount >= MAX_USER_SONG_UPLOADS) {
         res.status(403).json({ 
           message: `Upload limit reached! You have already added ${MAX_USER_SONG_UPLOADS} custom songs. You can still add unlimited existing community songs to your playlists!`,
@@ -150,7 +165,7 @@ export const addSong = async (req: AuthRequest, res: Response): Promise<void> =>
       audioUrl: audioUrl || youtubeUrl,
       coverImage: coverImage || '',
       uploadedBy: userId,
-      isUserUploaded: !isAdmin,
+      isUserUploaded: true,
       durationSeconds: 0,
     });
 

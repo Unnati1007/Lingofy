@@ -158,6 +158,17 @@ const DashboardPage = () => {
  isUnlimited: false
  });
  const [librarySubTab, setLibrarySubTab] = useState<'recommended' | 'playlists' | 'explore' | 'uploads'>('recommended');
+
+ const userUploadedSongs = useMemo(() => {
+   return songs.filter(s => {
+     if (!s) return false;
+     const sUploadedBy = typeof s.uploadedBy === 'object' ? s.uploadedBy?._id : s.uploadedBy;
+     const currentUserId = currentUser?._id || currentUser?.id;
+     return s.isUserUploaded === true || Boolean(sUploadedBy && currentUserId && String(sUploadedBy) === String(currentUserId));
+   });
+ }, [songs, currentUser]);
+
+ const effectiveQuotaCount = Math.max(uploadQuota.uploadedCount || 0, userUploadedSongs.length);
  const [showImportModal, setShowImportModal] = useState(false);
  const [importForm, setImportForm] = useState({
  title: '',
@@ -1379,7 +1390,16 @@ const DashboardPage = () => {
  return matchesSearch && matchesLang;
  });
 
- const userUploadedSongs = songs.filter(s => s.uploadedBy === currentUser?._id || s.isUserUploaded);
+ const userUploadedSongs = useMemo(() => {
+ return songs.filter(s => {
+ if (!s) return false;
+ const sUploadedBy = typeof s.uploadedBy === 'object' ? s.uploadedBy?._id : s.uploadedBy;
+ const currentUserId = currentUser?._id || currentUser?.id;
+ return s.isUserUploaded === true || Boolean(sUploadedBy && currentUserId && String(sUploadedBy) === String(currentUserId));
+ });
+ }, [songs, currentUser]);
+
+ const effectiveQuotaCount = Math.max(uploadQuota.uploadedCount || 0, userUploadedSongs.length);
 
  return (
  <div style={{ width: '100%', maxWidth: '1200px' }}>
@@ -1412,7 +1432,7 @@ const DashboardPage = () => {
  }}
  >
  <Upload size={14} />
- <span>Custom Imports: {uploadQuota.uploadedCount} / {uploadQuota.isUnlimited ? '∞' : uploadQuota.maxLimit}</span>
+ <span>Custom Imports: {effectiveQuotaCount} / {uploadQuota.isUnlimited ? '∞' : uploadQuota.maxLimit}</span>
  </div>
 
  {/* Import Song Button */}
@@ -1589,7 +1609,7 @@ const DashboardPage = () => {
  background: librarySubTab === 'uploads' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.1)', 
  padding: '2px 8px', borderRadius: '10px', fontSize: '11px' 
  }}>
- {uploadQuota.uploadedCount}/5
+ {effectiveQuotaCount}/5
  </span>
  </button>
  </div>
@@ -2189,23 +2209,23 @@ const DashboardPage = () => {
  <div>
  <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 4px 0' }}>Custom Song Upload Quota</h3>
  <p style={{ fontSize: '13px', opacity: 0.6, margin: 0 }}>
- You have used {uploadQuota.uploadedCount} of {uploadQuota.isUnlimited ? 'Unlimited' : `${uploadQuota.maxLimit} available custom upload slots`}.
+ You have used {effectiveQuotaCount} of {uploadQuota.isUnlimited ? 'Unlimited' : `${uploadQuota.maxLimit} available custom upload slots`}.
  </p>
  </div>
 
  <button
  onClick={handleOpenImportModal}
- disabled={uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited}
+ disabled={(uploadQuota.maxLimit - effectiveQuotaCount) <= 0 && !uploadQuota.isUnlimited}
  className="btn-hover"
  style={{
- background: uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'rgba(255,255,255,0.1)' : '#a855f7',
+ background: (uploadQuota.maxLimit - effectiveQuotaCount) <= 0 && !uploadQuota.isUnlimited ? 'rgba(255,255,255,0.1)' : '#a855f7',
  color: '#fff',
  border: 'none',
  padding: '10px 20px',
  borderRadius: '12px',
  fontWeight: 'bold',
  fontSize: '13px',
- cursor: uploadQuota.remaining <= 0 && !uploadQuota.isUnlimited ? 'not-allowed' : 'pointer',
+ cursor: (uploadQuota.maxLimit - effectiveQuotaCount) <= 0 && !uploadQuota.isUnlimited ? 'not-allowed' : 'pointer',
  display: 'flex',
  alignItems: 'center',
  gap: '8px'
@@ -2219,7 +2239,7 @@ const DashboardPage = () => {
  <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
  <div 
  style={{ 
- width: `${Math.min(100, (uploadQuota.uploadedCount / uploadQuota.maxLimit) * 100)}%`, 
+ width: `${Math.min(100, (effectiveQuotaCount / uploadQuota.maxLimit) * 100)}%`, 
  height: '100%', 
  background: 'linear-gradient(90deg, #a855f7 0%, #20BEFF 100%)',
  borderRadius: '6px',
@@ -4732,7 +4752,7 @@ const DashboardPage = () => {
  gap: '6px'
  }}>
  <Upload size={13} />
- Quota: {uploadQuota.uploadedCount} / 5 slots used
+ Quota: {effectiveQuotaCount} / 5 slots used
  </span>
  </div>
  </div>
