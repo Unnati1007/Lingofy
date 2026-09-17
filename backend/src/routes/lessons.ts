@@ -140,17 +140,23 @@ router.post("/generate-from-song", protect, async (req: AuthRequest, res: Respon
       correctAnswer: q.correctAnswer || "N/A"
     }));
 
-    // Create in_progress attempt
-    const attempt = await LessonAttempt.create({
-      userId: req.user._id,
-      language: langKey,
-      level: 'dynamic',
-      questions: sanitizedQuestions,
-      status: 'in_progress',
-      startedAt: new Date()
-    });
+    // Create in_progress attempt safely
+    let attemptId = null;
+    try {
+      const attempt = await LessonAttempt.create({
+        userId: req.user._id,
+        language: langKey,
+        level: 'dynamic',
+        questions: sanitizedQuestions,
+        status: 'in_progress',
+        startedAt: new Date()
+      });
+      attemptId = attempt._id;
+    } catch (attErr) {
+      console.warn("Could not save LessonAttempt for practice quiz (proceeding anyway):", attErr);
+    }
 
-    res.status(200).json({ ...lessonData, attemptId: attempt._id });
+    res.status(200).json({ ...lessonData, attemptId });
   } catch (error) {
     console.error("Error generating song lesson:", error);
     res.status(500).json({ message: "Failed to generate lesson from song. Please try again.", error: (error as Error).message });

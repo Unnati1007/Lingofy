@@ -4,11 +4,7 @@ import {
   X, 
   ChevronRight, 
   ChevronLeft, 
-  Sparkles, 
-  Compass, 
-  CheckCircle2, 
-  HelpCircle,
-  Play
+  CheckCircle2
 } from 'lucide-react';
 
 export interface TourStep {
@@ -16,51 +12,80 @@ export interface TourStep {
   title: string;
   description: string;
   position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
-  icon?: string;
 }
 
 const DEFAULT_TOUR_STEPS: TourStep[] = [
   {
     targetId: 'tour-sidebar',
-    title: '🏠 Navigation Sidebar',
-    description: 'Welcome to Lingofy! Use this sidebar to switch between Home Dashboard, Lessons, Music Library, Notes, Statistics, and Mindful Listening.',
-    position: 'right',
-    icon: '🏠'
+    title: 'Navigation Control Hub',
+    description: 'Welcome to Lingofy! Use this sidebar menu to switch between all core features, learning modules, and analytics.',
+    position: 'right'
+  },
+  {
+    targetId: 'tour-sidebar-home',
+    title: 'Home Dashboard',
+    description: 'Your main dashboard overview displaying active songs, language roadmap progress, and quick practice controls.',
+    position: 'right'
+  },
+  {
+    targetId: 'tour-sidebar-lessons',
+    title: 'Interactive Lessons',
+    description: 'Structured language learning modules categorized by proficiency levels from Easy to Advanced.',
+    position: 'right'
+  },
+  {
+    targetId: 'tour-sidebar-library',
+    title: 'Music Library',
+    description: 'Browse curated songs, manage custom playlists, or import up to 5 YouTube tracks with AI synchronized lyrics.',
+    position: 'right'
+  },
+  {
+    targetId: 'tour-sidebar-notes',
+    title: 'Personal Notes Hub',
+    description: 'Review saved vocabulary notes, lyric highlights, and custom study bookmarks created during song sessions.',
+    position: 'right'
+  },
+  {
+    targetId: 'tour-sidebar-statistics',
+    title: 'Statistics & Analytics',
+    description: 'Track daily study minutes, active streaks, learning heatmaps, and spaced memory retention scores.',
+    position: 'right'
+  },
+  {
+    targetId: 'tour-sidebar-achievements',
+    title: 'Achievements & Badges',
+    description: 'Unlock milestone badges, track streak rewards, and view your learning progress achievements.',
+    position: 'right'
+  },
+  {
+    targetId: 'tour-sidebar-mindful',
+    title: 'Mindful Listening',
+    description: 'Relax with soothing background ambient sounds (birds, rain, waves) paired with soft language phrases for passive learning.',
+    position: 'right'
   },
   {
     targetId: 'tour-language-card',
-    title: '🌐 Language Selection & Roadmap',
-    description: 'Track your current target language (Spanish, Hindi, Korean, English), monitor your roadmap proficiency stage, and take level quizzes!',
-    position: 'bottom',
-    icon: '🌐'
+    title: 'Language Selection & Roadmap',
+    description: 'Select your target language (Spanish, Hindi, Korean, English), monitor roadmap proficiency, and take level quizzes.',
+    position: 'bottom'
   },
   {
     targetId: 'tour-song-player',
-    title: '🎵 Interactive Music Player & Song Quiz',
-    description: 'Play HQ songs, toggle multi-language synchronized lyrics, and click "Practice Song" to start a 15-question interactive quiz from the active song!',
-    position: 'left',
-    icon: '🎵'
+    title: 'Music Player & Song Practice Quiz',
+    description: 'Play HQ tracks, toggle synchronized bilingual lyrics, and click Practice Song to start an interactive 15-question quiz.',
+    position: 'left'
   },
   {
     targetId: 'tour-song-library',
-    title: '📚 Music Library & Custom Imports',
-    description: 'Explore curated music playlists, browse language tracks, or import up to 5 custom YouTube/audio tracks with AI lyrics generation.',
-    position: 'top',
-    icon: '📚'
-  },
-  {
-    targetId: 'tour-mindful-listening',
-    title: '🎧 Mindful Listening Experience',
-    description: 'Relax with ambient background sounds (birds, rain, waves) mixed with soft language phrases for effortless passive learning.',
-    position: 'right',
-    icon: '🎧'
+    title: 'Playlists & Custom Track Imports',
+    description: 'Explore community playlists and import up to 5 custom YouTube tracks into your personal music collection.',
+    position: 'top'
   },
   {
     targetId: 'tour-faq-chatbot',
-    title: '🤖 AI Assistant & Help Center',
-    description: 'Click here anytime to ask Lingofy AI assistant questions, get instant app navigation, or restart this guided tour whenever you need!',
-    position: 'left',
-    icon: '🤖'
+    title: 'AI Assistant & Help Center',
+    description: 'Click here anytime to ask Lingofy AI assistant questions, get instant app navigation, or restart this guided tour.',
+    position: 'left'
   }
 ];
 
@@ -316,10 +341,9 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
             </button>
           </div>
 
-          {/* Title & Icon */}
-          <h3 style={{ fontSize: '17px', fontWeight: '800', color: '#fff', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>{currentStep.icon || '🚀'}</span>
-            <span>{currentStep.title}</span>
+          {/* Title */}
+          <h3 style={{ fontSize: '17px', fontWeight: '800', color: '#fff', marginBottom: '8px' }}>
+            {currentStep.title}
           </h3>
 
           {/* Description */}
@@ -329,13 +353,13 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
 
           {/* Step Dots Progress */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: '5px' }}>
+            <div style={{ display: 'flex', gap: '4px' }}>
               {steps.map((_, idx) => (
                 <div
                   key={idx}
                   style={{
-                    width: idx === currentStepIndex ? '18px' : '6px',
-                    height: '6px',
+                    width: idx === currentStepIndex ? '14px' : '5px',
+                    height: '5px',
                     borderRadius: '3px',
                     background: idx === currentStepIndex ? '#20BEFF' : 'rgba(255, 255, 255, 0.2)',
                     transition: 'all 0.3s'
@@ -346,6 +370,22 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
 
             {/* Buttons */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={handleComplete}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '10px',
+                  background: 'transparent',
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  border: 'none',
+                  fontWeight: '600',
+                  fontSize: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                Skip
+              </button>
+
               {currentStepIndex > 0 && (
                 <button
                   onClick={handleBack}

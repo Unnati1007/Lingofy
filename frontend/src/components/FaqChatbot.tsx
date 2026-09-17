@@ -336,7 +336,7 @@ export const FaqChatbot: React.FC = () => {
           }}
           title="Lingofy Guide & FAQs"
         >
-          {isOpen ? <X size={26} /> : <Bot size={28} />}
+          {isOpen ? <X size={26} /> : <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '34px', height: '34px', objectFit: 'contain' }} />}
 
           {/* Pulse notification dot */}
           {!isOpen && hasNewPrompt && (
@@ -403,7 +403,7 @@ export const FaqChatbot: React.FC = () => {
                   color: '#fff',
                   boxShadow: '0 4px 12px rgba(32, 190, 255, 0.3)'
                 }}>
-                  <Bot size={22} />
+                  <img src="/Logo-1.png" alt="Lingofy Logo" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
