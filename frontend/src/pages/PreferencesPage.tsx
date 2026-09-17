@@ -27,20 +27,13 @@ const knownLanguageOptions = [
   { id: 'Spanish', name: 'Spanish', flag: '🇪🇸' },
   { id: 'Korean', name: 'Korean', flag: '🇰🇷' },
   { id: 'French', name: 'French', flag: '🇫🇷' },
-  { id: 'German', name: 'German', flag: '🇩🇪' },
-  { id: 'Japanese', name: 'Japanese', flag: '🇯🇵' },
-  { id: 'Italian', name: 'Italian', flag: '🇮🇹' },
-  { id: 'Portuguese', name: 'Portuguese', flag: '🇵🇹' },
-  { id: 'Mandarin', name: 'Mandarin', flag: '🇨🇳' },
-  { id: 'Russian', name: 'Russian', flag: '🇷🇺' },
-  { id: 'Arabic', name: 'Arabic', flag: '🇸🇦' }
+  { id: 'German', name: 'German', flag: '🇩🇪' }
 ];
 
 const learningGoals = [
-  { id: 'lyrics', label: 'Sing Along & Understand Lyrics', icon: '🎵', desc: 'Decode song meanings, poetic metaphors, and rhythm lines.' },
+  { id: 'lyrics', label: 'Understand Song Lyrics', icon: '🎵', desc: 'Decode song meanings, poetic metaphors, and rhythm lines.' },
   { id: 'conversation', label: 'Daily Conversation & Slang', icon: '🗣️', desc: 'Pick up authentic colloquial phrases used in popular songs.' },
-  { id: 'vocabulary', label: 'Rapid Vocabulary & Memory', icon: '🧠', desc: 'Lock in words faster through melodic hooks and repetition.' },
-  { id: 'culture', label: 'Travel & Cultural Immersion', icon: '✈️', desc: 'Connect deeply with regional music, cinema, and expressions.' }
+  { id: 'vocabulary', label: 'Rapid Vocabulary & Memory', icon: '🧠', desc: 'Lock in words faster through melodic hooks and repetition.' }
 ];
 
 const proficiencyLevels = [
@@ -57,56 +50,42 @@ const dailyCommitments = [
 
 const curatedGenres = [
   { name: 'Pop & Chartbusters', icon: '🌟' },
-  { name: 'K-Pop & OSTs', icon: '🎤' },
   { name: 'Bollywood & Melodies', icon: '🎶' },
   { name: 'Latin & Reggaeton', icon: '💃' },
-  { name: 'Acoustic & Indie', icon: '🎸' },
-  { name: 'Lo-Fi & Ambient', icon: '🎧' }
+  { name: 'K-Pop & OSTs', icon: '🎤' },
+  { name: 'Acoustic & Indie', icon: '🎸' }
 ];
 
 const curatedArtists = [
-  // English / Global Pop
-  { name: 'Ed Sheeran', lang: 'English', flag: '🇬🇧' },
-  { name: 'Taylor Swift', lang: 'English', flag: '🇬🇧' },
-  { name: 'The Chainsmokers', lang: 'English', flag: '🇬🇧' },
-  { name: 'Dua Lipa', lang: 'English', flag: '🇬🇧' },
-  { name: 'Billie Eilish', lang: 'English', flag: '🇬🇧' },
-  { name: 'Bruno Mars', lang: 'English', flag: '🇬🇧' },
-  
   // Spanish / Latin
   { name: 'Luis Fonsi', lang: 'Spanish', flag: '🇪🇸' },
-  { name: 'Bad Bunny', lang: 'Spanish', flag: '🇪🇸' },
   { name: 'Shakira', lang: 'Spanish', flag: '🇪🇸' },
-  { name: 'Rosalía', lang: 'Spanish', flag: '🇪🇸' },
-  { name: 'J Balvin', lang: 'Spanish', flag: '🇪🇸' },
-  { name: 'Enrique Iglesias', lang: 'Spanish', flag: '🇪🇸' },
+  { name: 'Bad Bunny', lang: 'Spanish', flag: '🇪🇸' },
 
   // Hindi / Bollywood
   { name: 'Arijit Singh', lang: 'Hindi', flag: '🇮🇳' },
   { name: 'Shreya Ghoshal', lang: 'Hindi', flag: '🇮🇳' },
   { name: 'Prateek Kuhad', lang: 'Hindi', flag: '🇮🇳' },
-  { name: 'Jubin Nautiyal', lang: 'Hindi', flag: '🇮🇳' },
-  { name: 'Atif Aslam', lang: 'Hindi', flag: '🇮🇳' },
-  { name: 'AP Dhillon', lang: 'Hindi', flag: '🇮🇳' },
 
   // Korean / K-Pop
   { name: 'BTS', lang: 'Korean', flag: '🇰🇷' },
   { name: 'BLACKPINK', lang: 'Korean', flag: '🇰🇷' },
-  { name: 'CHANYEOL & PUNCH', lang: 'Korean', flag: '🇰🇷' },
   { name: 'IU', lang: 'Korean', flag: '🇰🇷' },
-  { name: 'NewJeans', lang: 'Korean', flag: '🇰🇷' },
-  { name: 'TWICE', lang: 'Korean', flag: '🇰🇷' },
-  { name: 'Stray Kids', lang: 'Korean', flag: '🇰🇷' }
+
+  // English / Global Pop
+  { name: 'Ed Sheeran', lang: 'English', flag: '🇬🇧' },
+  { name: 'Taylor Swift', lang: 'English', flag: '🇬🇧' },
+  { name: 'Dua Lipa', lang: 'English', flag: '🇬🇧' }
 ];
 
 const PreferencesPage = () => {
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['Spanish']);
-  const [selectedKnownLanguages, setSelectedKnownLanguages] = useState<string[]>(['English']);
-  const [selectedGoal, setSelectedGoal] = useState<string>('lyrics');
-  const [selectedLevel, setSelectedLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
-  const [selectedDailyGoal, setSelectedDailyGoal] = useState<number>(15);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>(['Pop & Chartbusters', 'Latin & Reggaeton']);
-  const [selectedArtists, setSelectedArtists] = useState<string[]>(['Luis Fonsi', 'Shakira']);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedKnownLanguages, setSelectedKnownLanguages] = useState<string[]>([]);
+  const [selectedGoal, setSelectedGoal] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<'beginner' | 'intermediate' | 'advanced' | ''>('');
+  const [selectedDailyGoal, setSelectedDailyGoal] = useState<number>(0);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
   const [artistFilter, setArtistFilter] = useState<string>('All');
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
@@ -116,13 +95,9 @@ const PreferencesPage = () => {
   };
 
   const toggleLanguage = (lang: string) => {
-    setSelectedLanguages(prev => {
-      if (prev.includes(lang)) {
-        if (prev.length === 1) return prev; // keep at least one
-        return prev.filter(l => l !== lang);
-      }
-      return [...prev, lang];
-    });
+    setSelectedLanguages(prev => 
+      prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]
+    );
   };
 
   const toggleKnownLanguage = (lang: string) => toggleSelection(lang, setSelectedKnownLanguages);
@@ -148,11 +123,11 @@ const PreferencesPage = () => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          languagesToLearn: selectedLanguages,
+          languagesToLearn: selectedLanguages.length > 0 ? selectedLanguages : ['Spanish'],
           favoriteGenres: selectedGenres,
           favoriteArtists: selectedArtists,
-          vocabularyLevel: selectedLevel,
-          sessionGoalMinutes: selectedDailyGoal
+          vocabularyLevel: selectedLevel || 'beginner',
+          sessionGoalMinutes: selectedDailyGoal || 15
         })
       });
 
@@ -166,9 +141,9 @@ const PreferencesPage = () => {
         body: JSON.stringify({
           learningLanguage: selectedLanguages[0] || 'Spanish',
           nativeLanguage: selectedKnownLanguages[0] || 'English',
-          knownLanguages: selectedKnownLanguages,
-          proficiency: selectedLevel,
-          dailyGoal: selectedDailyGoal
+          knownLanguages: selectedKnownLanguages.length > 0 ? selectedKnownLanguages : ['English'],
+          proficiency: selectedLevel || 'beginner',
+          dailyGoal: selectedDailyGoal || 15
         })
       });
 
