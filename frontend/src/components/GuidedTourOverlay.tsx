@@ -26,47 +26,47 @@ interface TourStep {
 
 const TOUR_STEPS: TourStep[] = [
   {
-    title: "Welcome to Lingofy! 🎵",
+    title: "Welcome to Lingofy",
     subtitle: "Learn Languages Effortlessly Through Music",
-    description: "Welcome! Lingofy is designed to teach you languages (Spanish, Hindi, Korean, English) naturally through the songs & lyrics you love.",
+    description: "Welcome! Lingofy is designed to teach you languages (Spanish, Hindi, Korean, English) naturally through the songs and lyrics you love.",
     icon: Sparkles,
-    badge: "Step 1 of 5 • Overview",
+    badge: "Step 1 of 5 - Overview",
     instruction: "Let's take a quick 1-minute guided tour of your dashboard panels!"
   },
   {
-    title: "1. Navigation Sidebar 🧭",
+    title: "1. Navigation Sidebar",
     subtitle: "Access Home, Analytics, Library & Personal Notes",
     description: "Use the resizable left sidebar to switch between your Home feed, Learning Statistics, Playlist Library, Achievements, and Notes Hub.",
     icon: Compass,
     targetSelector: '[data-tour="sidebar"]',
-    badge: "Step 2 of 5 • Sidebar",
+    badge: "Step 2 of 5 - Sidebar",
     instruction: "Click any icon on the sidebar to switch views anytime."
   },
   {
-    title: "2. Music Player & Synced Lyrics 🎧",
+    title: "2. Music Player & Synced Lyrics",
     subtitle: "Real-Time Bilingual Subtitles & Time Sync",
     description: "Here you can play tracks with side-by-side synchronized lyrics. Click any lyric line to jump to that timestamp in the audio!",
     icon: Music,
     targetSelector: '[data-tour="player"]',
-    badge: "Step 3 of 5 • Music Player",
+    badge: "Step 3 of 5 - Music Player",
     instruction: "Toggle parallel English, Hindi, Spanish, or Korean translations."
   },
   {
-    title: "3. Practice Song Quiz 📖",
+    title: "3. Practice Song Quiz",
     subtitle: "15-Question Quiz Generated Right From The Song",
-    description: "Click the 'Practice Song' button on any track to launch a 15-question mix quiz on pronunciation, lyrics, fill-in-the-blanks & vocabulary.",
+    description: "Click the 'Practice Song' button on any track to launch a 15-question mix quiz on pronunciation, lyrics, fill-in-the-blanks and vocabulary.",
     icon: BookOpen,
     targetSelector: '[data-tour="practice-song"]',
-    badge: "Step 4 of 5 • Song Practice",
+    badge: "Step 4 of 5 - Song Practice",
     instruction: "Practice Mode is 100% stress-free for self-assessment!"
   },
   {
-    title: "4. Custom Song Imports & Quota 🎵",
+    title: "4. Custom Song Imports & Quota",
     subtitle: "Import up to 5 YouTube tracks with AI Lyrics",
     description: "Click 'Import Song' to add custom YouTube audio tracks into your library. AI will automatically extract subtitles and parallel translations.",
     icon: Upload,
     targetSelector: '[data-tour="import-song"]',
-    badge: "Step 5 of 5 • Custom Import",
+    badge: "Step 5 of 5 - Custom Import",
     instruction: "You get 5 custom YouTube upload slots for your private collection."
   }
 ];
