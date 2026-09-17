@@ -26,7 +26,12 @@ interface ITrack {
   phrases: IMindfulPhrase[];
 }
 
-export function MindfulListeningPage() {
+interface MindfulListeningProps {
+  onBack?: () => void;
+  isEmbedded?: boolean;
+}
+
+export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulListeningProps = {}) {
   const navigate = useNavigate();
   const [tracks, setTracks] = useState<ITrack[]>([]);
   const [activeTrack, setActiveTrack] = useState<ITrack | null>(null);
@@ -173,12 +178,29 @@ export function MindfulListeningPage() {
   const [showPracticeModal, setShowPracticeModal] = useState(false);
 
   return (
-    <div style={{ padding: '24px 40px', height: '100vh', boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: '#000000', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ 
+      padding: isEmbedded ? '0' : '24px 40px', 
+      height: isEmbedded ? 'auto' : '100vh', 
+      minHeight: isEmbedded ? 'calc(100vh - 140px)' : '100vh',
+      boxSizing: 'border-box', 
+      overflow: 'hidden', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      background: isEmbedded ? 'transparent' : '#000000', 
+      color: '#fff', 
+      fontFamily: 'Inter, sans-serif',
+      width: '100%',
+      maxWidth: '1200px',
+      margin: '0 auto'
+    }}>
       
       {/* Header with Back Button and Practice Song */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', maxWidth: '1200px', width: '100%', margin: '0 auto 16px auto' }}>
         <button 
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (onBack) onBack();
+            else navigate(-1);
+          }}
           style={{ 
             background: 'rgba(255,255,255,0.05)', 
             border: '1px solid rgba(255,255,255,0.1)', 
@@ -197,7 +219,7 @@ export function MindfulListeningPage() {
           onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
         >
           <ArrowLeft size={18} />
-          Back
+          {isEmbedded ? 'Back to Dashboard' : 'Back'}
         </button>
 
         {activeTrack && (

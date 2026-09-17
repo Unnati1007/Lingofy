@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
@@ -6,7 +6,6 @@ import PreferencesPage from './pages/PreferencesPage'
 import DashboardPage from './pages/DashboardPage'
 import AdminDashboard from './pages/AdminDashboard'
 import LessonsPage from './pages/LessonsPage'
-import { MindfulListeningPage } from './pages/MindfulListeningPage'
 
 function App() {
   return (
@@ -19,7 +18,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/lessons" element={<LessonsPage />} />
-        <Route path="/mindful-listening" element={<MindfulListeningPage />} />
+        <Route path="/mindful-listening" element={<Navigate to="/dashboard?tab=mindful" replace />} />
       </Routes>
     </Router>
   )

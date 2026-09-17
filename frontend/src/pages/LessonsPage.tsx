@@ -1638,7 +1638,7 @@ const LessonsPage = () => {
           <NavItem icon={<Bookmark size={20} />} label="Notes" onClick={() => navigate('/dashboard?tab=notes')} collapsed={isCompact} />
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" onClick={() => navigate('/dashboard?tab=statistics')} collapsed={isCompact} />
           <NavItem icon={<Award size={20} />} label="Achievements" onClick={() => navigate('/dashboard?tab=achievements')} collapsed={isCompact} />
-          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isCompact} />
+          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/dashboard?tab=mindful')} collapsed={isCompact} />
           <NavItem icon={<HelpCircle size={20} />} label="Documentation" onClick={() => navigate('/dashboard?tab=docs')} collapsed={isCompact} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>

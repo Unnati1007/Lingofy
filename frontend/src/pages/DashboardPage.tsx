@@ -53,6 +53,7 @@ import NotesHub from '../components/notes/NotesHub';
 import { useResizableSidebar } from '../hooks/useResizableSidebar';
 import { SongPracticeModal } from '../components/SongPracticeModal';
 import { FaqChatbot } from '../components/FaqChatbot';
+import { MindfulListeningPage } from './MindfulListeningPage';
 
 const SONGS_DATA = [
   { id: 1, title: 'STRUCT', artist: 'UdieNnx', duration: 234, image: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=200&h=200&fit=crop' },
@@ -91,7 +92,7 @@ const DashboardPage = () => {
   const [showQuizModal, setShowQuizModal] = useState(false);
   const [modalMode, setModalMode] = useState<'completed' | 'practice'>('practice');
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes' | 'mindful'>('home');
   const [history, setHistory] = useState<any[]>([]);
 
   // Notification States
@@ -276,7 +277,7 @@ const DashboardPage = () => {
     const handleOpenImport = () => setShowImportModal(true);
     const handleOpenPractice = () => setShowQuizModal(true);
     const handleTabChange = (e: any) => {
-      if (e.detail && ['home', 'statistics', 'library', 'profile', 'docs', 'achievements', 'notes'].includes(e.detail)) {
+      if (e.detail && ['home', 'statistics', 'library', 'profile', 'docs', 'achievements', 'notes', 'mindful'].includes(e.detail)) {
         setActiveTab(e.detail);
       }
     };
@@ -365,10 +366,10 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const tabParam = params.get('tab') as 'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes';
+    const tabParam = params.get('tab') as 'home' | 'statistics' | 'library' | 'profile' | 'docs' | 'achievements' | 'notes' | 'mindful';
     if (currentUser?.learningMode === 'traditional' && (!tabParam || tabParam === 'home' || tabParam === 'library')) {
       setActiveTab('statistics');
-    } else if (tabParam && ['home', 'statistics', 'library', 'profile', 'docs', 'achievements', 'notes'].includes(tabParam)) {
+    } else if (tabParam && ['home', 'statistics', 'library', 'profile', 'docs', 'achievements', 'notes', 'mindful'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [location.search, currentUser]);
@@ -3015,7 +3016,7 @@ const DashboardPage = () => {
           <NavItem id="tour-sidebar-notes" icon={<Bookmark size={20} />} label="Notes" active={activeTab === 'notes'} onClick={() => { setActiveTab('notes'); setIsMobileOpen(false); }} collapsed={isCompact} />
           <NavItem id="tour-sidebar-statistics" icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isCompact} />
           <NavItem id="tour-sidebar-achievements" icon={<Award size={20} />} label="Achievements" active={activeTab === 'achievements'} onClick={() => { setActiveTab('achievements'); setIsMobileOpen(false); }} collapsed={isCompact} />
-          <NavItem id="tour-sidebar-mindful" icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isCompact} />
+          <NavItem id="tour-sidebar-mindful" icon={<Headphones size={20} />} label="Mindful Listening" active={activeTab === 'mindful'} onClick={() => { setActiveTab('mindful'); setIsMobileOpen(false); }} collapsed={isCompact} />
           <NavItem icon={<HelpCircle size={20} />} label="Documentation" active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); setIsMobileOpen(false); }} collapsed={isCompact} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
@@ -3227,7 +3228,9 @@ const DashboardPage = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
-            {activeTab === 'docs' ? renderDocs() : activeTab === 'achievements' ? renderAchievements() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : activeTab === 'notes' ? (
+            {activeTab === 'docs' ? renderDocs() : activeTab === 'achievements' ? renderAchievements() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'mindful' ? (
+              <MindfulListeningPage isEmbedded={true} onBack={() => setActiveTab('home')} />
+            ) : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : activeTab === 'notes' ? (
               <NotesHub currentUser={currentUser} />
             ) : currentUser?.learningMode !== 'traditional' ? (
               <div style={{ width: '100%', maxWidth: '1200px' }}>
