@@ -78,7 +78,10 @@ export function MindfulListeningPage() {
       // Only sync standard playback time if we are not actively scrubbing
       setCurrentTime(audio.currentTime);
     };
-    const onEnded = () => setIsPlaying(false);
+    const onEnded = () => {
+      setIsPlaying(false);
+      setShowPracticeModal(true);
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('ended', onEnded);

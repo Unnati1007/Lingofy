@@ -271,6 +271,27 @@ const DashboardPage = () => {
     fetchData();
   }, [navigate]);
 
+  // Global Chatbot Event Listeners for Direct Navigation & Actions
+  useEffect(() => {
+    const handleOpenImport = () => setShowImportModal(true);
+    const handleOpenPractice = () => setShowQuizModal(true);
+    const handleTabChange = (e: any) => {
+      if (e.detail && ['home', 'statistics', 'library', 'profile', 'docs', 'achievements', 'notes'].includes(e.detail)) {
+        setActiveTab(e.detail);
+      }
+    };
+
+    window.addEventListener('lingofy-open-import', handleOpenImport);
+    window.addEventListener('lingofy-open-practice', handleOpenPractice);
+    window.addEventListener('lingofy-tab-change', handleTabChange);
+
+    return () => {
+      window.removeEventListener('lingofy-open-import', handleOpenImport);
+      window.removeEventListener('lingofy-open-practice', handleOpenPractice);
+      window.removeEventListener('lingofy-tab-change', handleTabChange);
+    };
+  }, []);
+
   useEffect(() => {
     // Session Timer logic & Goal notifications
     const timer = setInterval(() => {
@@ -645,7 +666,7 @@ const DashboardPage = () => {
                 setIsPlaying(false);
               } else if (event.data === (window as any).YT.PlayerState.ENDED || event.data === 0) {
                 setIsPlaying(false);
-                setModalMode('completed');
+                setModalMode('practice');
                 setShowQuizModal(true);
               }
             },
@@ -666,19 +687,26 @@ const DashboardPage = () => {
     }
   }, [videoId, ytReady, loading]);
 
-  // Sync currentTime with actual YouTube player
+  // Sync currentTime with actual YouTube player & detect song finish
   useEffect(() => {
     let interval: any;
     if (isPlaying && playerRef.current && playerRef.current.getCurrentTime) {
       interval = setInterval(() => {
         try {
           const time = playerRef.current.getCurrentTime();
+          const duration = playerRef.current.getDuration() || currentSong?.durationSeconds || 180;
           setCurrentTime(time);
+
+          if (duration > 5 && time >= duration - 0.8) {
+            setIsPlaying(false);
+            setModalMode('practice');
+            setShowQuizModal(true);
+          }
         } catch (e) { console.error("Sync error", e); }
-      }, 50); // 50ms for ultra-smooth sync like Spotify
+      }, 50);
     }
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, currentSong]);
 
   const handlePlayPause = () => {
     console.log("handlePlayPause clicked, playerRef.current:", playerRef.current);
@@ -2911,6 +2939,7 @@ const DashboardPage = () => {
 
       {/* Sidebar */}
       <aside 
+        id="tour-sidebar"
         className={`desktop-sidebar ${isMobileOpen ? 'sidebar-open' : ''} ${isResizing ? 'resizing' : ''}`} 
         style={{ 
           width: `${effectiveWidth}px`, 
@@ -2986,7 +3015,7 @@ const DashboardPage = () => {
           <NavItem icon={<Bookmark size={20} />} label="Notes" active={activeTab === 'notes'} onClick={() => { setActiveTab('notes'); setIsMobileOpen(false); }} collapsed={isCompact} />
           <NavItem icon={<BarChart2 size={20} />} label="Statistics" active={activeTab === 'statistics'} onClick={() => { setActiveTab('statistics'); setIsMobileOpen(false); }} collapsed={isCompact} />
           <NavItem icon={<Award size={20} />} label="Achievements" active={activeTab === 'achievements'} onClick={() => { setActiveTab('achievements'); setIsMobileOpen(false); }} collapsed={isCompact} />
-          <NavItem icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isCompact} />
+          <NavItem id="tour-mindful-listening" icon={<Headphones size={20} />} label="Mindful Listening" onClick={() => navigate('/mindful-listening')} collapsed={isCompact} />
           <NavItem icon={<HelpCircle size={20} />} label="Documentation" active={activeTab === 'docs'} onClick={() => { setActiveTab('docs'); setIsMobileOpen(false); }} collapsed={isCompact} />
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
@@ -3228,7 +3257,7 @@ const DashboardPage = () => {
                 const isHardPassed = progressObj.hardCompleted >= 3;
 
                 return (
-                  <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '28px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div id="tour-language-card" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '28px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* Language Selector Dropdown */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <label style={{ fontSize: '11px', opacity: 0.4, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Learning Language</label>
@@ -3387,7 +3416,7 @@ const DashboardPage = () => {
               })()}
 
               {/* Dynamic Music Player Card */}
-              <div style={{ 
+              <div id="tour-song-player" style={{ 
                 background: 'linear-gradient(135deg, #1e1e1e 0%, #000 100%)', borderRadius: '24px', padding: '32px',
                 border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
               }}>
@@ -3840,7 +3869,7 @@ const DashboardPage = () => {
           </div>
 
             {/* Bottom Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '48px' }} className="content-grid-desktop">
+          <div id="tour-song-library" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '48px' }} className="content-grid-desktop">
             <section>
               {playlists.length > 0 && (
                 <div style={{ marginBottom: '40px' }}>
@@ -5110,8 +5139,8 @@ const DashboardPage = () => {
   );
 };
 
-const NavItem = ({ icon, label, active = false, onClick, collapsed = false }: any) => (
-  <div onClick={onClick} style={{ 
+const NavItem = ({ icon, label, active = false, onClick, collapsed = false, id }: any) => (
+  <div id={id} onClick={onClick} style={{ 
     display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '16px', padding: '12px 16px', borderRadius: '12px', 
     background: active ? 'rgba(32, 190, 255, 0.1)' : 'transparent',
     color: active ? '#20BEFF' : 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: active ? '700' : '500',
