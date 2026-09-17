@@ -340,11 +340,10 @@ const DashboardPage = () => {
           }
         }
 
-        // 2. Goal Incomplete Reminder Trigger (after 45s of active session if goal is pending)
+        // 2. Goal Incomplete Reminder Trigger (silent, no annoying popup)
         if (newTime === 45 && !goalAlreadyMet && !hasNotifiedIncomplete) {
           setHasNotifiedIncomplete(true);
-          setShowGoalIncompleteToast(true);
-          setTimeout(() => setShowGoalIncompleteToast(false), 6000);
+          // Do not display intrusive toast popup automatically
 
           // Save goal incomplete notification reminder to backend
           const token = localStorage.getItem('token');
@@ -1418,6 +1417,7 @@ const DashboardPage = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             {/* Quota Badge */}
             <div 
+              id="tour-library-quota"
               title="You can add unlimited community songs to your playlists. Custom song imports are capped at 5 slots to preserve storage."
               style={{
                 display: 'flex',
@@ -1438,6 +1438,7 @@ const DashboardPage = () => {
 
             {/* Import Song Button */}
             <button 
+              id="tour-library-import-btn"
               onClick={handleOpenImportModal}
               className="btn-hover"
               style={{
@@ -1483,7 +1484,9 @@ const DashboardPage = () => {
         </div>
 
         {/* Sub-Tabs Bar */}
-        <div style={{ 
+        <div 
+          id="tour-library-tabs"
+          style={{ 
           display: 'flex', 
           gap: '8px', 
           background: 'rgba(255,255,255,0.03)', 
@@ -2670,16 +2673,16 @@ const DashboardPage = () => {
 
   const renderProfile = () => {
     return (
-      <div style={{ padding: '0 24px 24px 24px', width: '100%', maxWidth: '1100px' }}>
+      <div style={{ padding: '0 24px 12px 24px', width: '100%', maxWidth: '1100px' }}>
         {/* Header with Save button on top right */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
-            <h2 style={{ fontSize: '28px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>Profile Settings</h2>
-            <p style={{ opacity: 0.6, fontSize: '13px', margin: '4px 0 0 0' }}>Update your personal details, demographics, and learning goals.</p>
+            <h2 style={{ fontSize: '24px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>Profile Settings</h2>
+            <p style={{ opacity: 0.6, fontSize: '12px', margin: '2px 0 0 0' }}>Update your personal details, demographics, and learning goals.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             {profileSuccessMessage && (
-              <span style={{ color: '#20BEFF', fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ color: '#20BEFF', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 ✓ {profileSuccessMessage}
               </span>
             )}
@@ -2692,10 +2695,10 @@ const DashboardPage = () => {
                 background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', 
                 color: '#000', 
                 border: 'none', 
-                padding: '10px 24px', 
-                borderRadius: '12px', 
+                padding: '8px 20px', 
+                borderRadius: '10px', 
                 fontWeight: '800', 
-                fontSize: '13px',
+                fontSize: '12px',
                 cursor: savingProfile ? 'not-allowed' : 'pointer', 
                 opacity: savingProfile ? 0.7 : 1,
                 display: 'flex',
@@ -2709,47 +2712,47 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSaveProfile} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', width: '100%' }}>
+        <form onSubmit={handleSaveProfile} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
           
           {/* Card 1: Personal Details */}
           <div style={{ 
             background: 'rgba(255,255,255,0.03)', 
             border: '1px solid rgba(255,255,255,0.06)', 
-            borderRadius: '20px', 
-            padding: '22px', 
+            borderRadius: '16px', 
+            padding: '16px', 
             display: 'flex', 
             flexDirection: 'column', 
-            gap: '14px' 
+            gap: '10px' 
           }}>
-            <div style={{ fontSize: '13px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <User size={15} color="#20BEFF" /> Personal Information
+            <div style={{ fontSize: '12px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <User size={14} color="#20BEFF" /> Personal Information
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Full Name</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Full Name</label>
                 <input 
                   type="text" 
                   value={profileForm.name} 
                   onChange={(e) => setProfileForm({...profileForm, name: e.target.value})} 
                   required 
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', outline: 'none' }} 
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Email <span style={{opacity:0.5}}>(Read Only)</span></label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Email <span style={{opacity:0.5}}>(Read Only)</span></label>
                 <input 
                   type="email" 
                   value={currentUser?.email || ''} 
                   readOnly 
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.25)', color: 'rgba(255,255,255,0.5)', fontSize: '13px', outline: 'none', cursor: 'not-allowed' }} 
+                  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.25)', color: 'rgba(255,255,255,0.5)', fontSize: '12px', outline: 'none', cursor: 'not-allowed' }} 
                 />
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Age</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Age</label>
                 <input 
                   type="number" 
                   min="1" 
@@ -2757,51 +2760,51 @@ const DashboardPage = () => {
                   value={profileForm.age} 
                   onChange={(e) => setProfileForm({...profileForm, age: e.target.value})} 
                   placeholder="e.g. 25" 
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', outline: 'none' }} 
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Mobile</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Mobile</label>
                 <input 
                   type="text" 
                   value={profileForm.mobile} 
                   onChange={(e) => setProfileForm({...profileForm, mobile: e.target.value})} 
                   placeholder="e.g. +1 234 567 8900" 
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', outline: 'none' }} 
                 />
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Profession (Optional)</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Profession (Optional)</label>
                 <input 
                   type="text" 
                   value={profileForm.profession} 
                   onChange={(e) => setProfileForm({...profileForm, profession: e.target.value})} 
                   placeholder="e.g. Software Engineer" 
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', outline: 'none' }} 
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>Known Languages</label>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>Known Languages</label>
                 <input 
                   type="text" 
                   value={profileForm.knownLanguages} 
                   onChange={(e) => setProfileForm({...profileForm, knownLanguages: e.target.value})} 
                   placeholder="e.g. English, Hindi" 
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none' }} 
+                  style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', outline: 'none' }} 
                 />
               </div>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', opacity: 0.8 }}>About Me</label>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '4px', opacity: 0.8 }}>About Me</label>
               <textarea 
                 value={profileForm.about} 
                 onChange={(e) => setProfileForm({...profileForm, about: e.target.value})} 
                 placeholder="Tell us a little about yourself..." 
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '13px', outline: 'none', height: '62px', resize: 'none' }} 
+                style={{ width: '100%', padding: '7px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', outline: 'none', height: '42px', resize: 'none' }} 
               />
             </div>
           </div>
@@ -2810,16 +2813,16 @@ const DashboardPage = () => {
           <div style={{ 
             background: 'rgba(255,255,255,0.03)', 
             border: '1px solid rgba(255,255,255,0.06)', 
-            borderRadius: '20px', 
-            padding: '22px', 
+            borderRadius: '16px', 
+            padding: '16px', 
             display: 'flex', 
             flexDirection: 'column', 
-            gap: '14px',
+            gap: '10px',
             justifyContent: 'space-between'
           }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Target size={15} color="#20BEFF" /> Language & Learning Goals
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#20BEFF', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Target size={14} color="#20BEFF" /> Language & Learning Goals
               </div>
 
               {/* Learning Mode Switcher */}

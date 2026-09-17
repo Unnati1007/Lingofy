@@ -20,6 +20,9 @@ const STEP_TAB_MAPPING: Record<string, string> = {
   'tour-song-player': 'home',
   'tour-song-library': 'home',
   'tour-sidebar-library': 'library',
+  'tour-library-tabs': 'library',
+  'tour-library-import-btn': 'library',
+  'tour-library-quota': 'library',
   'tour-sidebar-notes': 'notes',
   'tour-notes-hub': 'notes',
   'tour-sidebar-statistics': 'statistics',
@@ -66,14 +69,32 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
   // --- SECTION 2: MUSIC LIBRARY ---
   {
     targetId: 'tour-sidebar-library',
-    title: '2. Music Library Section',
-    description: 'Now let\'s explore the Music Library! This section holds your full catalog of curated tracks, multi-language filter options, playlists, and custom YouTube song imports.',
+    title: '2. Music Library Section Overview',
+    description: 'Now let\'s explore the Music Library! This section holds your full catalog of curated tracks, multi-language filter options, custom playlists, and YouTube song imports.',
     position: 'right'
+  },
+  {
+    targetId: 'tour-library-tabs',
+    title: 'Library: Multi-Category Sub-Tabs & Filtering',
+    description: 'Seamlessly switch between Recommended For You, My Playlists, Global Community Songs, and My Custom Imports to find the perfect track for your study session.',
+    position: 'bottom'
+  },
+  {
+    targetId: 'tour-library-import-btn',
+    title: 'Library: Custom YouTube Song Import Engine',
+    description: 'Import any YouTube video link! Lingofy automatically extracts timed lyrics and generates parallel 4-language translations (Spanish, Hindi, Korean, English) for interactive practice.',
+    position: 'bottom'
+  },
+  {
+    targetId: 'tour-library-quota',
+    title: 'Library: Upload Slot Quotas & Unlimited Community Songs',
+    description: 'Keep track of your custom song upload quota (5 slots available). Plus, add unlimited global community songs to your playlists with zero storage quota usage!',
+    position: 'bottom'
   },
   // --- SECTION 3: PERSONAL NOTES HUB ---
   {
     targetId: 'tour-sidebar-notes',
-    title: '3. Personal Notes Hub & Flashcards Section',
+    title: '3. Personal Notes Hub Section Overview',
     description: 'Next up is the Personal Notes Hub! This section stores all your saved vocabulary flashcards and custom markdown study notes.',
     position: 'right'
   },
@@ -86,7 +107,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
   // --- SECTION 4: STATISTICS & HCI RESEARCH ANALYTICS ---
   {
     targetId: 'tour-sidebar-statistics',
-    title: '4. Statistics & Research Analytics Section',
+    title: '4. Statistics & Research Analytics Section Overview',
     description: 'Now let\'s inspect Statistics! This tab houses your daily activity streak heatmaps, detailed score history, and empirical HCI comparative analytics.',
     position: 'right'
   },
@@ -99,7 +120,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
   // --- SECTION 5: ACHIEVEMENTS & MILESTONE BADGES ---
   {
     targetId: 'tour-sidebar-achievements',
-    title: '5. Achievements & Social Sharing Section',
+    title: '5. Achievements & Social Sharing Section Overview',
     description: 'Let\'s visit Achievements! Track your learning milestones and share unlocked badges with your friends.',
     position: 'right'
   },
@@ -112,7 +133,7 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
   // --- SECTION 6: MINDFUL LISTENING SUBSYSTEM ---
   {
     targetId: 'tour-sidebar-mindful',
-    title: '6. Mindful Listening Subsystem Section',
+    title: '6. Mindful Listening Subsystem Section Overview',
     description: 'Next, explore Mindful Listening! Designed for passive learning during study sessions or relaxed focus time.',
     position: 'right'
   },
@@ -125,8 +146,8 @@ const DEFAULT_TOUR_STEPS: TourStep[] = [
   // --- SECTION 7: PROFILE & DUAL LEARNING MODE SWITCHER ---
   {
     targetId: 'tour-mode-toggle',
-    title: 'Profile: Dual Learning Mode Switcher',
-    description: 'In your Profile Settings, switch anytime between Music-Enhanced Mode (songs & interactive quizzes) and Traditional Learning Mode (quiet text-focused grammar drills).',
+    title: 'Profile: Dual Learning Mode Switcher & Daily Target',
+    description: 'In your Profile Settings, manage your daily learning target (e.g. 15 mins) and switch anytime between Music-Enhanced Mode (songs & interactive quizzes) and Traditional Learning Mode (quiet text-focused grammar drills).',
     position: 'top'
   },
   // --- SECTION 8: AI HELP ASSISTANT ---

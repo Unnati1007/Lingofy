@@ -179,9 +179,8 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
 
   return (
     <div id="tour-mindful-content" style={{ 
-      padding: isEmbedded ? '0' : '24px 40px', 
-      height: isEmbedded ? 'auto' : '100vh', 
-      minHeight: isEmbedded ? 'calc(100vh - 140px)' : '100vh',
+      padding: isEmbedded ? '0' : '16px 24px', 
+      height: 'auto', 
       boxSizing: 'border-box', 
       overflow: 'hidden', 
       display: 'flex', 
@@ -195,7 +194,7 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
     }}>
       
       {/* Header with Back Button and Practice Song */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', maxWidth: '1200px', width: '100%', margin: '0 auto 16px auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', maxWidth: '1200px', width: '100%', margin: '0 auto 10px auto' }}>
         <button 
           onClick={() => {
             if (onBack) onBack();
@@ -205,20 +204,20 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
             background: 'rgba(255,255,255,0.05)', 
             border: '1px solid rgba(255,255,255,0.1)', 
             color: '#fff', 
-            borderRadius: '12px', 
-            padding: '10px 16px', 
+            borderRadius: '10px', 
+            padding: '8px 14px', 
             cursor: 'pointer', 
             display: 'flex', 
             alignItems: 'center', 
             gap: '8px',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: '600',
             transition: 'all 0.2s'
           }}
           onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
           onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={16} />
           {isEmbedded ? 'Back to Dashboard' : 'Back'}
         </button>
 
@@ -229,19 +228,19 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
               background: 'rgba(32, 190, 255, 0.15)',
               border: '1px solid rgba(32, 190, 255, 0.3)',
               color: '#20BEFF',
-              borderRadius: '12px',
-              padding: '10px 18px',
+              borderRadius: '10px',
+              padding: '8px 16px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: '700',
               transition: 'all 0.2s',
               boxShadow: '0 0 15px rgba(32, 190, 255, 0.15)'
             }}
           >
-            <BookOpen size={18} />
+            <BookOpen size={16} />
             Practice Song Quiz
           </button>
         )}
@@ -253,30 +252,30 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
         animate="show"
         style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '24px', flexShrink: 0 }}>
+        <div style={{ textAlign: 'center', marginBottom: '14px', flexShrink: 0 }}>
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
             style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
               justifyContent: 'center', 
-              width: '56px', 
-              height: '56px', 
+              width: '44px', 
+              height: '44px', 
               borderRadius: '50%', 
               background: 'rgba(32, 190, 255, 0.1)', 
               color: '#20BEFF',
-              marginBottom: '16px' 
+              marginBottom: '8px' 
             }}
           >
-            <Headphones size={28} />
+            <Headphones size={22} />
           </motion.div>
-          <h1 style={{ fontSize: '28px', fontWeight: '800', letterSpacing: '1px', color: '#fff', marginBottom: '12px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: '800', letterSpacing: '0.5px', color: '#fff', marginBottom: '6px' }}>
             Mindful Listening
           </h1>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', maxWidth: '600px', margin: '0 auto', lineHeight: '1.5', marginBottom: '20px' }}>
-            Immerse yourself in gentle language practice. No scoring, no pressure. Just relax, listen, and let the language flow naturally.
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', maxWidth: '550px', margin: '0 auto', lineHeight: '1.4', marginBottom: '10px' }}>
+            Immerse yourself in gentle language practice. Relax, listen, and let the language flow naturally.
           </p>
 
           <select 
@@ -286,11 +285,11 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(255,255,255,0.1)',
               color: '#fff',
-              padding: '10px 16px',
+              padding: '6px 14px',
               borderRadius: '8px',
               outline: 'none',
               cursor: 'pointer',
-              fontSize: '14px'
+              fontSize: '13px'
             }}
           >
             <option value="hindi" style={{ color: '#000' }}>Hindi</option>
@@ -299,18 +298,18 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
           </select>
         </div>
 
-        <div style={{ display: 'flex', gap: '32px', flex: 1, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: '24px', flex: 1, overflow: 'hidden' }}>
           
           {/* Tracks Sidebar */}
-          <motion.div variants={containerVariants} className="custom-scrollbar" style={{ flex: '1', minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', paddingRight: '12px' }}>
-            <h2 style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '8px', fontWeight: 'bold' }}>Available Tracks</h2>
+          <motion.div variants={containerVariants} className="custom-scrollbar" style={{ flex: '1', minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', paddingRight: '8px' }}>
+            <h2 style={{ fontSize: '15px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px', fontWeight: 'bold' }}>Available Tracks</h2>
             {tracks.map(track => (
               <div 
                 key={track._id}
                 onClick={() => handleTrackChange(track)}
                 style={{
-                  padding: '16px',
-                  borderRadius: '16px',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
                   background: activeTrack?._id === track._id ? 'rgba(32, 190, 255, 0.1)' : 'rgba(255,255,255,0.02)',
                   border: activeTrack?._id === track._id ? '1px solid rgba(32, 190, 255, 0.3)' : '1px solid transparent',
                   cursor: 'pointer',
@@ -318,16 +317,16 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
                   flexShrink: 0
                 }}
               >
-                <div style={{ fontSize: '15px', fontWeight: activeTrack?._id === track._id ? 'bold' : 'normal', color: '#fff', marginBottom: '4px' }}>{track.title}</div>
-                <div style={{ fontSize: '12px', color: activeTrack?._id === track._id ? '#20BEFF' : 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>{track.theme}</div>
+                <div style={{ fontSize: '14px', fontWeight: activeTrack?._id === track._id ? 'bold' : 'normal', color: '#fff', marginBottom: '2px' }}>{track.title}</div>
+                <div style={{ fontSize: '11px', color: activeTrack?._id === track._id ? '#20BEFF' : 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{track.theme}</div>
               </div>
             ))}
           </motion.div>
 
           {/* Player Main Area */}
-          <motion.div variants={containerVariants} style={{ flex: '2', minWidth: '400px', display: 'flex', flexDirection: 'column' }}>
-            <Card style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent style={{ padding: '32px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+          <motion.div variants={containerVariants} style={{ flex: '2', minWidth: '360px', display: 'flex', flexDirection: 'column' }}>
+            <Card style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardContent style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                 
                 {activeTrack ? (
                   <>
@@ -340,19 +339,19 @@ export function MindfulListeningPage({ onBack, isEmbedded = false }: MindfulList
                     />
 
                     {/* Transcript Area */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', marginBottom: '40px' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', marginBottom: '20px' }}>
                       <motion.div 
                         key={activePhrase?._id || 'empty'}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.8 }}
-                        style={{ minHeight: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                        style={{ minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
                       >
-                        <div style={{ fontSize: '28px', color: '#fff', fontWeight: '300', marginBottom: '16px', lineHeight: '1.4' }}>
+                        <div style={{ fontSize: '24px', color: '#fff', fontWeight: '300', marginBottom: '10px', lineHeight: '1.3' }}>
                           {activePhrase?.text || '...'}
                         </div>
-                        <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
+                        <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
                           {activePhrase?.translation || ''}
                         </div>
                       </motion.div>
