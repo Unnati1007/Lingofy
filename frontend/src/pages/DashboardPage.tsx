@@ -171,9 +171,12 @@ const DashboardPage = () => {
             knownLanguages: userData.knownLanguages ? userData.knownLanguages.join(', ') : ''
           });
           
-          // Check if profile is incomplete (only check critical fields like learningLanguage)
-          if (!userData.learningLanguage) {
+          // Check if profile is incomplete (only show once per login session / first time signup)
+          const profilePromptKey = `profilePromptDismissed_${userData._id || userData.email || 'user'}`;
+          const alreadyPrompted = sessionStorage.getItem(profilePromptKey);
+          if (!userData.learningLanguage && !alreadyPrompted) {
             setShowCompleteProfilePopup(true);
+            sessionStorage.setItem(profilePromptKey, 'true');
           }
 
           // If they are in traditional mode and currently on 'home' or 'library', redirect to statistics (as dashboard doesn't have lessons inside it)
@@ -378,6 +381,10 @@ const DashboardPage = () => {
       if (res.ok) {
         const data = await res.json();
         setCurrentUser(data.user);
+        if (data.user) {
+          sessionStorage.setItem(`profilePromptDismissed_${data.user._id || data.user.email || 'user'}`, 'true');
+        }
+        setShowCompleteProfilePopup(false);
         setProfileSuccessMessage('Profile updated successfully!');
         setTimeout(() => setProfileSuccessMessage(''), 3000);
       }
@@ -2094,7 +2101,7 @@ const DashboardPage = () => {
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
           <NavItem icon={<Settings size={20} />} label="Profile" active={activeTab === 'profile'} onClick={() => { setActiveTab('profile'); setIsMobileOpen(false); }} collapsed={isCompact} />
-          <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); navigate('/login'); }} collapsed={isCompact} />
+          <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); sessionStorage.clear(); navigate('/login'); }} collapsed={isCompact} />
         </div>
 
         {/* Drag Resizer Handle on Right Edge */}
@@ -3423,7 +3430,10 @@ const DashboardPage = () => {
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(32, 190, 255, 0.15)', position: 'relative'
           }}>
             <button 
-              onClick={() => setShowCompleteProfilePopup(false)}
+              onClick={() => {
+                if (currentUser) sessionStorage.setItem(`profilePromptDismissed_${currentUser._id || currentUser.email || 'user'}`, 'true');
+                setShowCompleteProfilePopup(false);
+              }}
               style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             ><X size={16} /></button>
 
@@ -3442,14 +3452,21 @@ const DashboardPage = () => {
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button 
-                onClick={() => setShowCompleteProfilePopup(false)} 
+                onClick={() => {
+                  if (currentUser) sessionStorage.setItem(`profilePromptDismissed_${currentUser._id || currentUser.email || 'user'}`, 'true');
+                  setShowCompleteProfilePopup(false);
+                }} 
                 className="btn-hover" 
                 style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
               >
                 Later
               </button>
               <button 
-                onClick={() => { setShowCompleteProfilePopup(false); setActiveTab('profile'); }} 
+                onClick={() => { 
+                  if (currentUser) sessionStorage.setItem(`profilePromptDismissed_${currentUser._id || currentUser.email || 'user'}`, 'true');
+                  setShowCompleteProfilePopup(false); 
+                  setActiveTab('profile'); 
+                }} 
                 className="btn-hover" 
                 style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #20BEFF 0%, #0099e6 100%)', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}
               >

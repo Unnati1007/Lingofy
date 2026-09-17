@@ -935,7 +935,7 @@ const AdminDashboard = () => {
           <SidebarItem 
             icon={<LogOut size={18} />} 
             label="Logout" 
-            onClick={() => { localStorage.clear(); navigate('/login'); }} 
+            onClick={() => { localStorage.clear(); sessionStorage.clear(); navigate('/login'); }} 
           />
         </div>
       </aside>

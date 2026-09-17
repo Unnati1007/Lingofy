@@ -1641,7 +1641,7 @@ const LessonsPage = () => {
         </nav>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px' }}>
           <NavItem icon={<Settings size={20} />} label="Profile" onClick={() => navigate('/dashboard?tab=profile')} collapsed={isCompact} />
-          <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); navigate('/login'); }} collapsed={isCompact} />
+          <NavItem icon={<LogOut size={20} />} label="Logout" onClick={() => { localStorage.clear(); sessionStorage.clear(); navigate('/login'); }} collapsed={isCompact} />
         </div>
 
         {/* Drag Resizer Handle */}
