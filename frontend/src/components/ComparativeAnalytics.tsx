@@ -76,8 +76,10 @@ export const ComparativeAnalytics: React.FC<ComparativeAnalyticsProps> = ({ hist
   // Dynamic Session Flow / Practice Time (in minutes)
   const getSessionMins = (attempts: HistoryAttempt[]): number | null => {
     if (!attempts || attempts.length === 0) return null;
-    const totalSec = attempts.reduce((acc, curr) => {
-      return acc + (curr.timeSpentSeconds || 120);
+    const attemptsWithTime = attempts.filter(a => a.timeSpentSeconds && a.timeSpentSeconds > 0);
+    if (attemptsWithTime.length === 0) return null;
+    const totalSec = attemptsWithTime.reduce((acc, curr) => {
+      return acc + curr.timeSpentSeconds!;
     }, 0);
     return Number((totalSec / 60).toFixed(1));
   };

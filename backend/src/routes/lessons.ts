@@ -379,7 +379,7 @@ router.get("/history", protect, async (req: AuthRequest, res: Response) => {
   try {
     const history = await LessonAttempt.find({ userId: req.user._id, $or: [{ status: 'completed' }, { score: { $gt: 0 } }] })
       .sort({ completedAt: -1 })
-      .select('language level score xpEarned completedAt');
+      .select('language level mode score xpEarned completedAt totalTimeSpentSeconds questions maxScore');
 
     res.status(200).json(history);
   } catch (error) {
