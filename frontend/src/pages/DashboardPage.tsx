@@ -3426,7 +3426,7 @@ const DashboardPage = () => {
  >
  {activeTab === 'docs' ? renderDocs() : activeTab === 'achievements' ? renderAchievements() : activeTab === 'profile' ? renderProfile() : activeTab === 'statistics' ? renderStatistics() : activeTab === 'mindful' ? (
  <MindfulListeningPage isEmbedded={true} onBack={() => setActiveTab('home')} />
- ) : activeTab === 'library' && currentUser?.learningMode !== 'traditional' ? renderLibrary() : activeTab === 'notes' ? (
+ ) : activeTab === 'library' ? renderLibrary() : activeTab === 'notes' ? (
  <NotesHub currentUser={currentUser} />
  ) : currentUser?.learningMode !== 'traditional' ? (
  <div style={{ width: '100%', maxWidth: '1200px' }}>
