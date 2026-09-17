@@ -652,19 +652,20 @@ const LessonsPage = () => {
                   style={{
                     width: '280px', 
                     padding: '24px 20px', 
-                    background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                    border: '1px solid rgba(255,255,255,0.08)', 
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.18)', 
                     borderRadius: '24px',
                     cursor: 'pointer', 
                     transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
                     position: 'relative',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    boxShadow: '0 10px 30px -10px rgba(0,0,0,0.5)'
                   }}
                 >
                   <div className="card-glow" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100%', background: `radial-gradient(circle at 50% 0%, ${glow} 0%, transparent 70%)`, opacity: 0, transition: 'opacity 0.4s ease' }} />
                   
-                  <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: `3px solid rgba(255,255,255,0.1)`, boxShadow: `0 8px 24px ${glow}`, flexShrink: 0, zIndex: 1 }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: `3px solid rgba(255,255,255,0.15)`, boxShadow: `0 8px 24px ${glow}`, flexShrink: 0, zIndex: 1 }}>
                     <img src={img} alt={`${name} flag`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   
@@ -674,7 +675,7 @@ const LessonsPage = () => {
                   </div>
 
                   {prog ? (
-                    <div style={{ width: '100%', zIndex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: '20px', padding: '16px' }}>
+                    <div style={{ width: '100%', zIndex: 1, background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '16px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', opacity: 0.7, marginBottom: '8px', fontWeight: '600' }}>
                         <span>Progress</span><span>{Math.round((completedCount/totalNodes)*100)}%</span>
                       </div>
@@ -725,8 +726,8 @@ const LessonsPage = () => {
             @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
             .premium-lang-card:hover { 
               transform: translateY(-12px) scale(1.02); 
-              border-color: rgba(255,255,255,0.2) !important; 
-              box-shadow: 0 32px 64px rgba(0,0,0,0.4) !important; 
+              border-color: rgba(255,255,255,0.38) !important; 
+              box-shadow: 0 32px 64px rgba(0,0,0,0.5) !important; 
             }
             .premium-lang-card:hover .card-glow { opacity: 1 !important; }
             .premium-lang-card:hover .start-btn { background: #fff !important; color: #000 !important; }
